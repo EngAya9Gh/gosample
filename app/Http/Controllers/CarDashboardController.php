@@ -31,113 +31,19 @@ class CarDashboardController extends Controller
     public function index()
     {
         abort_if(Gate::denies('car-dashboard'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-/*
-	$imeis = Car::where('afaqi', true)->pluck('imei')->toArray();
-	//  \Log::info($imeis);
-        $cars = [];
-        $token = $this->generateAndSaveToken();//'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS5hZmFxeS5zYS9hdXRoL2xvZ2luIiwiaWF0IjoxNjkxOTIyMzU3LCJleHAiOjE2OTQ1MTQzNTcsIm5iZiI6MTY5MTkyMjM1NywianRpIjoiSjVMQUpPMk50MUtQZW1XMCIsInN1YiI6IjYyNDFhNTAyYWE1MGM4NjY1NTdkZjA1YiIsInBydiI6IjI3MGVjZmM3ZWEzZWQ5MzdlYTg0OTM2MmEzYTUwOTEwYzZkOGNlNGYifQ.PnxbuNX6TOVhSUzmQRiVKVEYhsatZ8fxg_6koYBni5A';
-        // $token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vYXBpLmFmYXF5LnNhL2F1dGgvbG9naW4iLCJpYXQiOjE3MzYwMTI2OTQsImV4cCI6MTczODYwNDY5NCwibmJmIjoxNzM2MDEyNjk0LCJqdGkiOiIydURlMXF4aEhGcVNvOHNpIiwic3ViIjoiNjVmOTRiM2QxNTRmNTExYTZkMDAyZjIyIiwicHJ2IjoiMjcwZWNmYzdlYTNlZDkzN2VhODQ5MzYyYTNhNTA5MTBjNmQ4Y2U0ZiJ9.CTehf02lax9werqBjr2m4biWpQaJFXRdls_F6di7jCs";
-        // dd($imeis);
-        $data = $this->getVehicleDataCustom($token, $imeis);
-	// dd($data);
-	if($data) {
-            foreach ($data['data'] as $vehicle)
-            {
-                // create an array for the car
-                $car = [
-                    'id' => $vehicle['id'],
-                    'name' => $vehicle['n'],
-                    'i' => $vehicle['i'],
-                    'profile' => $vehicle['profile'],
-                    'sensors' => []
-                ];
-                $tempSensors = array_filter($vehicle['sensors'], function($sensor) {
-                    return $sensor['t'] == 'temperature';
-                    // return $sensor['n'] == 'TEMP1' || $sensor['n'] == 'TEMP2' || $sensor['n'] == 'TEMP3';
-                });
-                // foreach ($tempSensors as $sensor) {
-                //     // add the sensor to the car's sensors array
-                //     $car['sensors'][] = $sensor;
-                // }
-                // iterate through each sensor in the vehicle
-                $car['sensors'] = $tempSensors;
-                $cars[] = $car;
-
-                // \Log::alert($cars);
-
-            }
-        } else {
-            \Log::info("failed response");
-        }
-        // foreach ($imeis as $imei) {
-        //     // $afaqiVehicleId = '357073294755919';
-        //     $afaqiVehicleId = $imei;
-        //     $response = $this->getVehicleData($token, $afaqiVehicleId);
-        //     // \Log::info( $response);
-        //     if ($response) {
-        //         // decode the JSON response
-        //         $data = $response;
-        //         // $data = json_decode($response, true);
-
-        //         if ($data['status_code'] == 200) {
-        //             // create an empty array to store grouped sensors
-
-        //             // iterate through each vehicle in the response
-        //             foreach ($data['data'] as $vehicle)
-        //             {
-        //                 // create an array for the car
-        //                 $car = [
-        //                     'id' => $vehicle['id'],
-        //                     'name' => $vehicle['n'],
-        //                     'i' => $vehicle['i'],
-        //                     'profile' => $vehicle['profile'],
-        //                     'sensors' => []
-        //                 ];
-        //                 $tempSensors = array_filter($vehicle['sensors'], function($sensor) {
-        //                     return $sensor['t'] == 'temperature';
-        //                     // return $sensor['n'] == 'TEMP1' || $sensor['n'] == 'TEMP2' || $sensor['n'] == 'TEMP3';
-        //                 });
-        //                 // foreach ($tempSensors as $sensor) {
-        //                 //     // add the sensor to the car's sensors array
-        //                 //     $car['sensors'][] = $sensor;
-        //                 // }
-        //                 // iterate through each sensor in the vehicle
-        //                 $car['sensors'] = $tempSensors;
-        //                 $cars[] = $car;
-
-        //                 // \Log::alert($cars);
-
-        //             }
-        //         } else {
-        //             // handle error here
-        //             \Log::info("stauts code <> 200");
-        //         }
-        //     } else {
-        //         // handle error here
-        //         \Log::info("failed response");
-        //     }
-        // }
 
 
-        return view('car-dashboard',[
-            'cars' => $cars,
-        ]);
-*/
-
-//        $imeis = Car::where('afaqi', true)->pluck('imei')->toArray();
-$imeis = DB::table('cars')
-    ->where('afaqi', 1)
-    ->whereNull('deleted_at')
-    ->whereNotNull('imei')
-    ->pluck('imei')
-    ->toArray();
-\Log::info($imeis);
+        $imeis = DB::table('cars')
+            ->where('afaqi', 1)
+            ->whereNull('deleted_at')
+            ->whereNotNull('imei')
+            ->pluck('imei')
+            ->toArray();
         $cars = [];
 
         try {
             $token = $this->generateAndSaveToken();
             $data = $this->getVehicleDataCustom($token, $imeis);
-\Log::info($data['pagination']);
             if ($data && isset($data['data'])) {
                 foreach ($data['data'] as $vehicle) {
                     $car = [

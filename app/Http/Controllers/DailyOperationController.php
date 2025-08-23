@@ -33,202 +33,96 @@ class DailyOperationController extends Controller
 
     public function index(Request $request)
     {
-        $logged_id_user = auth()->user();
+        $loggedUser = auth()->user();
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         if ($request->ajax()) {
-            $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
-            
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+
+            $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
+                ->select('tasks.*');
+
+            if ($loggedUser->client_id) {
+                $query->where('billing_client', $loggedUser->client_id);
             }
-           
-            $table = Datatables::of($query)
 
-            ->filter(function ($query)  use ($request) {
-                if ($request->status !=null) {
-                    $query->where('status', '=',  $request->status );
+            $filters = [
+                'status'          => '=',
+                'driver_id'       => '=',
+                'billing_client'  => '=',
+                'from_location'   => '=',
+                'to_location'     => '=',
+                'keyword'         => '=',
+                'delayed_reason'  => '=',
+            ];
+
+            foreach ($filters as $field => $operator) {
+                if ($value = $request->get($field)) {
+                    $query->where("tasks.$field", $operator, $value);
                 }
-                if ($request->driver_id !=null) {
-                    $query->where('driver_id', '=', $request->driver_id );
-                }
-                if ($request->billing_client !=null) {
-                    $query->where('billing_client', '=', $request->billing_client );
-                }
-                if ($request->from_location !=null) {
-                    $query->where('from_location', '=', $request->from_location );
-                }
-                if ($request->to_location !=null) {
-                    $query->where('to_location', '=', $request->to_location );
-                }
-                if ($request->keyword !=null) {
-                    $query->where('tasks.id', '=', $request->keyword );
-                }
-                if ($request->delayed_reason !=null) {
-                    $query->where('tasks.delayed_reason', '=', $request->delayed_reason );
-                }
-                if($request->date_from !=null && $request->date_to !=null)
-                {
-                    $query->whereBetween('tasks.created_at',
-                        [
-                            Carbon::createFromDate($request->date_from )->toDateString(),
-                            Carbon::createFromDate($request->date_to)
-                            //  ->addDays(1)
-                             ->toDateString()
-                        ]
-                        );
-                } else{
-                    if ($request->date_from !=null) {
-                        $query->where('tasks.created_at', '>=', $request->date_from );
-                    }
-                    if ($request->date_to !=null) {
-                        $query->where('tasks.created_at', '>=', $request->date_to );
-                    }
-                }
+            }
 
-                if ($request->task_date !=null) {
-                    $query->whereDate('tasks.created_at','=', $request->task_date );
-                }
-            });
-            $table->addColumn('placeholder', '&nbsp;');
-            $table->addColumn('actions', '&nbsp;');
+            if ($request->date_from && $request->date_to) {
+                $query->whereBetween('tasks.created_at', [
+                    Carbon::parse($request->date_from)->startOfDay(),
+                    Carbon::parse($request->date_to)->endOfDay(),
+                ]);
+            } elseif ($request->date_from) {
+                $query->where('tasks.created_at', '>=', Carbon::parse($request->date_from)->startOfDay());
+            } elseif ($request->date_to) {
+                $query->where('tasks.created_at', '<=', Carbon::parse($request->date_to)->endOfDay());
+            }
 
-            $table->editColumn('actions', function ($row) {
-                $viewGate = 'task_show';
-                $editGate = 'task_edit';
-                $deleteGate = 'task_delete';
-                $crudRoutePart = 'tasks';
+            if ($request->task_date) {
+                $query->whereDate('tasks.created_at', '=', $request->task_date);
+            }
 
-                return view('partials.datatablesActions', compact(
-                    'viewGate',
-                    'editGate',
-                    'deleteGate',
-                    'crudRoutePart',
-                    'row'
-                ));
-            });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->addColumn('from_location_name', function ($row) {
-                return $row->from ? $row->from->name : '';
-            });
-
-            $table->addColumn('to_location_name', function ($row) {
-                return $row->to ? $row->to->name : '';
-            });
-
-            $table->addColumn('billing_client_status', function ($row) {
-                return $row->client ? $row->client->english_name : '';
-            });
-
-            $table->addColumn('driver_name', function ($row) {
-                return $row->driver ? $row->driver->name : '';
-            });
-
-            $table->addColumn('close_date', function ($row) {
-                return $row->close_date ? $row->close_date : '';
-            });
-
-            $table->addColumn('plate_number', function ($row) {
-                return $row->car ? $row->car->plate_number : '';
-            });
-            $table->addColumn('delayed_reason', function ($row) {
-                return $row->delayed_reason ? $row->delayed_reason : '';
-            });
-
-            $table->addColumn('hours', function ($row) {
-                return $row->close_date ? parent::hoursandmins(Period::make($row->from_location_arrival_time,$row->close_date,  Precision::MINUTE())->length(), '%02d Hours, %02d Minutes')
-                : '';
-            });
-
-            $table->editColumn('close_hour', function ($row) {
-                return $row->close_hour ? $row->close_hour : '';
-            });
-            
-            $table->editColumn('box_count', function ($row) {
-                return $row->box_count ? $row->box_count : '';
-            });
-            $table->editColumn('sample_count', function ($row) {
-                return $row->sample_count ? $row->sample_count : '';
-            });
-            $table->editColumn('type', function ($row) {
-                return $row->type ? Task::TYPE_SELECT[$row->type] : '';
-            });
-            $table->editColumn('task_type', function ($row) {
-                return $row->task_type ? Task::TASK_TYPE_SELECT[$row->task_type] : '';
-            });
-            $table->editColumn('confirmed_by_client', function ($row) {
-                return $row->confirmed_by_client ? Task::CONFIRMED_BY_CLIENT_SELECT[$row->confirmed_by_client] : '';
-            });
-            $table->editColumn('ayenati', function ($row) {
-                return $row->ayenati ? Task::AYENATI_SELECT[$row->ayenati] : '';
-            });
-            $table->editColumn('takasi', function ($row) {
-                return $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '';
-            });
-            $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
-            });
-            $table->editColumn('added_by', function ($row) {
-                return $row->added_by ? $row->added_by : '';
-            });
-            $table->editColumn('from_location_arrival_time', function ($row) {
-                return $row->from_location_arrival_time ? $row->from_location_arrival_time : '';
-            });
-            $table->editColumn('deliver_signature', function ($row) {
-                return $row->deliver_signature ? $row->deliver_signature : '';
-            });
-            $table->editColumn('deliver_confirmation_code', function ($row) {
-                return $row->deliver_confirmation_code ? $row->deliver_confirmation_code : '';
-            });
-            $table->editColumn('confirmation_code', function ($row) {
-                return $row->confirmation_code ? $row->confirmation_code : '';
-            });
-            $table->editColumn('description', function ($row) {
-                return $row->description ? $row->description : '';
-            });
-
-            $table->editColumn('takasi_number', function ($row) {
-                return $row->takasi_number ? $row->takasi_number : '';
-            });
-            $table->editColumn('to_takasi_number', function ($row) {
-                return $row->to_takasi_number ? $row->to_takasi_number : '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table = DataTables::of($query)
+                ->addColumn('placeholder', fn() => '&nbsp;')
+                ->addColumn('actions', fn($row) => view('partials.datatablesActions', [
+                    'viewGate' => 'task_show',
+                    'editGate' => 'task_edit',
+                    'deleteGate' => 'task_delete',
+                    'crudRoutePart' => 'tasks',
+                    'row' => $row,
+                ]))
+                ->editColumn('id', fn($row) => $row->id)
+                ->addColumn('from_location_name', fn($row) => optional($row->from)->name)
+                ->addColumn('to_location_name', fn($row) => optional($row->to)->name)
+                ->addColumn('billing_client_status', fn($row) => optional($row->client)->english_name)
+                ->addColumn('driver_name', fn($row) => optional($row->driver)->name)
+                ->addColumn('plate_number', fn($row) => optional($row->car)->plate_number)
+                ->addColumn('hours', fn($row) => $row->close_date 
+                    ? parent::hoursandmins(
+                        Period::make($row->from_location_arrival_time, $row->close_date, Precision::MINUTE())->length(),
+                        '%02d Hours, %02d Minutes'
+                    ) : ''
+                )
+                ->editColumn('type', fn($row) => $row->type ? Task::TYPE_SELECT[$row->type] : '')
+                ->editColumn('task_type', fn($row) => $row->task_type ? Task::TASK_TYPE_SELECT[$row->task_type] : '')
+                ->editColumn('confirmed_by_client', fn($row) => $row->confirmed_by_client ? Task::CONFIRMED_BY_CLIENT_SELECT[$row->confirmed_by_client] : '')
+                ->editColumn('ayenati', fn($row) => $row->ayenati ? Task::AYENATI_SELECT[$row->ayenati] : '')
+                ->editColumn('takasi', fn($row) => $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '')
+                ->editColumn('status', fn($row) => $row->status ? Task::STATUS_SELECT[$row->status] : '')
+                ->rawColumns(['actions', 'placeholder']);
 
             return $table->make(true);
-        } else{
-            \Log::error("no ajax");
         }
 
-
-        
-        
-        if( $logged_id_user->client_id != null)
-        {
-            \Log::info("message");
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
-                $locations = Location::select('locations.*')
-                ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+        if ($loggedUser->client_id) {
+            $clients = Client::where('id', $loggedUser->client_id)->get();
+            $locations = Location::select('locations.*')
+                ->leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
+                ->where('client_location.client_id', $loggedUser->client_id)
                 ->get();
-                $drivers = Driver::all();
-        } else{
+        } else {
             $clients = Client::all();
             $locations = Location::all();
-            $drivers = Driver::all();
         }
-        return view('daily-operation',[
-            'clients' =>  $clients,
-            'locations' =>  $locations,
-            'drivers' =>  $drivers
-        ]);
-    
+        $drivers = Driver::all();
 
+        return view('daily-operation', compact('clients', 'locations', 'drivers'));
     }
+
     
 
     public function export()
