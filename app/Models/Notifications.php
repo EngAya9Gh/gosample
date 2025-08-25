@@ -13,6 +13,11 @@ class Notifications extends Model
         'id' => 'string'
     ];
 
+    public function getTitleAttribute()
+    {
+        return explode('\\', $this->type)[2] ?? null;
+    }
+
     public function task()
     {
         return $this->belongsTo(Task::class, 'task_id');
