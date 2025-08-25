@@ -58,41 +58,95 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
     return response()->json(['message' => 'Cars updated successfully']);
 }
 
-    public function index() {
-        $user = auth()->user();
+    public function index()
+    {
+        // calcalute number of delayed tasks
 
-        $notifications = Notifications::with(['client','driver','fromLocation','toLocation'])
-            ->when($user->client_id, fn($q) => $q->where('billing_client', $user->client_id))
-            ->orderByDesc('created_at')
+    //     $r = new Task();
+    //    \Log::error( $r->delayedTasks());
+
+
+        $logged_id_user = auth()->user();
+        if($logged_id_user->client_id != null)
+        {
+//dd($logged_id_user->client_id);
+            $notifications = Notifications::with(['client','driver','fromLocation','toLocation'])
+            ->where('billing_client',$logged_id_user->client_id)
+            ->orderBy('created_at','desc')
             ->paginate(10);
-
-        $topDriversKey = $user->client_id ? "top_drivers_client_{$user->client_id}" : 'top_drivers_all';
-        $top_drivers = Cache::remember($topDriversKey, now()->addMinutes(10), function () use ($user) {
-            $query = Task::select('tasks.driver_id', 'drivers.name', DB::raw('count(*) as total'))
-                ->join('drivers','drivers.id','=','tasks.driver_id');
-
-            if ($user->client_id) {
-                $query->join('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
-                    ->where('client_driver.client_id', $user->client_id)
-                    ->where('billing_client', $user->client_id);
+    
+            foreach($notifications as $notification)
+            {
+                $notification->title = explode('\\',$notification->type )[2]; 
             }
+    
+            $top_drivers = Task::select('tasks.driver_id', 'drivers.name',DB::raw('count(*) as total'))
+            ->leftJoin('drivers','drivers.id','=','tasks.driver_id')
+            ->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
+            ->where('client_driver.client_id', $logged_id_user->client_id)
+            ->where('billing_client',$logged_id_user->client_id)
+            ->groupby('driver_id','drivers.name')
+            ->orderBy('total','desc')
+            ->paginate(5);
+    
+//            $cars = Car::count();
+$client = auth()->user(); // assuming client is logged in user
 
-            return $query->groupBy('tasks.driver_id','drivers.name')
-                        ->orderByDesc('total')
-                        ->limit(5)
-                        ->get();
-        });
-
-        // counts (نجمعهم مع بعض بدل ما نعمل كويري لكل وحدة لحالها)
-        if ($user->client_id) {
-            $cars = Car::whereHas('driver.clientDrivers', fn($q) => $q->where('client_id', $user->client_id))->count();
-            $tasks = Task::where('billing_client', $user->client_id)->count();
-            $samples = Sample::whereHas('task', fn($q) => $q->where('billing_client', $user->client_id))->count();
+$cars = Car::whereHas('driver.clientDrivers', function ($query) use ($client) {
+    $query->where('client_id', $client->client_id);
+})->count();
+            $tasks = Task::where('billing_client', $client->client_id)->count();
+            $samples = Sample::leftJoin('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id)->count();
             $drivers = Driver::count();
             $users = User::count();
-            $locations = Location::whereHas('clients', fn($q) => $q->where('client_id', $user->client_id))->count();
+            $locations = Location::leftJoin('client_location','client_location.location_id','locations.id')
+            ->where('client_location.client_id',$logged_id_user->client_id)->count();
             $clients = 1;
-        } else {
+            return view('dashboard',[
+                'top_drivers' => $top_drivers,
+                'clients' => $clients,
+                'notifications' => $notifications,
+                'tasks' => $tasks,
+                'locations' => $locations,
+                'drivers' => $drivers,
+                'samples' => $samples,
+                'cars' => $cars,
+                'users' => $users,
+            ]);
+        }else{
+
+$start_time = microtime(true);
+            $notifications = Notifications::with(['client','driver','fromLocation','toLocation'])
+            ->orderBy('created_at','desc')
+            ->paginate(10);
+    
+            foreach($notifications as $notification)
+            {
+                $notification->title = explode('\\',$notification->type )[2]; 
+            }
+
+$end_time = microtime(true);
+//echo 'Query Execution Time: Notifications - ' . ($end_time - $start_time) . ' seconds'."<br>";
+
+    $start_time = microtime(true);
+  /*$top_drivers = Task::select('tasks.driver_id', 'drivers.name', DB::raw('count(*) as total'))
+      ->leftJoin('drivers', 'drivers.id', '=', 'tasks.driver_id')
+      ->groupBy('tasks.driver_id', 'drivers.name')
+      ->orderBy('total', 'desc')
+      ->paginate(5);*/
+$top_drivers = Cache::remember('top_drivers', now()->addMinutes(10), function() {
+    return DB::table('tasks')
+        ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
+        ->join('drivers', 'drivers.id', '=', 'tasks.driver_id')
+        ->groupBy('tasks.driver_id', 'drivers.name')
+        ->orderByDesc('total')
+        ->limit(5)
+        ->get();
+});
+    $end_time = microtime(true);
+//echo 'Query Execution Time: Notifications - ' . ($end_time - $start_time) . ' seconds'."<br>";
+
+$start_time = microtime(true);
             $cars = Car::count();
             $tasks = Task::count();
             $samples = Sample::count();
@@ -100,121 +154,158 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $users = User::count();
             $locations = Location::count();
             $clients = Client::count();
-        }
+    $end_time = microtime(true);
+//echo 'Query Execution Time: Notifications - ' . ($end_time - $start_time) . ' seconds'."<br>";
 
-        return view('dashboard', compact(
-            'top_drivers',
-            'clients',
-            'notifications',
-            'tasks',
-            'locations',
-            'drivers',
-            'samples',
-            'cars',
-            'users'
-        ));
+//die();
+            return view('dashboard',[
+                'top_drivers' => $top_drivers,
+                'clients' => $clients,
+                'notifications' => $notifications,
+                'tasks' => $tasks,
+                'locations' => $locations,
+                'drivers' => $drivers,
+                'samples' => $samples,
+                'cars' => $cars,
+                'users' => $users,
+            ]);
+         }
+
+        
     }
-
     public function welcome()
     {
         return view('welcome');
     }
-    
     public function tasksdashboard(Request $request)
     {
-        abort_if(Gate::denies('tasks-dashboard'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $filters = $request->only([
-            'status', 'driver_id', 'billing_client', 
-            'from_location', 'to_location', 'date_from', 'date_to'
-        ]);
-
-        // نعمل مفتاح كاش ديناميكي حسب الفلترة
-        $cacheKey = 'tasks_dashboard_' . md5(json_encode($filters));
-
-        $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($filters) {
-
-            $tasks = Task::leftJoin('clients','clients.id','=','billing_client')
-                ->select('clients.arabic_name', DB::raw('count(*) as total'));
-
-            // فلترة حسب الريكوست
-            if (!empty($filters['status'])) {
-                $tasks->where('tasks.status', $filters['status']);
+        $tasks = Task::
+        leftJoin('clients','clients.id','billing_client')
+        ->select('clients.arabic_name', DB::raw('count(*) as total'));
+        if($request->status != null)
+        {
+            $tasks =$tasks->where('tasks.status',$request->status);
+        }
+        if($request->driver_id != null)
+        {
+            $tasks =$tasks->where('driver_id',$request->driver_id);
+        }
+        if($request->billing_client != null)
+        {
+            $tasks =$tasks->where('billing_client',$request->billing_client);
+        }
+        if($request->from_location != null)
+        {
+            $tasks =$tasks->where('from_location',$request->from_location);
+        }
+        if($request->to_location != null)
+        {
+            $tasks =$tasks->where('to_location',$request->to_location);
+        }
+        if($request->date_from !=null && $request->date_to !=null)
+        {
+            $tasks =$tasks->whereBetween('tasks.created_at',
+                [
+                    Carbon::createFromDate($request->date_from )->toDateString(),
+                    Carbon::createFromDate($request->date_to)
+                        //  ->addDays(1)
+                         ->toDateString()
+                ]
+            );
+        } else{
+            if ($request->date_from !=null) {
+                $tasks =$tasks->where('tasks.created_at', '>=', $request->date_from );
             }
-            if (!empty($filters['driver_id'])) {
-                $tasks->where('driver_id', $filters['driver_id']);
+            if ($request->date_to !=null) {
+                $tasks =$tasks->where('tasks.created_at', '>=', $request->date_to );
             }
-            if (!empty($filters['billing_client'])) {
-                $tasks->where('billing_client', $filters['billing_client']);
-            }
-            if (!empty($filters['from_location'])) {
-                $tasks->where('from_location', $filters['from_location']);
-            }
-            if (!empty($filters['to_location'])) {
-                $tasks->where('to_location', $filters['to_location']);
-            }
+        }
+        $tasks_all =clone $tasks;
+        $tasks_pending =clone $tasks;
+        $tasks_closed =clone $tasks;
 
-            // فلترة التواريخ
-            if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
-                $tasks->whereBetween('tasks.created_at', [
-                    Carbon::parse($filters['date_from'])->startOfDay(),
-                    Carbon::parse($filters['date_to'])->endOfDay(),
-                ]);
-            } elseif (!empty($filters['date_from'])) {
-                $tasks->where('tasks.created_at', '>=', Carbon::parse($filters['date_from'])->startOfDay());
-            } elseif (!empty($filters['date_to'])) {
-                $tasks->where('tasks.created_at', '<=', Carbon::parse($filters['date_to'])->endOfDay());
-            }
+        $tasks_all =$tasks->groupby('clients.arabic_name')
+        ->orderby('total','desc')
+        ->get();
 
-            // استعلام أساسي
-            $base = clone $tasks;
+        $tasks_pending =$tasks_pending->groupby('clients.arabic_name')
+        // ->where('tasks.status','=','NEW')
+        ->whereNotIn('tasks.status',['CLOSED','NO_SAMPLES'])
+        ->orderby('total','desc')
+        ->get();
 
-            // all tasks
-            $tasks_all = (clone $base)->groupBy('clients.arabic_name')->orderByDesc('total')->get();
+        $tasks_closed =$tasks_closed->groupby('clients.arabic_name')
+        ->where('tasks.status','CLOSED')
+        ->orderby('total','desc')
+        ->get();
+       
 
-            // pending tasks
-            $tasks_pending = (clone $base)->whereNotIn('tasks.status',['CLOSED','NO_SAMPLES'])
-                ->groupBy('clients.arabic_name')->orderByDesc('total')->get();
+       
 
-            // closed tasks
-            $tasks_closed = (clone $base)->where('tasks.status','CLOSED')
-                ->groupBy('clients.arabic_name')->orderByDesc('total')->get();
+        $categories = [];
+        $data = [];
+        $data_closed = [];
+        $data_pending = [];
 
-            // تجهيز الداتا للـ chart
-            $categories    = $tasks_all->pluck('arabic_name')->unique()->values();
-            $data_all      = $tasks_all->pluck('total');
-            $data_closed   = $tasks_closed->pluck('total');
-            $data_pending  = $tasks_pending->pluck('total');
+        $index = 0;
+        foreach ($tasks_all as $task) {
+            $categories[]=$task->arabic_name;
+            $data[]=$task->total;
+            $index =$index +1;
+        }
+        foreach ($tasks_closed as $task) {
+            $categories[]=$task->arabic_name;
+            $data_closed[]=$task->total;
+            $index =$index +1;
+        }
+        foreach ($tasks_pending as $task) {
+            $categories[]=$task->arabic_name;
+            $data_pending[]=$task->total;
+            $index =$index +1;
+        }
+        
 
-            return [
-                'categories'   => $categories,
-                'data_all'     => $data_all,
-                'data_closed'  => $data_closed,
-                'data_pending' => $data_pending,
-            ];
-        });
-
-        // بناء الـ chart
         $chart = (new Chart)->setType('bar')
-            ->setWidth('100%')
-            ->setTitle(trans('translation.Tasks_Clients'))
-            ->setSubtitle(trans('translation.All_Data'))
-            ->setHeight(300)
-            ->setXaxisCategories($data['categories'])
+        ->setWidth('100%')
+        ->setTitle(trans('translation.Tasks_Clients'))
+        ->setWidth('100%')
+        ->setSubtitle(trans('translation.All_Data'))
+        ->setHeight(300)
+            ->setXaxisCategories($categories)
+            // ->setXaxisCategories(['2001', '2002','2003','20021', '22002','20032','22','20021', '22002','20032','22','23'])
             ->setDataset('Tasks', 'donut', [
-                ['name' => 'Tasks',         'data' => $data['data_all']],
-                ['name' => 'Closed Tasks',  'data' => $data['data_closed']],
-                ['name' => 'Pending Tasks', 'data' => $data['data_pending']],
+                [
+                    'name'  => 'Tasks',
+                    'data'  =>  $data
+                ],
+                [
+                    'name'  => 'Closed Tasks',
+                    'data'  => $data_closed
+                ],
+                [
+                    'name'  => 'Pending Tasks',
+                    'data'  => $data_pending
+                ]
             ]);
 
-        // جلب الداتا الثابتة (ممكن تنحط بكاش لو كبيرة)
-        $clients   = Client::all();
-        $drivers   = Driver::all();
-        $locations = Location::all();
 
-        return view('tasks-dashboard', compact('locations','drivers','clients','chart'));
+            
+        $clients = Client::all();
+        $logged_id_user = auth()->user();
+        if($logged_id_user->client_id != null)
+        {
+
+            $drivers = Driver::all();
+            $locations = Location::all();
+            return view('tasks-dashboard',compact('locations','drivers','clients','chart'));
+        } else{
+            $drivers = Driver::all();
+            $locations = Location::all();
+            return view('tasks-dashboard',compact('locations','drivers','clients','chart'));
+        }
+        // return view('tasks-dashboard');
     }
-
 
     public function map(Request $request)
     {
