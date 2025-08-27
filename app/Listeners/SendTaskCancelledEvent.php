@@ -30,10 +30,10 @@ class SendTaskCancelledEvent
      */
     public function handle($event)
     {
-        \Log::info('SendTaskCancelledEvent');
+        // \Log::info('SendTaskCancelledEvent');
         if (config('app.env') === 'production') {
             $task = $event->task;
-            \Log::info($task);
+            // \Log::info($task);
             if ($task->takasi == 'YES') {
                 $location = Location::find($task->from_location);
                 $to_location = Location::find($task->to_location);
@@ -70,8 +70,8 @@ class SendTaskCancelledEvent
             } else{
                 if($task->billing_client == 42 || $task->billing_client == 33)
                 {
-                    \Log::info("SendTaskCancelledEvent");
-                    \Log::info("New TMS");
+                    // \Log::info("SendTaskCancelledEvent");
+                    // \Log::info("New TMS");
                     $location = Location::find($task->from_location);
                     $to_location = Location::find($task->to_location);
     
@@ -93,7 +93,7 @@ class SendTaskCancelledEvent
                         'longitude' => $location->lng,
                     ];
     
-                   \Log::info($data);
+                //    \Log::info($data);
                     $response = Http::withHeaders([
                         'token' => 'Nxg30ULHoiHqdo6oOjncAAM3KEmQl67m3vz7sj8FBL1eXfSDr7OJz7AaJpdC'
                         ])->post('https://labprox.com/api/1.0/public/events',$data );

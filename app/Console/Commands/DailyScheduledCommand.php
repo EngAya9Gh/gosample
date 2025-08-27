@@ -28,7 +28,7 @@ class DailyScheduledCommand extends Command
      */
     public function handle()
     {
-        \Log::info("DailyScheduledCommand");
+        // \Log::info("DailyScheduledCommand");
         return Command::SUCCESS;
     }
 }

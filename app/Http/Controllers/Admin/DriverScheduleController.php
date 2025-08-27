@@ -21,7 +21,7 @@ class DriverScheduleController extends Controller
 
         $driverSchedules = DriverSchedule::with(['from', 'to', 'driver'])->get();
 
-        \Log::info($driverSchedules);
+        // \Log::info($driverSchedules);
 
         return view('admin.driverSchedules.index', compact('driverSchedules'));
     }

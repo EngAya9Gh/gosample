@@ -38,7 +38,7 @@ class FirebaseNotification extends Notification
 
     public function toFcm($notifiable)
     {
-        Log::info('toFcm');
+        // Log::info('toFcm');
         return FcmMessage::create()
             ->setData([
                 'sound' => 'default',

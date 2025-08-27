@@ -36,7 +36,7 @@ class ShipmentController extends Controller
     }
     public function create(Request $request)
     {
-\Log::info("start shipment rquest");
+// \Log::info("start shipment rquest");
         try {
             $data = $request->only([
                 'carrier',
@@ -94,8 +94,8 @@ class ShipmentController extends Controller
                 DB::beginTransaction();
                 // check api key
                 $api_key = $request->header('API-KEY');
-                \Log::info( $api_key);
-                \Log::info( $request->headers->all());
+                // \Log::info( $api_key);
+                // \Log::info( $request->headers->all());
                 //e5cc3ffa-2501-45ff-80c3-41f581c0a40d
                 if($api_key != '1ba6c71c-bfa3-423b-92d4-05097370eb86')
                 {
@@ -252,8 +252,8 @@ class ShipmentController extends Controller
 
             }
         } catch (Exception $e) {
-	\Log::info("error in create shipment create request");
-\Log::info($e->getMessage());
+            \Log::info("error in create shipment create request");
+            \Log::info($e->getMessage());
             DB::rollback();
             return $this->ayenatiResponse(false,'2033','system error');
         }

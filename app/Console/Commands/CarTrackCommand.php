@@ -40,7 +40,7 @@ class CarTrackCommand extends Command
      
 public function handle()
     {
-        \Log::info('CarTrackCommand start');
+        // \Log::info('CarTrackCommand start');
         $token = $this->logintoAfaqi();
         $tasks = Task::with('car')->where('status','=','IN_FREEZER')->get();    
         foreach ($tasks as $task) {

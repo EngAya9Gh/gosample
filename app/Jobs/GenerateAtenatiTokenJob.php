@@ -35,7 +35,7 @@ class GenerateAtenatiTokenJob implements ShouldQueue
     public function handle()
     {
 
-        \Log::info("GenerateAtenatiTokenJob");
+        // \Log::info("GenerateAtenatiTokenJob");
         $existingToken = AyenatiToken::orderBy('created_at', 'desc')->first();
 
         if ($existingToken) {

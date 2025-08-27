@@ -32,11 +32,11 @@ class SendCurrentDriverLocationEvent
      */
     public function handle($event)
     {
-        \Log::info('SendCurrentDriverLocationEvent');
+        // \Log::info('SendCurrentDriverLocationEvent');
         if(config('app.env') === 'production') {
 
         $task = $event->task;
-        \Log::info($task);
+        // \Log::info($task);
         if($task->takasi == 'YES')
         {
 
@@ -82,8 +82,8 @@ class SendCurrentDriverLocationEvent
         }else{
                 if($task->billing_client == 42 || $task->billing_client == 33)
                 {
-                    \Log::info("SendCurrentDriverLocationEvent");
-                    \Log::info("New TMS");
+                    // \Log::info("SendCurrentDriverLocationEvent");
+                    // \Log::info("New TMS");
                     $driver = Driver::with('car')->get()->find($task->driver_id);
 
                     // check tracking system to get the lat/lng of car
@@ -100,7 +100,7 @@ class SendCurrentDriverLocationEvent
                         'courierId' => $task->driver_id,
                         'longitude' => $driver->lng,
                     ];
-                    \Log::error($requestBody);
+                    // \Log::error($requestBody);
                     $response = Http::withHeaders([
                         'token' => 'Nxg30ULHoiHqdo6oOjncAAM3KEmQl67m3vz7sj8FBL1eXfSDr7OJz7AaJpdC'
                         ])->post('https://labprox.com/api/1.0/public/events',$data );

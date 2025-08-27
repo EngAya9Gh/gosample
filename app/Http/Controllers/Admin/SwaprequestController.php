@@ -113,7 +113,7 @@ class SwaprequestController extends Controller
     public function store(StoreSwaprequestRequest $request)
     {
 
-        \Log::info($request->all());
+        // \Log::info($request->all());
         $request->merge(['status' => 'new']);
         if ($request->driver_id == $request->driver_a) {
             $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');

@@ -44,8 +44,8 @@ class Controller extends BaseController
             $response['response'] = $data;
 
         }
-        \Log::info('----------Ayenati response----------');
-        \Log::info($response);
+        // \Log::info('----------Ayenati response----------');
+        // \Log::info($response);
 
         return response($response, 200)->header('Content-Type', 'application/json');
     }
@@ -159,7 +159,7 @@ class Controller extends BaseController
                     ]
                 }
         }';
-        \Log::info($body);
+        // \Log::info($body);
         $request = new \GuzzleHttp\Psr7\Request('POST', 'http://api.afaqy.pro/units/view?token='.$token, $headers, $body);
         $res = $client->sendAsync($request)->wait();
         return $res->getBody();
@@ -395,7 +395,7 @@ class Controller extends BaseController
             // ]
         ];
 
-        \Log::info( $data);
+        // \Log::info( $data);
         $encodedData = json_encode($data);
 
         $headers = [
@@ -421,7 +421,7 @@ class Controller extends BaseController
         }
         // Close connection
         curl_close($ch);
-        \Log::info($result);
+        // \Log::info($result);
         return  $result;
     }
 
@@ -499,16 +499,16 @@ class Controller extends BaseController
                 'track_url' => 'https://www.gosample.com',
             ]
         ]);
-        \Log::info([
-            'shipment_id' => $shipment_id,
-            'agent_first_name' => $agent_first_name,
-            'agent_last_name' => $agent_last_name,
-            'agent_national_id' => $agent_national_id,
-            'agent_mobile' => $agent_mobile,
-            'status_code' => $status_code,
-            'timestamp' => Carbon::now(),
-            'track_url' => 'https://www.gosample.com',
-        ]);
+        // \Log::info([
+        //     'shipment_id' => $shipment_id,
+        //     'agent_first_name' => $agent_first_name,
+        //     'agent_last_name' => $agent_last_name,
+        //     'agent_national_id' => $agent_national_id,
+        //     'agent_mobile' => $agent_mobile,
+        //     'status_code' => $status_code,
+        //     'timestamp' => Carbon::now(),
+        //     'track_url' => 'https://www.gosample.com',
+        // ]);
         $data = json_decode( $response->getBody()->getContents(), true);
         return $data;
       }
@@ -539,14 +539,14 @@ class Controller extends BaseController
             ]
         ]);
 
-        \Log::info(
-            [
-                'shipment_id' => $shipment_id,
-                'otp' => $otp,
-                'status_code' => $status_code,
-            ]
+        // \Log::info(
+        //     [
+        //         'shipment_id' => $shipment_id,
+        //         'otp' => $otp,
+        //         'status_code' => $status_code,
+        //     ]
 
-        );
+        // );
         $data = json_decode( $response->getBody()->getContents(), true);
         return $data;
       }

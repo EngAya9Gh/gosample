@@ -34,7 +34,7 @@ class ZonesController extends Controller
 
     public function store(StoreZoneRequest $request)
     {
-        \Log::info($request->all());
+        // \Log::info($request->all());
         // $zone = Zone::create($request->all());
         $zone = new Zone();
 

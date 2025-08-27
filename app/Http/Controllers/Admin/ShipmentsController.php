@@ -191,7 +191,7 @@ class ShipmentsController extends Controller
     }
     public function assignDriver(Request $request, $shipmentId)
     {
-//GenerateAtenatiTokenJob::dispatch();
+        //GenerateAtenatiTokenJob::dispatch();
         $driverId = $request->input('driver');
         $shipmentw = Shipment::find($shipmentId);
        // Find the selected driver
@@ -199,7 +199,7 @@ class ShipmentsController extends Controller
        // Retrieve the last active access token from the token table
        $latestToken = AyenatiToken::orderBy('created_at', 'desc')->first();
 
-       \Log::info($latestToken);
+        // \Log::info($latestToken);
        if (!$latestToken) {
            // Handle the case when there is no access token available
            // Log an error, throw an exception, or take appropriate action
@@ -254,7 +254,7 @@ class ShipmentsController extends Controller
     {
 
         $shipmentw = Shipment::find($shipmentId);
-        \Log::info($shipmentw);
+        // \Log::info($shipmentw);
        $driver = Driver::find($shipmentw->driver_id);
        if($driver == null)
        {
@@ -343,15 +343,15 @@ class ShipmentsController extends Controller
         ];
 
 
-        \Log::error("-----");
-        \Log::error("-----");
-        \Log::info( $requestData);
+        // \Log::error("-----");
+        // \Log::error("-----");
+        // \Log::info( $requestData);
 
-        \Log::error("-----");
-        \Log::error("-----");
-        \Log::error($accessToken);
-        \Log::error("-----");
-        \Log::error("-----");
+        // \Log::error("-----");
+        // \Log::error("-----");
+        // \Log::error($accessToken);
+        // \Log::error("-----");
+        // \Log::error("-----");
         // Make the API request
 	$timeoutMilliseconds = 120000;
         $response = Http::withOptions([

@@ -365,8 +365,8 @@ class TasksController extends Controller
 
             // })
             // ;
-            \Log::info($sortColumn);
-            \Log::info( $sortOrder);
+            // \Log::info($sortColumn);
+            // \Log::info( $sortOrder);
             $query = $query->orderBy($sortColumn, $sortOrder);
             $table = Datatables::of($query);
 
@@ -702,7 +702,7 @@ class TasksController extends Controller
 
         if( $logged_id_user->client_id != null)
         {
-            \Log::info("message");
+            // \Log::info("message");
                 $clients = Client::where('id', $logged_id_user->client_id)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
@@ -911,7 +911,7 @@ class TasksController extends Controller
 
         if( $logged_id_user->client_id != null)
         {
-            \Log::info("message");
+            // \Log::info("message");
                 $clients = Client::where('id', $logged_id_user->client_id)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
@@ -1121,7 +1121,7 @@ class TasksController extends Controller
 
         if( $logged_id_user->client_id != null)
         {
-            \Log::info("message");
+            // \Log::info("message");
                 $clients = Client::where('id', $logged_id_user->client_id)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
@@ -1321,7 +1321,7 @@ $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(tr
 
         $task->load('from', 'to', 'client', 'driver', 'car');
 
-        \Log::info($task);
+        // \Log::info($task);
         return view('admin.tasks.edit', compact('billing_clients', 'cars', 'drivers', 'from_locations', 'task', 'to_locations'));
     }
 
@@ -1558,7 +1558,7 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
         if( $logged_id_user->client_id != null)
         {
-            \Log::info("message");
+            // \Log::info("message");
                 $clients = Client::where('id', $logged_id_user->client_id)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')

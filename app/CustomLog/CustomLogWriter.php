@@ -24,7 +24,7 @@ class CustomLogWriter implements LogWriter
         pathinfo($uri, PATHINFO_EXTENSION) === 'png' || strpos($uri, '/driver/location/') === 0 ) {
             
         } else{
-            Log::info($message);
+            // Log::info($message);
         }
        
     }

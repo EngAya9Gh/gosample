@@ -139,7 +139,7 @@ class Driver extends Authenticatable  implements JWTSubject
 
     public function sendNotification($title, $body,$tokens,$task ,$action)
     {
-        \Log::info("sendNotification");
+        // \Log::info("sendNotification");
         $url = 'https://fcm.googleapis.com/fcm/send';
         $FcmToken = $tokens;//
         $serverKey = 'AAAALUm9zs0:APA91bEPvG8yI7CWfmFLKrqEJPDCVNpmDlqrPz1jY62Wq0k7lEakb36Qts8ZvNLSoo5Sh_dc47-H61y2NoZurjY0bV-wms1xk13NHEnIQq771LYXPZtJi_qVPZXmbQzELGEZE7ohTlIL';
@@ -188,7 +188,7 @@ class Driver extends Authenticatable  implements JWTSubject
         }
         // Close connection
         curl_close($ch);
-        \Log::info($result);
+        // \Log::info($result);
         return  $result;
     }
     public function clientDrivers()

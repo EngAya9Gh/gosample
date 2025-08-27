@@ -176,8 +176,8 @@ $shipment = Shipment::where('task_id', $task->id)->first();
                         'Authorization' => 'Bearer '.$data2['access_token'],
                     ])->post('https://api.lean.sa/p-ayenati/notifications/updateNotificationDetails', $data );
                     $body = $response->body();
-  dd($body);                  
-                    \Log::info($body);
+//   dd($body);                  
+                    // \Log::info($body);
                     return $body;
 }
 }

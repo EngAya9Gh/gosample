@@ -29,10 +29,10 @@ class SendDriverArrivedAtPickUpLocationEvent
      */
     public function handle($event)
     {
-         \Log::info('SendDriverArrivedAtPickUpLocationEvent');
+        //  \Log::info('SendDriverArrivedAtPickUpLocationEvent');
         if(config('app.env') === 'production') {
             $task = $event->task;
-            \Log::info($task);
+            // \Log::info($task);
             if ($task->takasi == 'YES') {
                 $location = Location::find($task->from_location);
                 $to_location = Location::find($task->to_location);
@@ -66,8 +66,8 @@ class SendDriverArrivedAtPickUpLocationEvent
             else{
                 if($task->billing_client == 42 || $task->billing_client == 33)
                 {
-                    \Log::info("SendDriverArrivedAtPickUpLocationEvent");
-                    \Log::info("New TMS");
+                    // \Log::info("SendDriverArrivedAtPickUpLocationEvent");
+                    // \Log::info("New TMS");
                     // $location = Location::find($task->from_location);
                     // $to_location = Location::find($task->to_location);
 

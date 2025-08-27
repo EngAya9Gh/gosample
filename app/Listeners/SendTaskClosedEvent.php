@@ -33,7 +33,7 @@ class SendTaskClosedEvent
      */
     public function handle($event)
     {
-        \Log::info('SendTaskClosedEvent');
+        // \Log::info('SendTaskClosedEvent');
         if(config('app.env') === 'production') {
             $task = $event->task;
 //            \Log::info($task);
@@ -87,13 +87,13 @@ class SendTaskClosedEvent
             
                     $data2 = json_decode( $response->getBody()->getContents(), true);
         
-                    \Log::info($data2['access_token']);
+                    // \Log::info($data2['access_token']);
                     $response = Http::withHeaders([
                         'Authorization' => 'Bearer '.$data2['access_token'],
                     ])->post('https://api.lean.sa/p-ayenati/notifications/updateNotificationDetails', $data );
                     $body = $response->body();
                     
-                    \Log::info($body);
+                    // \Log::info($body);
                     return $body;
                 } catch (Exception $e) {
                     \Log::info($e->getMessage());
@@ -108,8 +108,8 @@ class SendTaskClosedEvent
             } else{
                 if($task->billing_client == 42 || $task->billing_client == 33)
                 {
-                    \Log::info("SendTaskClosedEvent");
-                    \Log::info("New TMS");
+                    // \Log::info("SendTaskClosedEvent");
+                    // \Log::info("New TMS");
                     $location = Location::find($task->from_location);
                     $to_location = Location::find($task->to_location);
                     $samples = Sample::where('task_id',$task->id)->pluck('barcode_id')->toArray();

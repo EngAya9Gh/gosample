@@ -33,8 +33,8 @@ class RemoveOldNewTasks implements ShouldQueue
     public function handle()
     {
 
-        \Log::info("RemoveOldNewTasks is running...");
-        \Log::info("...");
+        // \Log::info("RemoveOldNewTasks is running...");
+        // \Log::info("...");
         // Get all tasks created before today and with status 'new'
         $tasks = Task::where('status', 'NEW')
             ->where('created_at', '<', Carbon::today())

@@ -69,7 +69,7 @@ class CheckScheduledTasks implements ShouldQueue
 
             if (!$existingTask) {
                 // Create a new task
-                \Log::info("create new task..");
+                // \Log::info("create new task..");
                 $task = new Task;
                 $task->from_location = $scheduledTask->from_location_id;
                 $task->to_location = $scheduledTask->to_location_id;

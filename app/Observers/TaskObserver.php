@@ -30,7 +30,7 @@ class TaskObserver
         // Check if the 'status' attribute has been changed
         if ($task->isDirty('status')) {
             // Perform your desired action here
-            \Log::info("Task is changed ". $task->id);
+            // \Log::info("Task is changed ". $task->id);
         }
     }
 

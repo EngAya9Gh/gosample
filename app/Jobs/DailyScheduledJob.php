@@ -36,7 +36,7 @@ class DailyScheduledJob implements ShouldQueue
      */
     public function handle()
     {
-        \Log::info("DailyScheduledJob");
+        // \Log::info("DailyScheduledJob");
 
         // Get all active scheduled tasks
     $scheduledTasks = ScheduledTask::where('status', 'enabled')->get();
