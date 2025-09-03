@@ -152,6 +152,7 @@ return [
     "car.fields.description"=>"Description",
     "car.fields.contact_person"=>"Contact Person",
     "car.fields.plate_number"=>"Plate Number",
+    "car.fields.status"=>"Status",
 
     "driver.fields.id"=>"Id",
     "driver.fields.name"=>"Name",

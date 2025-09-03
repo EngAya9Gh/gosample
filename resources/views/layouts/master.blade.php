@@ -4,10 +4,10 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>@yield('title')| Memvera</title>
+    <title>@yield('title')| MTC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Memvera" name="description" />
-    <meta content="Memvera" name="author" />
+    <meta content="MTC" name="description" />
+    <meta content="MTC" name="author" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/min/dropzone.min.css" rel="stylesheet">
 
 

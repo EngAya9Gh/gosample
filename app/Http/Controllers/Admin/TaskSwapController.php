@@ -301,7 +301,9 @@ class TaskSwapController extends Controller
                 ->join('locations as from', 'from.id', '=', 'tasks.from_location')
                 ->join('locations as to', 'to.id', '=', 'tasks.to_location')
                 ->select('tasks.*','drivers.name as driver_name','old.name as old_driver_name','clients.english_name as client_name','from.name as from_location_name','to.name as to_location_name')
-                ->where('tasks.is_swap',true);
+                ->where('tasks.is_swap',true)
+                ->where('cars.status', 1)
+                ->where('drivers.status', 1);
 
 
             if( $logged_id_user->client_id != null)
@@ -481,7 +483,7 @@ class TaskSwapController extends Controller
                                     left join locations as from_location on from_location.ID = tasks.from_location
                                     left join locations as to_location on to_location.ID = tasks.to_location
                                     left join samples as samples on samples.task_id = tasks.id
-                                    WHERE  tasks.id > 1 and tasks.is_swap';
+                                    WHERE  tasks.id > 1 and tasks.is_swap and drivers.status = 1';
 
         if($request->billing_client !=null)
         {
@@ -649,7 +651,7 @@ class TaskSwapController extends Controller
                                     left join locations as from_location on from_location.ID = tasks.from_location
                                     left join locations as to_location on to_location.ID = tasks.to_location
                                     left join samples as samples on samples.task_id = tasks.id
-                                    WHERE tasks.deleted_at is null and tasks.id > 1 and tasks.is_swap=1';
+                                    WHERE tasks.deleted_at is null and tasks.id > 1 and tasks.is_swap=1 and drivers.status = 1';
 
 
         $billing_client=$request->billing_client;

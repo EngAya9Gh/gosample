@@ -275,7 +275,7 @@ class DailyOperationController extends Controller
                                     left join locations as from_location on from_location.ID = tasks.from_location
                                     left join locations as to_location on to_location.ID = tasks.to_location
                                     left join samples as samples on samples.task_id = tasks.id
-                                    WHERE tasks.deleted_at is null and tasks.id > 1 ';
+                                    WHERE tasks.deleted_at is null and tasks.id > 1 and drivers.status = 1';
 
 
         $billing_client=25;

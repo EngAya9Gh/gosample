@@ -48,7 +48,9 @@ class TaskSwapTimeReportExport implements FromQuery, WithHeadings, WithMapping,S
             ->join('locations as from', 'from.id', '=', 'tasks.from_location')
             ->join('locations as to', 'to.id', '=', 'tasks.to_location')
             ->select('tasks.*','drivers.name as driver_name','old.name as old_driver_name','clients.english_name as client_name','from.name as from_location_name','to.name as to_location_name')
-            ->where('tasks.is_swap',true);
+            ->where('tasks.is_swap',true)
+            ->where('cars.status', 1)
+            ->where('drivers.status', 1);
 
         // if ($this->status) {
         //     $query->where('status', '=', $this->status);

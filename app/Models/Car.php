@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 
 class Car extends Model
 {
@@ -30,12 +31,21 @@ class Car extends Model
         'model',
         'afaqi',
         'color',
+        'status',
         'contact_person',
         'description',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
+
+
+    protected static function booted()
+    {
+        static::addGlobalScope('enabled', function (Builder $builder) {
+            $builder->where('status', 1);
+        });
+    }
 
 
     public function containers()

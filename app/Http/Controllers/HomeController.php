@@ -268,6 +268,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                     ->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
                     ->where('client_driver.client_id', $loggedUser->client_id)
                     ->where('billing_client',$loggedUser->client_id)
+                    ->where('drivers.status', 1)
                     ->groupBy('driver_id','drivers.name')
                     ->orderByDesc('total')
                     ->limit(5)
@@ -278,6 +279,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 return DB::table('tasks')
                     ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
                     ->join('drivers', 'drivers.id', '=', 'tasks.driver_id')
+                    ->where('drivers.status', 1)
                     ->groupBy('tasks.driver_id', 'drivers.name')
                     ->orderByDesc('total')
                     ->limit(5)
@@ -552,6 +554,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->leftJoin('client_driver','client_driver.driver_id','drivers.id')
             ->where('client_driver.client_id',$logged_id_user->client_id)
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
                 $query->where('billing_client', $logged_id_user->client_id);
             }
@@ -575,6 +578,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $locations = Driver::select('drivers.*','imei','plate_number','model')
             ->leftJoin('cars','cars.driver_id','drivers.id')
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks','driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking']);
             if($request->driver_id != null)
             {
@@ -607,6 +611,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->leftJoin('client_driver','client_driver.driver_id','drivers.id')
             ->where('client_driver.client_id',$logged_id_user->client_id)
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
                 $query->where('billing_client', $logged_id_user->client_id);
             }
@@ -628,6 +633,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $locations = Driver::select('drivers.*','imei','plate_number','model')
             ->leftJoin('cars','cars.driver_id','drivers.id')
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks','driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking']);
             if($request->driver_id != null)
             {
@@ -661,6 +667,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->leftJoin('client_driver','client_driver.driver_id','drivers.id')
             ->where('client_driver.client_id',$logged_id_user->client_id)
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
                 $query->where('billing_client', $logged_id_user->client_id);
             }
@@ -684,6 +691,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $locations = Driver::select('drivers.*','imei','plate_number','model')
             ->leftJoin('cars','cars.driver_id','drivers.id')
             ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
             ->with(['driverActiveTasks','driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking']);
             if($request->driver_id != null)
             {

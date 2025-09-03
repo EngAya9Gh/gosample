@@ -11,6 +11,7 @@ use App\Traits\Auditable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Builder;
 
 class Driver extends Authenticatable  implements JWTSubject
 {
@@ -62,6 +63,15 @@ class Driver extends Authenticatable  implements JWTSubject
         'updated_at',
         'deleted_at',
     ];
+
+
+    protected static function booted()
+    {
+        static::addGlobalScope('enabled', function (Builder $builder) {
+            $builder->where('status', 1);
+        });
+    }
+
 
     public function setPasswordAttribute($input)
     {

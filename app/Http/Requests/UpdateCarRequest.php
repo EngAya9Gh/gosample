@@ -22,9 +22,9 @@ class UpdateCarRequest extends FormRequest
                 'string',
                 'required',
                 //'unique:cars,imei,' . request()->route('car')->id,
-Rule::unique('cars', 'imei')
-            ->ignore(request()->route('car')->id)
-            ->whereNull('deleted_at'),
+                Rule::unique('cars', 'imei')
+                ->ignore(request()->route('car')->id)
+                ->whereNull('deleted_at'),
             ],
             'plate_number' => [
                 'string',
@@ -44,6 +44,10 @@ Rule::unique('cars', 'imei')
             ],
             'contact_person' => [
                 'string',
+                'required',
+            ],
+            'status' => [
+                'boolean',
                 'required',
             ],
         ];
