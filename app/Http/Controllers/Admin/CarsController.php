@@ -20,7 +20,7 @@ class CarsController extends Controller
         abort_if(Gate::denies('car_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Car::with(['driver'])->select(sprintf('%s.*', (new Car)->table));
+            $query = Car::withoutGlobalScope('enabled')->with(['driver'])->select(sprintf('%s.*', (new Car)->table));
             if ($request->filled('date_from') && $request->filled('date_to')) {
                 $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
             }
@@ -29,6 +29,9 @@ class CarsController extends Controller
             }
             if ($request->filled('plate_number')) {
                 $query->where('plate_number', $request->plate_number);
+            }
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
             }
             $table = Datatables::of($query);
 
@@ -78,6 +81,9 @@ class CarsController extends Controller
             $table->editColumn('description', function ($row) {
                 return $row->description ? $row->description : '';
             });
+            $table->editColumn('status', function ($row) {
+                return $row->status ? $row->status : '';
+            });
 
             $table->rawColumns(['actions', 'placeholder', 'driver']);
 
@@ -98,28 +104,31 @@ class CarsController extends Controller
 
     public function store(StoreCarRequest $request)
     {
-    // Check if a soft-deleted record exists with the same IMEI
-    $existing = Car::withTrashed()
-        ->where('imei', $request->imei)
-        ->first();
+        // Check if a soft-deleted record exists with the same IMEI
+        $existing = Car::withTrashed()
+            ->where('imei', $request->imei)
+            ->first();
 
-    if ($existing) {
-        // Modify the soft-deleted IMEI
-        $existing->imei = $existing->imei . '_delete';
-        $existing->save();
-    }
+        if ($existing) {
+            // Modify the soft-deleted IMEI
+            $existing->imei = $existing->imei . '_delete';
+            $existing->save();
+        }
         $car = Car::create($request->all());
 
         return redirect()->route('admin.cars.index');
     }
 
-    public function edit(Car $car)
+    public function edit($id)
     {
         abort_if(Gate::denies('car_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
+        $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
+
         $car->load('driver');
+
 
         return view('admin.cars.edit', compact('car', 'drivers'));
     }
@@ -127,7 +136,7 @@ class CarsController extends Controller
     public function update(UpdateCarRequest $request, Car $car)
     {
     // Check if a soft-deleted record exists with the same IMEI
-    $existing = Car::withTrashed()
+    $existing = Car::withoutGlobalScope('enabled')->withTrashed()
         ->where('imei', $request->imei)
         ->where('id', '!=', $car->id) // Ignore the current record
         ->first();
@@ -142,18 +151,22 @@ class CarsController extends Controller
         return redirect()->route('admin.cars.index');
     }
 
-    public function show(Car $car)
+    public function show($id)
     {
         abort_if(Gate::denies('car_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
         $car->load('driver', 'carCarLinkHistories', 'carTasks');
 
         return view('admin.cars.show', compact('car'));
     }
 
-    public function destroy(Car $car)
+    public function destroy($id)
     {
         abort_if(Gate::denies('car_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
         $car->delete();
 

@@ -45,6 +45,10 @@ class StoreCarRequest extends FormRequest
                 'string',
                 'required',
             ],
+            'status' => [
+                'boolean',
+                'required',
+            ],
         ];
     }
 }

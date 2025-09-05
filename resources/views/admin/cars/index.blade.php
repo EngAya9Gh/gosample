@@ -38,6 +38,13 @@
                                 <label for="plate_number">{{ trans('cruds.car.fields.plate_number') }}</label>
                                 <input class="form-control" type="text" name="plate_number" id="plate_number">
                             </div>
+                            <div class="col-lg-4">
+                                <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
+                                <select class="form-control" name="status" id="statusInput">
+                                    <option value="1">Enable</option>
+                                    <option value="0">Disable</option>
+                                </select>
+                            </div>
 
                         </div>
 
@@ -95,6 +102,9 @@
                         </th>
                         <th>
                             {{ trans('cruds.car.fields.contact_person') }}
+                        </th>
+                        <th>
+                            {{ trans('translation.task.fields.status') }}
                         </th>
                         <th>
                             {{ trans('cruds.car.fields.description') }}
@@ -166,6 +176,7 @@
                         d.date_to = $("#date_to").val();
                         d.imei = $('#imei').val();
                         d.plate_number = $('#plate_number').val();
+                        d.status = $('#statusInput').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
@@ -204,6 +215,10 @@
                     {
                         data: 'contact_person',
                         name: 'contact_person'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
                     },
                     {
                         data: 'description',

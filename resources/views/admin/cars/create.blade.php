@@ -110,12 +110,16 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label for="description">{{ trans('translation.car.fields.description') }}</label>
-                            <textarea class="form-control {{ $errors->has('description') ? 'is-invalid' : '' }}" name="description"
-                                id="description">{{ old('description') }}</textarea>
-                            @if ($errors->has('description'))
+                            <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
+                            <select class="form-control {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status"
+                                id="statusInput">
+                                <option value="1" {{ old('status', $car->status) == '1' ? 'selected' : '' }}>Enable
+                                </option>
+                                <option value="0" {{ old('status', $car->status) == '0' ? 'selected' : '' }}>Disable</option>
+                            </select>
+                            @if ($errors->has('status'))
                                 <div class="invalid-feedback">
-                                    {{ $errors->first('description') }}
+                                    {{ $errors->first('status') }}
                                 </div>
                             @endif
                         </div>
@@ -132,6 +136,20 @@
                                     Yes
                                 </option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="description">{{ trans('translation.car.fields.description') }}</label>
+                            <textarea class="form-control {{ $errors->has('description') ? 'is-invalid' : '' }}" name="description"
+                                id="description">{{ old('description') }}</textarea>
+                            @if ($errors->has('description'))
+                                <div class="invalid-feedback">
+                                    {{ $errors->first('description') }}
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
