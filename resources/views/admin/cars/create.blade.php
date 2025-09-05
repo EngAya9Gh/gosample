@@ -113,9 +113,9 @@
                             <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
                             <select class="form-control {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status"
                                 id="statusInput">
-                                <option value="1" {{ old('status', $car->status) == '1' ? 'selected' : '' }}>Enable
+                                <option value="1" {{ old('status', '') == '1' ? 'selected' : '' }}>Enable
                                 </option>
-                                <option value="0" {{ old('status', $car->status) == '0' ? 'selected' : '' }}>Disable</option>
+                                <option value="0" {{ old('status', '') == '0' ? 'selected' : '' }}>Disable</option>
                             </select>
                             @if ($errors->has('status'))
                                 <div class="invalid-feedback">
