@@ -20,13 +20,17 @@ class DriversController extends Controller
         abort_if(Gate::denies('driver_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Driver::query()->select(sprintf('%s.*', (new Driver)->table));
+            $query = Driver::withTrashed()
+            ->select(sprintf('%s.*', (new Driver)->getTable()));
             // Apply search criteria
             if ($request->filled('date_from') && $request->filled('date_to')) {
                 $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
             }
             if ($request->filled('mobile')) {
                 $query->where('mobile', $request->mobile);
+            }
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
             }
            
             $table = Datatables::of($query);
@@ -103,36 +107,40 @@ class DriversController extends Controller
         return redirect()->route('admin.drivers.index');
     }
 
-    public function edit(Driver $driver)
+    public function edit($id)
     {
         abort_if(Gate::denies('driver_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 // 
         // $zones = Zone::all();
+        $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $zones = Zone::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         return view('admin.drivers.edit', compact('driver','zones'));
     }
 
-    public function update(UpdateDriverRequest $request, Driver $driver)
+    public function update(UpdateDriverRequest $request, $id)
     {
+        $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $driver->update($request->all());
 
         return redirect()->route('admin.drivers.index');
     }
 
-    public function show(Driver $driver)
+    public function show($id)
     {
         abort_if(Gate::denies('driver_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $driver->load('driverCarLinkHistories', 'driverTasks', 'driverSwaprequests', 'driverMoneyTransfers');
 
         return view('admin.drivers.show', compact('driver'));
     }
 
-    public function destroy(Driver $driver)
+    public function destroy($id)
     {
         abort_if(Gate::denies('driver_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $driver->delete();
 
         return back();

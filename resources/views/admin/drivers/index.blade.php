@@ -19,19 +19,26 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label class="required"
                                     for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_from" id="date_from">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label class="required"
                                     for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label for="mobile">{{ trans('cruds.driver.fields.mobile') }}</label>
                                 <input class="form-control" type="text" name="mobile" id="mobile">
+                            </div>
+                            <div class="col-lg-3">
+                                <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
+                                <select class="form-control" name="status" id="statusInput">
+                                    <option value="1">Enable</option>
+                                    <option value="0">Disable</option>
+                                </select>
                             </div>
 
                         </div>
@@ -165,6 +172,7 @@
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                         d.keyword = $('#keyword').val();
+                        d.status = $('#statusInput').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
