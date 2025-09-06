@@ -141,7 +141,7 @@
                             {{ trans('translation.pleaseSelect') }}</option>
                         @foreach (App\Models\Location::STATUS_SELECT as $key => $label)
                             <option value="{{ $key }}"
-                                {{ old('status', $location->status) === (string) $key ? 'selected' : '' }}>
+                                {{ old('status', $location->status) == (string) $key ? 'selected' : '' }}>
                                 {{ $label }}</option>
                         @endforeach
                     </select>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 
 class Location extends Model
 {
@@ -16,7 +17,7 @@ class Location extends Model
 
     public const STATUS_SELECT = [
         '1' => 'active',
-        '2' => 'inactive',
+        '0' => 'inactive',
     ];
 
     public $table = 'locations';
@@ -41,6 +42,14 @@ class Location extends Model
         'updated_at',
         'deleted_at',
     ];
+
+
+    protected static function booted()
+    {
+        static::addGlobalScope('enabled', function (Builder $builder) {
+            $builder->where('status', 1);
+        });
+    }
 
     public function locationsClients()
     {

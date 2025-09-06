@@ -41,6 +41,10 @@ class UpdateLocationRequest extends FormRequest
             //     'required',
             //     'unique:locations,mobile,' . request()->route('location')->id,
             // ],
+            'status' => [
+                'boolean',
+                'required',
+            ],
         ];
     }
 }

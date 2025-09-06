@@ -30,6 +30,13 @@
                                     for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
+                            <div class="col-lg-4">
+                                <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
+                                <select class="form-control" name="status" id="statusInput">
+                                    <option value="1">Active</option>
+                                    <option value="0">Not Active</option>
+                                </select>
+                            </div>
 
                         </div>
 
@@ -160,6 +167,7 @@
                     data: function(d) {
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
+                        d.status = $('#statusInput').val();
                         // d.keyword = $('#keyword').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }

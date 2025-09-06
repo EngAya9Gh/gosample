@@ -19,7 +19,8 @@ class LocationsController extends Controller
         abort_if(Gate::denies('location_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Location::query()->select(sprintf('%s.*', (new Location)->table));
+            $query = Location::withoutGlobalScope('enabled')
+            ->select(sprintf('%s.*', (new Location)->getTable()));
 
             // Apply search criteria
             if ($request->filled('date_from') && $request->filled('date_to')) {
@@ -27,6 +28,9 @@ class LocationsController extends Controller
             }
             if ($request->filled('driver_id')) {
                 $query->where('driver_id', $request->driver_id);
+            }
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
             }
            
             // if ($request->filled('client_id')) {
@@ -84,7 +88,7 @@ class LocationsController extends Controller
                 return $row->mobile ? $row->mobile : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Location::STATUS_SELECT[$row->status] : '';
+                return $row->status ? Location::STATUS_SELECT[$row->status] : 'Not Active';
             });
 
             $table->addColumn('coordinates', function ($row) {
@@ -136,33 +140,37 @@ class LocationsController extends Controller
         return redirect()->route('admin.locations.index');
     }
 
-    public function edit(Location $location)
+    public function edit($id)
     {
         abort_if(Gate::denies('location_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         return view('admin.locations.edit', compact('location'));
     }
 
-    public function update(UpdateLocationRequest $request, Location $location)
+    public function update(UpdateLocationRequest $request, $id)
     {
+        $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->update($request->all());
 
         return redirect()->route('admin.locations.index');
     }
 
-    public function show(Location $location)
+    public function show($id)
     {
         abort_if(Gate::denies('location_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->load('locationsClients');
 
         return view('admin.locations.show', compact('location'));
     }
 
-    public function destroy(Location $location)
+    public function destroy($id)
     {
         abort_if(Gate::denies('location_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->delete();
 
         return back();

@@ -20,7 +20,7 @@ class DriversController extends Controller
         abort_if(Gate::denies('driver_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Driver::withTrashed()
+            $query = Driver::withoutGlobalScope('enabled')
             ->select(sprintf('%s.*', (new Driver)->getTable()));
             // Apply search criteria
             if ($request->filled('date_from') && $request->filled('date_to')) {
