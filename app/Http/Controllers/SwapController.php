@@ -174,12 +174,14 @@ class SwapController extends Controller
                     }
                     $swap_ids = [];
                     $create_date = '';
+                    $exist = false;
                     foreach ($group as $swap) {
                         if ($swap->task) {
                             if (empty($create_date) || ($create_date > $swap->created_at)) {
                                 $create_date = $swap->created_at;
                             }
                             $swap_ids[] = $swap->id;
+                            // $swap_ids[] = $swap->barcode_id;
                             $swap->task->dateString = date('d-F-Y', strtotime($swap->task->created_at));
                             $swap->task->timeString = date('H:i:s A', strtotime($swap->task->created_at));
                             $swap->task->from_location_name = Location::find($swap->task->from_location)->name;
@@ -194,9 +196,21 @@ class SwapController extends Controller
                                 $swap->task->makeHidden('samples');
                                 //$sample->task = $swap->task->toArray() ?? [];
                                 //$sample->task = $swap->task;
-                                $data->bags[] = $sample;
-                                if (!in_array($sample->bag_code, $number_bags)) {
-                                    $number_bags[] = $sample->bag_code;
+                                // $data->bags[] = $sample;
+                                // if (!in_array($sample->bag_code, $number_bags)) {
+                                //     $number_bags[] = $sample->bag_code;
+                                // }
+                                if (!in_array($sample, $data->bags)) {
+                                    $tempSample = $sample;
+                                    $tempSample->barcode_id = $sample->bag_code;
+                                    if(!$exist) {
+                                        $tempSample->task_id = $sample->task_id;
+                                        $exist = true;
+                                    } else {
+                                        // $tempSample->task_id = null;
+                                        $tempSample->task_id = $sample->task_id;
+                                    }
+                                    $data->bags[] = $tempSample;
                                 }
 
                             }
@@ -209,7 +223,8 @@ class SwapController extends Controller
                         }
                     }
                     $data->swaps = $swap_ids;
-                    $data->number_of_bags = count($number_bags);
+                    // $data->number_of_bags = count($data->bags);
+                    $data->number_of_bags = count($data->bags);
                     $data->driver = $driver;
                     $swapDate = null;
                     $swapTime = null;
@@ -224,7 +239,7 @@ class SwapController extends Controller
 
                     $allData[] = $data;
                 }
-
+                \Log::info($allData);
 
                 return $this->response(true,'success',$allData);
             }

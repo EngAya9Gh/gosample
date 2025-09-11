@@ -40,18 +40,18 @@ class UpdateDriverRequest extends FormRequest
             'username' => [
                 'string',
                 'required',
-                'unique:drivers,username,' . request()->route('driver')->id,
+                // 'unique:drivers,username,' . request()->route('driver')->id,
             ],
             'mobile' => [
                 'string',
                 'required',
-                'unique:drivers,mobile,' . request()->route('driver')->id,
+                // 'unique:drivers,mobile,' . request()->route('driver')->id,
 
             ],
             'email' => [
                 'string',
                 'required',
-                'unique:drivers,email,' . request()->route('driver')->id,
+                // 'unique:drivers,email,' . request()->route('driver')->id,
             ],
            
         ];
