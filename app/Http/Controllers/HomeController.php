@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\View;
 use League\Csv\Reader;
 use Akaunting\Apexcharts\Chart;
+use App\Models\CarTracking;
 use Illuminate\Support\Facades\Cache;
 class HomeController extends Controller
 {
@@ -597,6 +598,59 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         }
         
     }
+    // public function map(Request $request)
+    // {
+    //     $loggedUser = auth()->user();
+
+    //     $locations = Driver::query()
+    //         ->select([
+    //             'drivers.id',
+    //             'drivers.name',
+    //             'cars.id as car_id',
+    //             'cars.imei',
+    //             'cars.plate_number',
+    //             'cars.model',
+    //             DB::raw('(SELECT lat FROM car_tracking WHERE car_tracking.car_id = cars.id ORDER BY car_tracking.created_at DESC LIMIT 1) as lat'),
+    //             DB::raw('(SELECT lng FROM car_tracking WHERE car_tracking.car_id = cars.id ORDER BY car_tracking.created_at DESC LIMIT 1) as lng')
+    //         ])
+    //         ->leftJoin('cars', 'cars.driver_id', '=', 'drivers.id')
+    //         ->whereNotNull('cars.lat')
+    //         ->where('cars.status', 1)
+    //         ->with([
+    //             'driverActiveTasks' => function ($query) use ($loggedUser) {
+    //                 if ($loggedUser->client_id) {
+    //                     $query->where('billing_client', $loggedUser->client_id);
+    //                 }
+    //             },
+    //             'driverActiveDelayedTasks',
+    //             'driverActiveTasks.from',
+    //             'driverActiveTasks.to',
+    //             'driverActiveTasks.samples',
+    //             'car',
+    //             'car.carTracking'
+    //         ]);
+    //     $drivers = Driver::leftJoin('client_driver','driver_id','drivers.id');
+    //     if ($loggedUser->client_id) {
+    //         $locations->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
+    //             ->where('client_driver.client_id', $loggedUser->client_id);
+    //         $drivers = $drivers->where('client_driver.client_id', $loggedUser->client_id);
+    //     }
+
+    //     if ($request->filled('driver_id')) {
+    //         $locations->where('drivers.id', $request->driver_id);
+    //     }
+    //     if ($request->filled('imei')) {
+    //         $locations->where('cars.imei', $request->imei);
+    //     }
+    //     if ($request->filled('plate_number')) {
+    //         $locations->where('cars.plate_number', $request->plate_number);
+    //     }
+
+    //     $locations = $locations->get();
+    //     dd($locations);
+    //     $drivers = $drivers->get();
+    //     return view('map', compact('locations', 'drivers'));
+    // }
 
     public function getDriverLocations(Request $request)
     {

@@ -83,6 +83,7 @@ class Task extends Model
         'close_lng',
         'cost',
         'confirmation_time',
+        'eta',
         'close_hour',
         'box_count',
         'sample_count',

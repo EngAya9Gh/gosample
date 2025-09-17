@@ -1297,6 +1297,7 @@ $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(tr
                 $task->from_location = $from_location;
                 $task->added_by = $logged_id_user->email;
                 $task->created_at = now();
+                $task->eta = $this->calcETA($driver, $from_location, $request->to_location);
                 $task->save();
                 $driver->sendNotification( 'New Task', 'You have new task',[$driver->fcm_token],$task,'open_task');
             }
@@ -1304,6 +1305,89 @@ $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(tr
 
 
         return redirect()->route('admin.tasks.index');
+    }
+
+    public function calcETA($driver, $fromLocationId, $toLocationId)
+    {
+        $fromLocation = Location::find($fromLocationId);
+        $toLocation   = Location::find($toLocationId);
+
+        if (!$fromLocation || !$toLocation) {
+            return 0;
+        }
+
+        $lastTask = $driver->driverActiveTasks()->orderBy('id', 'desc')->first();
+        // \Log::info($lastTask);
+        if ($lastTask) {
+            $lastToLocation = Location::find($lastTask->to_location);
+            $startPoint = $lastToLocation 
+                ? $lastToLocation->lat . ',' . $lastToLocation->lng 
+                : ($fromLocation->lat . ',' . $fromLocation->lng);
+        } else {
+            $car = $driver->car;
+            $carTracking = $car?->carTracking()->first();
+            if ($carTracking) {
+                $startPoint = $carTracking->lat . ',' . $carTracking->lng;
+            } else {
+                $startPoint = $fromLocation->lat . ',' . $fromLocation->lng;
+            }
+        }
+
+        $fromPoint = $fromLocation->lat . ',' . $fromLocation->lng;
+        $toPoint   = $toLocation->lat . ',' . $toLocation->lng;
+
+        $time1 = $this->getTravelTime($startPoint, $fromPoint);
+        // \Log::info($time1);
+
+        $time2 = $this->getTravelTime($fromPoint, $toPoint);
+        // \Log::info($time2);
+
+        $totalSeconds = $time1 + $time2;
+        // \Log::info($totalSeconds);
+
+        $waitingTime = 0;
+        if ($lastTask && $lastTask->eta) {
+            $waitingTime = intval($lastTask->eta) * 60;
+        }
+
+        $totalSeconds += $waitingTime;
+        // \Log::info($totalSeconds);
+
+        return (int) ceil($totalSeconds / 60);
+    }
+
+
+    private function getTravelTime($origin, $destination)
+    {
+        // \Log::info("Origin: ");
+        // \Log::info($origin);
+        // \Log::info("Destination: ");
+        // \Log::info($destination);
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                'query' => [
+                    'origins' => $origin,
+                    'destinations' => $destination,
+                    'key' => 'AIzaSyCBu_5dYX7nfDtJ1mzrsumkMmhmymoDvN0',
+                    // 'key' => 'AIzaSyDf1ht01vFyWcfWS33mmddf30qm5-uyWhM',
+                    // 'key' => 'AIzaSyBVDsDozMW1t5KyW1vawIaldLIGhyVAi2c',
+                    'mode' => 'driving',
+                ]
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+
+            // \Log::info("Data: ");
+            // \Log::info($data);
+            if (!empty($data['rows'][0]['elements'][0]['duration']['value'])) {
+                return $data['rows'][0]['elements'][0]['duration']['value'];
+            }
+        } catch (\Exception $e) {
+            \Log::error('Google Maps API error: ' . $e->getMessage());
+        }
+
+        return 0;
     }
 
     public function edit(Task $task)

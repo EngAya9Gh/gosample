@@ -39,13 +39,13 @@ class CarDashboardController extends Controller
             ->whereNotNull('imei')
             ->pluck('imei')
             ->toArray();
-        \Log::info($imeis);
+        // \Log::info($imeis);
         $cars = [];
 
         try {
             $token = $this->generateAndSaveToken();
             $data = $this->getVehicleDataCustom($token, $imeis);
-            \Log::info($data['pagination']);
+            // \Log::info($data['pagination']);
             if ($data && isset($data['data'])) {
                 foreach ($data['data'] as $vehicle) {
                     $car = [

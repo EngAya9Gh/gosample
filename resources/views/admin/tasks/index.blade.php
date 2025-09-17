@@ -196,6 +196,9 @@
                             TO LOCATION
                         </th>
                         <th>
+                            ETA (in Minutes)
+                        </th>
+                        <th>
                             COLLECTION DATE
                         </th>
                         <th>
@@ -209,15 +212,6 @@
                         </th>
                         <th>
                             TASK TYPE
-                        </th>
-                        <th>
-                            Confirmed Received by Driver
-                        </th>
-                        <th>
-                            Driver Confirmation - From Location
-                        </th>
-                        <th>
-                            Driver Confirmation - To Location
                         </th>
                         <th>
                             ADDED BY
@@ -346,6 +340,10 @@
                         name: 'to_location.name'
                     },
                     {
+                        data: 'eta',
+                        name: 'eta'
+                    },
+                    {
                         data: 'collection_date',
                         name: 'collection_date'
                     },
@@ -365,18 +363,18 @@
                         data: 'task_type',
                         name: 'task_type'
                     },
-                    {
-                        data: 'confirmed_received_by_driver',
-                        name: 'confirmed_received_by_driver'
-                    },
-                    {
-                        data: 'driver_confirm_from_location',
-                        name: 'driver_confirm_from_location'
-                    },
-                    {
-                        data: 'driver_confirm_to_location',
-                        name: 'driver_confirm_to_location'
-                    },
+                    // {
+                    //     data: 'confirmed_received_by_driver',
+                    //     name: 'confirmed_received_by_driver'
+                    // },
+                    // {
+                    //     data: 'driver_confirm_from_location',
+                    //     name: 'driver_confirm_from_location'
+                    // },
+                    // {
+                    //     data: 'driver_confirm_to_location',
+                    //     name: 'driver_confirm_to_location'
+                    // },
 
                     {
                         data: 'added_by',

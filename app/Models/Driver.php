@@ -68,7 +68,7 @@ class Driver extends Authenticatable  implements JWTSubject
     protected static function booted()
     {
         static::addGlobalScope('enabled', function (Builder $builder) {
-            $builder->where('status', 1);
+            $builder->where('drivers.status', 1);
         });
     }
 
