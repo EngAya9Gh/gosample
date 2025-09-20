@@ -93,7 +93,7 @@ public function handle()
                                 'sensors'
                             ],
                             'offset' => 0,
-                            'limit' => 1000,
+                            'limit' => 100000,
                             'simplify' => 1
                         ]
                     ]);
@@ -101,9 +101,9 @@ public function handle()
                     $sensors = $response->json();
                 } 
                 
-// \Log::info("sensors");
-// \Log::info($car_imei);
-// \Log::info($sensors);
+                // \Log::info("sensors");
+                // \Log::info($car_imei);
+                // \Log::info($sensors);
                 if (isset($sensors['data']) && !empty($sensors['data'])) {
                     foreach ($sensors['data'] as $vehicle) {
                         $tempSensors = array_filter($vehicle['sensors'], function ($sensor) {
@@ -118,7 +118,7 @@ public function handle()
                         $temp2 = null;
                         $temp3 = null;
                         foreach ($tempSensors as $temp) {
-//\Log::info($temp);
+                //\Log::info($temp);
                             $value = $temp['last_val']['value_calibrated'] ?? null;
                             if ($temp['n'] == 'Refrigeration' && isset($temp['last_val']['value'])) {
                                 $temp1 = $value;

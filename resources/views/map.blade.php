@@ -497,10 +497,18 @@
         //    });
     </script>
 
-    <!-- <script src="{{ URL::asset('assets/libs/prismjs/prismjs.min.js') }}"></script>
-                                                                                                                                                                <script src="https://maps.google.com/maps/api/js?key=AIzaSyCtSAR45TFgZjOs4nBFFZnII-6mMHLfSYI"></script>
-
+    <!-- <script src="{{ URL::asset('assets/libs/prismjs/prismjs.min.js') }}"></script>-->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>                                                                                
                                                                                                                                                                 <script src="{{ URL::asset('assets/libs/gmaps/gmaps.min.js') }}"></script>
-                                                                                                                                                                <script src="{{ URL::asset('assets/js/pages/gmaps.init.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#driver_id').select2({
+                placeholder: "Select Driver",
+                allowClear: true,
+                width: '100%' // ليظهر بنفس حجم الفورم
+            });
+        });
+    </script>                                                                                                                                             <script src="{{ URL::asset('assets/js/pages/gmaps.init.js') }}"></script>
                                                                                                                                                                 <script src="{{ URL::asset('/assets/js/app.min.js') }}"></script> -->
 @endsection

@@ -594,6 +594,13 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 $locations = $locations->where('cars.plate_number',$request->plate_number);
             }
             $locations = $locations->get();
+            foreach($locations as &$loc) {
+                if ($loc->car && $loc->car->carTracking->isNotEmpty()) {
+                    $latestTracking = $loc->car->carTracking->sortByDesc('created_at')->first();
+                    $loc->lat = $latestTracking?->lat;
+                    $loc->lng = $latestTracking?->lng;
+                }
+            }
             return view('map',compact('locations','drivers'));
         }
         
