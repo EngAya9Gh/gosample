@@ -14,6 +14,7 @@ use App\Exports\TaskTimeReportExport;
 use App\Models\Driver;
 use App\Models\Location;
 use App\Models\Task;
+use App\Models\User;
 use App\Services\LogService;
 use Gate;
 use Maatwebsite\Excel\Facades\Excel;
@@ -303,10 +304,6 @@ class TasksController extends Controller
 
     public function pickupdelayed(Request $request)
     {
-
-
-
-
         $logged_id_user = auth()->user();
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
@@ -723,6 +720,7 @@ class TasksController extends Controller
             'drivers' =>  $drivers
         ]);
     }
+
     public function collectedDelayed(Request $request)
     {
         $logged_id_user = auth()->user();
@@ -932,7 +930,6 @@ class TasksController extends Controller
             'drivers' =>  $drivers
         ]);
     }
-
 
     public function outfreezerdelayed(Request $request)
     {
@@ -1208,10 +1205,10 @@ class TasksController extends Controller
         return view('admin.tasks.create', compact('billing_clients', 'cars', 'drivers', 'from_locations', 'to_locations'));
     }
 
-public function unUsedTasks(Request $request)
+    public function unUsedTasks(Request $request)
     {
         abort_if(Gate::denies('unused_tasks'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-	$tasks = Task::leftjoin('clients','clients.id','=','tasks.billing_client')
+	    $tasks = Task::leftjoin('clients','clients.id','=','tasks.billing_client')
             ->leftjoin('drivers','drivers.id','=','tasks.driver_id')
             ->leftjoin('locations as from','from.id','=','tasks.from_location')
             ->leftjoin('locations as to','to.id','=','tasks.to_location')
@@ -1255,15 +1252,11 @@ public function unUsedTasks(Request $request)
 
         $logged_id_user = auth()->user();
         if($logged_id_user->client_id != null) {
-$to_locations = Location::leftJoin('client_location','client_location.location_id','locations.id')
+            $to_locations = Location::leftJoin('client_location','client_location.location_id','locations.id')
             ->where('client_location.client_id',$logged_id_user->client_id)->orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-
-
-} else {
-$to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-
-
-}
+        } else {
+        $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+        }
  
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
@@ -1306,6 +1299,94 @@ $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(tr
 
         return redirect()->route('admin.tasks.index');
     }
+
+    public function getLocations($clientId, Request $request) {
+        try {
+            $clientToken = $request->bearerToken();
+            $client = Client::find($clientId);
+            if (!$client) {
+                return response()->json(['success' => false, 'message' => 'No client found'], 404);
+            }
+            if ($clientToken !== $client->api_token) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $locations = Location::select('locations.*')
+            ->leftJoin('client_location','client_location.location_id','locations.id')
+            ->where('client_location.client_id',$clientId)
+            ->pluck('name', 'id');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Get locations',
+                'data' => $locations
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'System error'], 500);
+        }
+    }
+
+    public function createCustomTask($clientId, Request $request) {
+        try {
+            $clientToken = $request->bearerToken();
+            $client = Client::find($clientId);
+            if (!$client) {
+                return response()->json(['success' => false, 'message' => 'No client found'], 404);
+            }
+            if ($clientToken !== $client->api_token) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+            $logged_user = User::where('client_id', $clientId)->latest()->first();
+            $logged_id_user = $logged_user;
+            if (!$logged_user) {
+                return response()->json(['success' => false, 'message' => 'No user found for this client'], 404);
+            }
+
+            $validator = \Validator::make($request->all(), [
+                'from_location' => 'required|string|max:255',
+                'to_location'   => 'required|string|max:255',
+                'type'          => 'required|string|max:50',
+                'pickup_time'   => 'required|date',
+                'dropoff_time'  => 'required|date|after_or_equal:pickup_time',
+                'takasi'        => 'nullable|string|max:255',
+                'time_of_visit' => 'required|integer|min:1',
+                'task_type'     => 'required|string|max:50',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            for ($i=0; $i < $request->time_of_visit; $i++) {
+                $task = new Task();
+                $task->from_location = $request->from_location;
+                $task->to_location = $request->to_location;
+                $task->type = $request->type;
+                $task->pickup_time = $request->pickup_time;
+                $task->dropoff_time = $request->dropoff_time;
+                $task->takasi = $request->takasi;
+                $task->time_of_visit = $request->time_of_visit;
+                $task->task_type = $request->task_type;
+                $task->billing_client = $clientId;
+                $task->added_by = $logged_id_user->email;
+                $task->created_at = now();
+                $task->eta = null;
+                $task->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task created',
+                'data' => $task
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'System error'], 500);
+        }
+    }
+
 
     public function calcETA($driver, $fromLocationId, $toLocationId)
     {

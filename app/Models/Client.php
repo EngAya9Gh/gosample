@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Auditable;
+use Illuminate\Support\Str;
 
 class Client extends Model 
 {
@@ -58,5 +59,13 @@ class Client extends Model
     public function drivers()
     {
         return $this->belongsToMany(Driver::class, 'client_driver', 'client_id', 'driver_id');
+    }
+
+    public function generateApiToken()
+    {
+        $this->api_token = Str::random(60);
+        $this->save();
+
+        return $this->api_token;
     }
 }
