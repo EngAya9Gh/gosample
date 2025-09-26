@@ -1250,7 +1250,11 @@ class SampleController extends Controller
 
                 $driver = Driver::find($task->driver_id);
                 $car = $driver->car;
-                $driver_containers = $car->containers->pluck('id')->toArray();
+                if(isset($car)) {
+                    $driver_containers = $car->containers->pluck('id')->toArray();
+                } else {
+                    $driver_containers = [];
+                }
                 // \Log::info($driver);
                 // \Log::info($car);
                 // \Log::info($driver_containers);
@@ -1259,7 +1263,7 @@ class SampleController extends Controller
                $container_id = preg_replace('/[^0-9]/', '', $data['container_id']);
 
                $container = Container::find($container_id);
-            //    \Log::info($container_id);
+                //    \Log::info($container_id);
                if ($container == null) {
                    return $this->response(false, 'container is not found');
                }

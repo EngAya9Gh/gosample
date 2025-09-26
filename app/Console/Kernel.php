@@ -75,11 +75,11 @@ class Kernel extends ConsoleKernel
 
         // })->dailyAt('23:00');
         $schedule->job(new RemoveOldNewTasks)->everyMinute();
-        $schedule->job(new GenerateAtenatiTokenJob)->everyThirtyMinutes();
+        // $schedule->job(new GenerateAtenatiTokenJob)->everyThirtyMinutes();
         $schedule->job(new CheckScheduledTasks)->everyMinute();
         //$schedule->job(new DailyScheduledJob)->everyMinute(); 
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); 
-//	$schedule->job(new CarTrackCommand)->everyMinute();
+        //	$schedule->job(new CarTrackCommand)->everyMinute();
 
         // $schedule->job(new GenerateAtenatiTokenJob)->everyTwoHours();
 
