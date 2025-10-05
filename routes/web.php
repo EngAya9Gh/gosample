@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tasks-dashboard', [App\Http\Controllers\HomeController::class, 'tasksdashboard'])->name('tasksdashboard.search');
     Route::get('/map', [App\Http\Controllers\HomeController::class, 'map'])->name('map');
     Route::post('/map', [App\Http\Controllers\HomeController::class, 'map'])->name('map.search');
+    Route::post('/map/filter', [App\Http\Controllers\HomeController::class, 'filterMap'])->name('map.filter');
     Route::get('/delayeddashboard', [App\Http\Controllers\DelayedDashboardController::class, 'index'])->name('delayeddashboard');
     Route::get('/welcome', [App\Http\Controllers\HomeController::class, 'welcome'])->name('welcome');
     Route::get('/driver-locations', [App\Http\Controllers\HomeController::class, 'getDriverLocations']);

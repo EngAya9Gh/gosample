@@ -543,9 +543,39 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
 
     public function map(Request $request)
     {
-
-       
         $logged_id_user = auth()->user();
+
+        if($logged_id_user->client_id != null) {
+            $drivers = Driver::leftJoin('client_driver','driver_id','drivers.id')
+            ->where('client_driver.client_id',$logged_id_user->client_id)
+            ->select('id','name')->get();
+            $plateNumbers = Driver::leftJoin('client_driver','driver_id','drivers.id')
+            ->leftJoin('cars','cars.driver_id','drivers.id')
+            ->where('client_driver.client_id',$logged_id_user->client_id)
+            ->select('cars.plate_number')->get();
+
+            $plateNumbers = Driver::leftJoin('client_driver','driver_id','drivers.id')
+                ->leftJoin('cars','cars.driver_id','drivers.id')
+                ->where('client_driver.client_id',$logged_id_user->client_id)
+                ->whereNotNull('cars.plate_number')         // يستثني NULL
+                ->where('cars.plate_number', '!=', '')      // يستثني الفاضي
+                ->select('cars.plate_number')
+                ->distinct()
+                ->pluck('cars.plate_number')
+                ->toArray();  
+            
+        } else {
+            $drivers = Driver::select('id','name')->get();
+            $plateNumbers = Driver::leftJoin('cars', 'cars.driver_id', '=', 'drivers.id')
+                ->whereNotNull('cars.plate_number')         // يستثني NULL
+                ->where('cars.plate_number', '!=', '')      // يستثني الفاضي
+                ->select('cars.plate_number')
+                ->distinct()
+                ->pluck('cars.plate_number')
+                ->toArray();  
+            }
+        return view('map',compact('drivers', 'plateNumbers'));
+        
         if($logged_id_user->client_id != null)
         {
             // get driver of client
@@ -575,7 +605,8 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
            
             return view('map',compact('locations','drivers'));
         } else{
-            $drivers = Driver::all();
+            // $drivers = Driver::all();
+            $drivers = Driver::select('id','name')->get();
             $locations = Driver::select('drivers.*','imei','plate_number','model')
             ->leftJoin('cars','cars.driver_id','drivers.id')
             ->whereNotNull('cars.lat')
@@ -594,6 +625,8 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 $locations = $locations->where('cars.plate_number',$request->plate_number);
             }
             $locations = $locations->get();
+
+            // print_r($locations);
             foreach($locations as &$loc) {
                 if ($loc->car && $loc->car->carTracking->isNotEmpty()) {
                     $latestTracking = $loc->car->carTracking->sortByDesc('created_at')->first();
@@ -603,8 +636,57 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             }
             return view('map',compact('locations','drivers'));
         }
-        
     }
+    public function filterMap(Request $request)
+    {
+        $logged_id_user = auth()->user();
+
+        $locations = Driver::select('drivers.*','imei','plate_number','model')
+            ->leftJoin('cars','cars.driver_id','drivers.id')
+            ->when($logged_id_user->client_id, function($q) use($logged_id_user) {
+                $q->leftJoin('client_driver','client_driver.driver_id','drivers.id')
+                ->where('client_driver.client_id',$logged_id_user->client_id);
+            })
+            ->whereNotNull('cars.lat')
+            ->where('cars.status', 1)
+            ->with([
+                'driverActiveTasks' => function ($query) use ($logged_id_user) {
+                    if ($logged_id_user->client_id) {
+                        $query->where('billing_client', $logged_id_user->client_id);
+                    }
+                },
+                'driverActiveDelayedTasks',
+                'driverActiveTasks.from',
+                'driverActiveTasks.to',
+                'driverActiveTasks.samples',
+                'car',
+                'car.carTracking'
+            ]);
+
+        if ($request->driver_id) {
+            $locations->where('drivers.id',$request->driver_id);
+        }
+        if ($request->imei) {
+            $locations->where('cars.imei',$request->imei);
+        }
+        if ($request->plate_number) {
+            $locations->where('cars.plate_number',$request->plate_number);
+        }
+
+        $locations = $locations->get();
+
+        // نجيب أحدث إحداثيات من tracking
+        foreach($locations as &$loc) {
+            if ($loc->car && $loc->car->carTracking->isNotEmpty()) {
+                $latestTracking = $loc->car->carTracking->sortByDesc('created_at')->first();
+                $loc->lat = $latestTracking?->lat;
+                $loc->lng = $latestTracking?->lng;
+            }
+        }
+
+        return response()->json($locations);
+    }
+
     // public function map(Request $request)
     // {
     //     $loggedUser = auth()->user();

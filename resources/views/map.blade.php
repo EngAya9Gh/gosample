@@ -2,75 +2,87 @@
 @section('title')
     @lang('translation.dashboards')
 @endsection
+
 @section('css')
     <link href="{{ URL::asset('assets/libs/jsvectormap/jsvectormap.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ URL::asset('assets/libs/swiper/swiper.min.css') }}" rel="stylesheet" type="text/css" />
-@endsection
-@section('content')
-    @component('components.breadcrumb')
-        @slot('li_1')
-            Dashboards
-        @endslot
-        @slot('title')
-            Dashboard
-        @endslot
-    @endcomponent
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style type="text/css">
-        #mymap {
-            border: 1px solid red;
-            width: 100%;
-            height: 800px;
+        #mymap { border: 1px solid red; width: 100%; height: 800px; }
+        #map { height: 800px; width: 100%; }
+    </style>
+    <style>
+        /* Loader overlay */
+        #ajax-loader-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        visibility: hidden; /* hidden by default */
+        opacity: 0;
+        transition: opacity 0.2s ease, visibility 0.2s;
         }
 
-        #map {
-            height: 800px;
-            /* The height is 400 pixels */
-            width: 100%;
-            /* The width is the width of the web page */
+        /* show */
+        #ajax-loader-overlay.show {
+        visibility: visible;
+        opacity: 1;
         }
     </style>
+@endsection
+
+@section('content')
+    @component('components.breadcrumb')
+        @slot('li_1') Dashboards @endslot
+        @slot('title') Dashboard @endslot
+    @endcomponent
 
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title mb-0">Filters</h4>
-                </div>
+                <div class="card-header"><h4 class="card-title mb-0">Filters</h4></div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('map') }}" enctype="multipart/form-data">
+                    <!-- form الآن id=filter-form و سيتعمل أجاكس -->
+                    <form id="filter-form" method="POST" action="javascript:void(0);" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-lg-6">
                                 <label for="driver_id">{{ trans('translation.car.fields.driver') }}</label>
-                                <select class="form-control select2 {{ $errors->has('driver') ? 'is-invalid' : '' }}"
-                                    name="driver_id" id="driver_id">
-                                    <option value="">Select Driver</option>
-                                    @foreach ($drivers as $id => $entry)
-                                        <option value="{{ $entry->id }}">{{ $entry->name }}</option>
+                                <select class="form-control select2" name="driver_id" id="driver_id">
+                                    <option value="">{{ __('Select Driver') }}</option>
+                                    @foreach ($drivers as $driver)
+                                        <option value="{{ $driver->id }}">{{ $driver->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div class="col-lg-6">
                                 <label class="required" for="imei">{{ trans('translation.car.fields.imei') }}</label>
-                                <input class="form-control {{ $errors->has('imei') ? 'is-invalid' : '' }}" type="text"
-                                    name="imei" id="imei" value="{{ old('imei', '') }}">
-
+                                <input class="form-control" type="text" name="imei" id="imei" value="{{ old('imei', '') }}">
                             </div>
                         </div>
-                        <div class="row">
+                        
+                        <div class="row mt-3">
                             <div class="col-lg-6">
-                                <label class="required"
-                                    for="plate_number">{{ trans('translation.car.fields.plate_number') }}</label>
-                                <input class="form-control {{ $errors->has('plate_number') ? 'is-invalid' : '' }}"
-                                    type="text" name="plate_number" id="plate_number"
-                                    value="{{ old('plate_number', '') }}">
+                                <label class="required" for="plate_number">{{ trans('translation.car.fields.plate_number') }}</label>
+                                <!-- <input class="form-control" type="text" name="plate_number" id="plate_number" value="{{ old('plate_number', '') }}"> -->
+                                <select class="form-control select2" name="plate_number" id="plate_number">
+                                    <option value="">{{ __('Select Plate Number') }}</option>
+                                    @foreach ($plateNumbers as $plt)
+                                        <option value="{{ $plt }}">{{ $plt }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-lg-6">
                                 <p></p>
-                                <button class="btn btn-danger" type="submit">
-                                    {{ trans('translation.search') }}
-                                </button>
+                                <button class="btn btn-danger" type="submit">{{ trans('translation.search') }}</button>
+                                <button class="btn btn-secondary" type="button" id="btn-reset">Reset</button>
                             </div>
                         </div>
                     </form>
@@ -78,25 +90,33 @@
             </div>
         </div>
     </div>
+
+    <!-- Map card -->
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title mb-0">Drivers</h4>
-                </div>
+                <div class="card-header"><h4 class="card-title mb-0">Drivers</h4></div>
                 <div class="card-body">
-                    <div id="map"></div>
+                    <!-- <div id="map"></div> -->
+                    <div id="map" style="height:800px; width:100%"></div>
 
+                    <!-- AJAX Loader Overlay -->
+                    <div id="ajax-loader-overlay" aria-hidden="true">
+                        <div class="text-center">
+                            <!-- Bootstrap spinner (لو عندك bootstrap) -->
+                            <div class="spinner-border" role="status" style="width:3rem; height:3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div style="margin-top:10px; font-weight:600;">Loading ...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Grids in modals -->
-    <button type="button" hidden class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalgrid"
-        id="driver_pin">
-    </button>
+    <!-- Hidden trigger button and Modal (same modal content) -->
+    <button type="button" hidden class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalgrid" id="driver_pin"></button>
 
     <div class="modal fade" id="exampleModalgrid" tabindex="-1" aria-labelledby="exampleModalgridLabel" aria-modal="true">
         <div class="modal-dialog  modal-lg">
@@ -111,110 +131,65 @@
                             <div class="border">
                                 <ul class="nav nav-pills custom-hover-nav-tabs">
                                     <li class="nav-item">
-                                        <a href="#custom-hover-customere" data-bs-toggle="tab" aria-expanded="false"
-                                            class="nav-link active">
+                                        <a href="#custom-hover-customere" data-bs-toggle="tab" class="nav-link active">
                                             <i class="ri-user-fill nav-icon nav-tab-position"></i>
                                             <h5 class="nav-titl nav-tab-position m-0">Driver</h5>
                                         </a>
                                     </li>
-                                    <!-- <li class="nav-item">
-                                                                                                                                                                                                                    <a class="nav-link align-middle" data-bs-toggle="tab" href="#nav-badge-messages" role="tab" aria-selected="false">
-                                                                                                                                                                                                                        Messages
-                                                                                                                                                                                                                    </a>
-                                                                                                                                                                                                                </li> -->
                                     <li class="nav-item">
-
-                                        <a href="#custom-hover-description" data-bs-toggle="tab" aria-expanded="true"
-                                            class="nav-link">
-                                            <i class="ri-file-text-line nav-icon nav-tab-position">
-                                            </i>
+                                        <a href="#custom-hover-description" data-bs-toggle="tab" class="nav-link">
+                                            <i class="ri-file-text-line nav-icon nav-tab-position"></i>
                                             <h5 class="nav-titl nav-tab-position m-0">Tasks</h5>
-
-                                            {{-- <span class="badge bg-danger rounded-circle" id="badge_tasks"></span> --}}
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a href="#car-details" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                        <a href="#car-details" data-bs-toggle="tab" class="nav-link">
                                             <i class="ri-car-line nav-icon nav-tab-position"></i>
                                             <h5 class="nav-titl nav-tab-position m-0">Car Details</h5>
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a href="#car_tracking_table" data-bs-toggle="tab" aria-expanded="false"
-                                            class="nav-link">
+                                        <a href="#car_tracking_table" data-bs-toggle="tab" class="nav-link">
                                             <i class="ri-map-pin-fill nav-icon nav-tab-position"></i>
                                             <h5 class="nav-titl nav-tab-position m-0">Car Tracking</h5>
                                         </a>
                                     </li>
                                 </ul>
                             </div>
+
                             <div class="card-body">
                                 <div class="tab-content text-muted">
                                     <div class="tab-pane show active" id="custom-hover-customere">
                                         <div class="table-responsive">
                                             <table class="table table-borderless mb-0">
                                                 <tbody>
-                                                    <tr>
-                                                        <th class="ps-0" scope="row">Full Name :</th>
-                                                        <td class="text-muted" id="driver_name"></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="ps-0" scope="row">Mobile :</th>
-                                                        <td class="text-muted" id="driver_mobile"></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="ps-0" scope="row">E-mail :</th>
-                                                        <td class="text-muted" id="driver_email"></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="ps-0" scope="row">Car Plate Number:</th>
-                                                        <td class="text-muted" id="plate_number_result">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="ps-0" scope="row">IMEI</th>
-                                                        <td class="text-muted" id="imei_result"></td>
-                                                    </tr>
+                                                    <tr><th class="ps-0" scope="row">Full Name :</th><td class="text-muted" id="driver_name"></td></tr>
+                                                    <tr><th class="ps-0" scope="row">Mobile :</th><td class="text-muted" id="driver_mobile"></td></tr>
+                                                    <tr><th class="ps-0" scope="row">E-mail :</th><td class="text-muted" id="driver_email"></td></tr>
+                                                    <tr><th class="ps-0" scope="row">Car Plate Number:</th><td class="text-muted" id="plate_number_result"></td></tr>
+                                                    <tr><th class="ps-0" scope="row">IMEI</th><td class="text-muted" id="imei_result"></td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
+
                                     <div class="tab-pane" id="custom-hover-description">
                                         <div class="table-responsive">
                                             <table class="table mb-0" id="tasks_table">
                                                 <thead>
-                                                    <tr>
-                                                        <th scope="col">Id</th>
-                                                        <th scope="col">From</th>
-                                                        <th scope="col">To</th>
-                                                        <th scope="col">Status</th>
-                                                        <th scope="col">Samples</th>
-                                                    </tr>
+                                                    <tr><th>Id</th><th>From</th><th>To</th><th>Status</th><th>Samples</th></tr>
                                                 </thead>
-                                                <tbody>
-
-                                                </tbody>
+                                                <tbody></tbody>
                                             </table>
                                         </div>
                                     </div>
+
                                     <div class="tab-pane" id="car-details">
                                         <h6>Car Details</h6>
                                         <div class="table-responsive">
                                             <table class="table mb-0" id="car_table">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">Id</th>
-                                                        <th scope="col">Plate Number</th>
-                                                        <th scope="col">Model</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>1</td>
-                                                        <td>1111 ewq</td>
-                                                        <td>Test</td>
-                                                    </tr>
-                                                </tbody>
+                                                <thead><tr><th>Id</th><th>Plate Number</th><th>Model</th></tr></thead>
+                                                <tbody></tbody>
                                             </table>
                                         </div>
                                     </div>
@@ -223,292 +198,243 @@
                                         <h6>Car Tracking</h6>
                                         <div class="table-responsive">
                                             <table class="table mb-0" id="car_tracking_table">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">Id</th>
-                                                        <th scope="col">Address</th>
-                                                        <th scope="col">Temp 5</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>1</td>
-                                                        <td></td>
-                                                        <td>11</td>
-                                                    </tr>
-                                                </tbody>
+                                                <thead><tr><th>Id</th><th>Address</th><th>Temp5</th><th>Temp6</th><th>Temp7</th><th>Temp8</th></tr></thead>
+                                                <tbody></tbody>
                                             </table>
                                         </div>
                                     </div>
+
                                 </div>
                             </div><!-- end card-body -->
                         </div>
                     </div>
-                    <!--end col-->
-
                 </div>
             </div>
         </div>
     </div>
-@endsection
-@section('script')
-    <!-- <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDf1ht01vFyWcfWS33mmdfd30qm5-uyWhM&libraries=drawing&callback=initMap"
-        async defer></script> -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDf1ht01vFyWcfWS33mmdfd30qm5-uyWhM&callback=initMap"
-        defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gmaps.js/0.4.24/gmaps.js"></script>
-    <script type="text/javascript">
-        var locations = <?php print_r(json_encode($locations)); ?>;
+@endsection
+
+@section('script')
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <!-- Google Maps API (ضع مفتاحك هنا إذا أردت تغييره) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDf1ht01vFyWcfWS33mmdfd30qm5-uyWhM&callback=initMap" defer></script>
+
+    <!-- select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        // خريطة عالمية و markers array
+        let map;
+        let markers = [];
+        const defaultCenter = { lat: 24.7597608, lng: 46.7141881 };
+        function showLoader() {
+        $('#ajax-loader-overlay').addClass('show');
+        }
+        function hideLoader() {
+        $('#ajax-loader-overlay').removeClass('show');
+        }
 
         function initMap() {
-
-
-            var myStyles = [{
-                featureType: "poi",
-                elementType: "labels",
-                stylers: [{
-                    visibility: "off"
-                }]
-            }];
-            const mtc = {
-                lat: 24.7597608,
-                lng: 46.7141881
-            };
-            // The map, centered at MTC
-            const map = new google.maps.Map(document.getElementById("map"), {
+            const myStyles = [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }];
+            map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
-                center: mtc,
+                center: defaultCenter,
                 styles: myStyles
             });
 
-
-            $.each(locations, function(index, value) {
-                if (value.driver_active_delayed_tasks.length > 0) {
-                    value.icon = " {{ URL::asset('assets/images/pin-delayed.png') }}";
-                    value.tasks_count = value.driver_active_tasks.length;
-                } else {
-                    if (value.driver_active_tasks.length > 0) {
-                        value.icon = " {{ URL::asset('assets/images/pin-active.png') }}";
-                        value.tasks_count = value.driver_active_tasks.length;
-                    } else {
-                        value.icon = "{{ URL::asset('assets/images/pin-no-task.png') }}";
-                        value.tasks_count = value.driver_active_tasks.length;
-                    }
-                }
-
-
-                if (value.lat == null || value.lng == null) {
-                    // no need to display marker in this case
-                } else {
-                    var location = {
-                        lat: value.lat,
-                        lng: value.lng
-                    };
-                    const marker = new google.maps.Marker({
-                        position: {
-                            lat: Number(value.lat),
-                            lng: Number(value.lng)
-                        },
-                        icon: value.icon,
-                        label: {
-                            text: value.tasks_count + '',
-                            fontWeight: 'bold',
-                            fontSize: '16px',
-                        },
-                        // icon: 'http://google-maps-icons.googlecode.com/files/sailboat-tourism.png',
-                        map: map,
-                        data: value
-
-                    });
-
-                    google.maps.event.addListener(marker, 'click', function() {
-                        console.log(value);
-                        $('#driver_pin').click();
-                        $('#badge_tasks').html(value.driver_active_tasks.length);
-                        $('#driver_name').html(value.name);
-                        $('#driver_mobile').html(value.mobile);
-                        $('#driver_email').html(value.email);
-                        $('#plate_number_result').html(value.plate_number);
-                        $('#imei_result').html(value.imei);
-
-                        $("#tasks_table tr").remove();
-
-                        $('#tasks_table > tbody:last-child').append(
-                            '<tr>' +
-                            '<td>Id</td>' +
-                            '<td>From</td>' +
-                            '<td>To</td>' +
-                            '<td>Status</td>' +
-                            '<td>Samples</td>' +
-                            '</tr>');
-                        $.each(value.driver_active_tasks, function(index, task) {
-                            $('#tasks_table > tbody:last-child').append(
-                                '<tr>' +
-                                '<td>' + task.id + '</td>' +
-                                '<td>' + task.from.name + '</td>' +
-                                '<td>' + task.to.name + '</td>' +
-                                '<td>' + task.status + '</td>' +
-                                '<td>' + task.samples.length + '</td>' +
-                                '</tr>');
-                        });
-                        $("#car_table tr").remove();
-
-                        $('#car_table > tbody:last-child').append(
-                            '<tr>' +
-                            '<td>Id</td>' +
-                            '<td>Plate Number</td>' +
-                            '<td>Model</td>' +
-                            // '<td>Status</td>' +
-                            // '<td>Samples</td>' +
-                            '</tr>');
-                        // $.each(value.car, function(index, car) {
-                        $('#car_table > tbody:last-child').append(
-                            '<tr>' +
-                            '<td>' + value.car.id + '</td>' +
-                            '<td>' + value.car.plate_number + '</td>' +
-                            '<td>' + value.car.model + '</td>' +
-                            // '<td>' + task.to.name + '</td>' +
-                            // '<td>' + task.status + '</td>' +
-                            // '<td>' + task.samples.length + '</td>' +
-                            '</tr>');
-                        // });
-
-
-                        $("#car_tracking_table tr").remove();
-
-                        $('#car_tracking_table > tbody:last-child').append(
-                            '<tr>' +
-                            '<td>Id</td>' +
-                            '<td>Address</td>' +
-                            '<td>Temp5</td>' +
-                            '<td>Temp6</td>' +
-                            '<td>Temp7</td>' +
-                            '<td>Temp8</td>' +
-                            '</tr>');
-                        $('#car_tracking_table > tfoot').append(
-                            '<tr>' +
-                            '<td colspan="6">Total</td>' +
-                            '<td>$947.55</td>' +
-                            '</tr>');
-                        $.each(value.car.car_tracking, function(index, record) {
-                            $('#car_tracking_table > tbody:last-child').append(
-                                '<tr>' +
-                                '<td>' + record.id + '</td>' +
-                                '<td>' + record.lat + record.lng + '</td>' +
-                                '<td>' + record.temp5 + '</td>' +
-                                '<td>' + record.temp6 + '</td>' +
-                                '<td>' + record.temp7 + '</td>' +
-                                '<td>' + record.temp8 + '</td>' +
-                                '</tr>');
-                        });
-
-
-
-
-                        // var start = new google.maps.LatLng(value.driver_active_tasks[0].from.lat,value.driver_active_tasks[0].from.lng);
-                        // var end = new google.maps.LatLng(value.driver_active_tasks[0].to.lat,value.driver_active_tasks[0].to.lng);
-                        // var display = new google.maps.DirectionsRenderer();
-                        // var services = new google.maps.DirectionsService();
-
-                        // display.setMap(null);
-                        // display.setMap(map);
-                        // var request ={
-                        //     origin : start,
-                        //     destination:end,
-                        //     travelMode: 'DRIVING'
-                        // };
-                        // services.route(request,function(result,status){
-                        //     if(status =='OK'){
-                        //         display.setDirections(result);
-                        //     }
-                        // });
-
-                    });
-
-                    google.maps.event.addListener(marker, "mouseover", function(evt) {
-                        var label = value.name;
-                        label.color = "black";
-                        this.setLabel(label);
-                    });
-                    google.maps.event.addListener(marker, "mouseout", function(evt) {
-                        var label = value.tasks_count + '';
-                        label.color = "white";
-                        this.setLabel(label);
-                    });
-                }
-
-            });
-
-
+            // تحميل البيانات للمرّة الأولى بدون فلتر
+            loadLocations();
         }
 
-        window.initMap = initMap;
+        // حذف الماركرز القديمة
+        function clearMarkers() {
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+        }
 
+        // تابع بناء المودال من بيانات السائق
+        function populateModal(value) {
+            $('#driver_pin').click(); // يفتح المودال
+            $('#driver_name').text(value.name || '');
+            $('#driver_mobile').text(value.mobile || '');
+            $('#driver_email').text(value.email || '');
+            $('#plate_number_result').text((value.car && value.car.plate_number) ? value.car.plate_number : (value.plate_number || ''));
+            $('#imei_result').text((value.car && value.car.imei) ? value.car.imei : (value.imei || ''));
 
+            // tasks table
+            $('#tasks_table tbody').empty();
+            if (value.driver_active_tasks && value.driver_active_tasks.length) {
+                value.driver_active_tasks.forEach(task => {
+                    const fromName = task.from ? task.from.name : '-';
+                    const toName = task.to ? task.to.name : '-';
+                    const samplesCount = task.samples ? task.samples.length : 0;
+                    $('#tasks_table tbody').append(
+                        `<tr>
+                            <td>${task.id}</td>
+                            <td>${fromName}</td>
+                            <td>${toName}</td>
+                            <td>${task.status || ''}</td>
+                            <td>${samplesCount}</td>
+                        </tr>`
+                    );
+                });
+            }
 
+            // car table
+            $('#car_table tbody').empty();
+            if (value.car) {
+                $('#car_table tbody').append(
+                    `<tr>
+                        <td>${value.car.id || ''}</td>
+                        <td>${value.car.plate_number || ''}</td>
+                        <td>${value.car.model || ''}</td>
+                    </tr>`
+                );
+            }
 
+            // car tracking
+            $('#car_tracking_table tbody').empty();
+            if (value.car && value.car.car_tracking && value.car.car_tracking.length) {
+                value.car.car_tracking.forEach(rec => {
+                    const address = (rec.lat && rec.lng) ? (rec.lat + ', ' + rec.lng) : (rec.address || '');
+                    $('#car_tracking_table tbody').append(
+                        `<tr>
+                            <td>${rec.id}</td>
+                            <td>${address}</td>
+                            <td>${rec.temp5 ?? ''}</td>
+                            <td>${rec.temp6 ?? ''}</td>
+                            <td>${rec.temp7 ?? ''}</td>
+                            <td>${rec.temp8 ?? ''}</td>
+                        </tr>`
+                    );
+                });
+            }
+        }
 
-        // var mymap = new GMaps({
-        //   el: '#mymap',
-        //   lat: 24.7597608,
-        //   lng: 46.7141881,
-        //   zoom:12
-        // });
+        // تحميل الأماكن من السيرفر عبر AJAX
+        function loadLocations(filters = {}) {
+            const data = {
+                _token: "{{ csrf_token() }}",
+                ...filters
+            };
 
-        //     mymap.addMarker({
-        //   lat: -12.043333,
-        //   lng: -77.028333,
-        //   title: 'Lima',
-        //   click: function(e) {
-        //     alert('You clicked in this marker');
-        //   }
-        // });
+            $.ajax({
+                url: "{{ route('map.filter') }}",
+                type: "POST",
+                data: data,
+                dataType: "json",
+                beforeSend() {
+                    showLoader();
+                },
+                success(response) {
+                    clearMarkers();
 
-        // mymap.drawRoute({
-        //   origin: [24.7597608, 46.7141881],
-        //   destination: [24.6272971, 46.5548332],
-        //   travelMode: 'driving',
-        //   strokeColor: '#131540',
-        //   strokeOpacity: 0.6,
-        //   strokeWeight: 6
-        // });
+                    // response يمكن أن يكون array من السجلات
+                    response.forEach(function(value) {
+                        // الحصول على آخر إحداثيات إن كانت موجودة ضمن car.car_tracking أو الحقول lat/lng مباشرة
+                        let lat = value.lat;
+                        let lng = value.lng;
 
-        //     $.each( locations, function( index, value ){
-        //       if(value.lat == null || value.lng == null)
-        //       {
+                        // compatibility: Laravel relations may be snake_case
+                        if ((!lat || !lng) && value.car && value.car.car_tracking && value.car.car_tracking.length) {
+                            // نبحث أحدث تتبع
+                            const sorted = value.car.car_tracking.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                            if (sorted.length) {
+                                lat = sorted[0].lat;
+                                lng = sorted[0].lng;
+                            }
+                        }
 
-        //       }else{
-        //         mymap.addMarker({
-        // 	      lat: value.lat,
-        // 	      lng: value.lng,
-        // 	      title: value.name,
-        // 	      click: function(e) {
-        //             $('#driver_pin').click();
-        //             $('#driver_name').html(value.name);
-        //             $('#driver_mobile').html(value.mobile);
-        //             $('#driver_email').html(value.email);
-        // 	      },
-        // 	    });
-        //       }
+                        if (!lat || !lng) return; // تجاهل بدون إحداثيات
 
-        //    });
-    </script>
+                        const icon = (value.driver_active_delayed_tasks && value.driver_active_delayed_tasks.length > 0)
+                            ? "{{ URL::asset('assets/images/pin-delayed.png') }}"
+                            : ((value.driver_active_tasks && value.driver_active_tasks.length > 0)
+                                ? "{{ URL::asset('assets/images/pin-active.png') }}"
+                                : "{{ URL::asset('assets/images/pin-no-task.png') }}" );
 
-    <!-- <script src="{{ URL::asset('assets/libs/prismjs/prismjs.min.js') }}"></script>-->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>                                                                                
-                                                                                                                                                                <script src="{{ URL::asset('assets/libs/gmaps/gmaps.min.js') }}"></script>
-    <script>
+                        const labelText = (value.driver_active_tasks && value.driver_active_tasks.length) ? String(value.driver_active_tasks.length) : '0';
+
+                        const marker = new google.maps.Marker({
+                            position: { lat: Number(lat), lng: Number(lng) },
+                            map: map,
+                            icon: icon,
+                            label: {
+                                text: labelText,
+                                fontWeight: 'bold',
+                                fontSize: '16px'
+                            }
+                        });
+
+                        // event click -> فتح المودال وتعبئة البيانات
+                        marker.addListener('click', function() {
+                            // بعض الحقول قد ترجع بصيغة snake_case أو camelCase، لكن نحن نفترض response كما أرسلناه من الController
+                            populateModal(value);
+                        });
+
+                        marker.addListener('mouseover', function() {
+                            // on hover يمكن تغيير label مؤقتاً
+                            const label = value.name || '';
+                            this.setLabel({ text: label, fontWeight: 'bold', fontSize: '12px' });
+                        });
+
+                        marker.addListener('mouseout', function() {
+                            this.setLabel({ text: labelText, fontWeight: 'bold', fontSize: '16px' });
+                        });
+
+                        markers.push(marker);
+                    });
+
+                    // اختياري: ضبط bound لوضع كل الماركرز في الشاشة
+                    if (markers.length) {
+                        const bounds = new google.maps.LatLngBounds();
+                        markers.forEach(m => bounds.extend(m.getPosition()));
+                        map.fitBounds(bounds);
+                    } else {
+                        map.setCenter(defaultCenter);
+                        map.setZoom(12);
+                    }
+                },
+                error(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                },
+                complete() {
+                    hideLoader();
+                }
+            });
+        }
+
+        // تهيئة select2 و form submit
         $(document).ready(function() {
-            $('#driver_id').select2({
-                placeholder: "Select Driver",
-                allowClear: true,
-                width: '100%' // ليظهر بنفس حجم الفورم
+            $('#driver_id').select2({ placeholder: "Select Driver", allowClear: true, width: '100%' });
+            $('#plate_number').select2({ placeholder: "Select Plate", allowClear: true, width: '100%' });
+
+            $('#filter-form').on('submit', function(e) {
+                e.preventDefault();
+                const filters = {
+                    driver_id: $('#driver_id').val(),
+                    imei: $('#imei').val(),
+                    plate_number: $('#plate_number').val()
+                };
+                loadLocations(filters);
+            });
+
+            $('#btn-reset').on('click', function() {
+                $('#driver_id').val(null).trigger('change');
+                $('#imei').val('');
+                // $('#plate_number').val('');
+                $('#plate_number').val(null).trigger('change');
+                loadLocations(); // load all
             });
         });
-    </script>                                                                                                                                             <script src="{{ URL::asset('assets/js/pages/gmaps.init.js') }}"></script>
-                                                                                                                                                                <script src="{{ URL::asset('/assets/js/app.min.js') }}"></script> -->
+
+        // expose initMap to google callback
+        window.initMap = initMap;
+    </script>
+
+    <!-- لو عندك ملفات محلية أخرى -->
+    {{-- <script src="{{ URL::asset('/assets/js/app.min.js') }}"></script> --}}
 @endsection
