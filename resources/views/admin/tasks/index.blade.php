@@ -111,7 +111,7 @@
                                     <option value="excel">EXCEL</option>
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <!-- <div class="col-lg-4">
                                 <label for="sort_by">{{ trans('global.sort_by') }}</label>
                                 <select class="form-control" name="sort_by" id="sort_by">
                                     <option value="created_at">{{ trans('translation.task.fields.created_at') }}</option>
@@ -119,15 +119,15 @@
                                     <option value="collection_date">{{ trans('translation.task.fields.collection_date') }}
                                     </option>
                                 </select>
-                            </div>
-                            <div class="col-lg-4">
+                            </div> -->
+                            <!-- <div class="col-lg-4">
                                 <label for="sort_order">{{ trans('global.sort_order') }}</label>
                                 <select class="form-control" name="sort_order" id="sort_order">
                                     <option value="desc">Desc</option>
                                     <option value="asc">Asc</option>
                                     </option>
                                 </select>
-                            </div>
+                            </div> -->
 
                             <div class="col-lg-12 d-flex justify-content-between mt-2">
                                 <button class="btn btn-danger" type="button" id="search">
@@ -289,7 +289,7 @@
                 processing: true,
                 serverSide: true,
                 retrieve: true,
-                aaSorting: [],
+                // aaSorting: [],
                 ajax: {
                     url: "{{ route('admin.tasks.index') }}",
                     data: function(d) {
@@ -302,8 +302,8 @@
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                         d.keyword = $('#keyword').val();
-                        d.sort_by = $('#sort_by option:selected').val();
-                        d.sort_order = $('#sort_order option:selected').val();
+                        // d.sort_by = $('#sort_by option:selected').val();
+                        // d.sort_order = $('#sort_order option:selected').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
@@ -466,8 +466,8 @@
                 var toLocation = document.getElementById("to_location").value;
                 var searchDate = document.getElementById("search_date").value;
                 var reportType = document.getElementById("report_type").value;
-                var sortBy = document.getElementById("sort_by").value;
-                var sortOrder = document.getElementById("sort_order").value;
+                // var sortBy = document.getElementById("sort_by").value;
+                // var sortOrder = document.getElementById("sort_order").value;
 
                 // Construct the export URL with the form values as query parameters
                 var exportUrl = "{{ route('admin.tasks.export-excel') }}?" +
@@ -480,9 +480,9 @@
                     "&from_location=" + fromLocation +
                     "&to_location=" + toLocation +
                     "&search_date=" + searchDate +
-                    "&report_type=" + reportType +
-                    "&sort_by=" + sortBy +
-                    "&sort_order=" + sortOrder;
+                    "&report_type=" + reportType;
+                    // "&sort_by=" + sortBy +
+                    // "&sort_order=" + sortOrder;
 
                 // Redirect to the export URL
                 window.location.href = exportUrl;
