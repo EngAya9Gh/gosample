@@ -12,6 +12,7 @@ class Task extends Model
 {
     use SoftDeletes;
     use HasFactory;
+    public $table = 'tasks_new';
 
     public const TAKASI_SELECT = [
         'NO'  => 'NO',
