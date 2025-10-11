@@ -48,7 +48,7 @@ class Task extends Model
         'OUT_FREEZER' => 'OUT_FREEZER',
     ];
 
-    public $table = 'tasks';
+    // public $table = 'tasks';
 
     protected $dates = [
         'driver_start_date',
