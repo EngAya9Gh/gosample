@@ -52,21 +52,25 @@ class HeaderDataServiceProvider extends ServiceProvider
             $r = new Task();
             $clients = 0;
             $fourDaysAgo = Carbon::now()->subDays(4);
-            $pickup_delayedTasks =  $r->pickup_delayedTasks($user_client_id);
-            $drop_off_delayedTasks =  $r->drop_off_delayedTasks($user_client_id);
+            // $pickup_delayedTasks =  $r->pickup_delayedTasks($user_client_id);
+            // $drop_off_delayedTasks =  $r->drop_off_delayedTasks($user_client_id);
+            $pickup_delayedTasks =  [];
+            $drop_off_delayedTasks =  [];
             $cars = 0;
 
-            $delayed_tasks_in_freezer =  $r->delayed_tasks_in_freezer($user_client_id);
-            $delayed_tasks_delivered =  $r->delayed_tasks_delivered($user_client_id);
+            // $delayed_tasks_in_freezer =  $r->delayed_tasks_in_freezer($user_client_id);
+            // $delayed_tasks_delivered =  $r->delayed_tasks_delivered($user_client_id);
+            $delayed_tasks_in_freezer =  [];
+            $delayed_tasks_delivered =  [];
             $play_sound = 0;
 
 
-            $lost_samples = Sample::where('samples.confirmed_by_client','LOST');
-            if ($user_client_id){
-                $lost_samples = $lost_samples->leftjoin('tasks','tasks.id','=','samples.task_id')->where('tasks.billing_client',$user_client_id);
-            }
-            $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
-
+            // $lost_samples = Sample::where('samples.confirmed_by_client','LOST');
+            // if ($user_client_id){
+            //     $lost_samples = $lost_samples->leftjoin('tasks','tasks.id','=','samples.task_id')->where('tasks.billing_client',$user_client_id);
+            // }
+            // $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
+            $lost_samples = [];
 
             // $delayed_count = Task::where('status', '=', 'CLOSED')
             // ->where('created_at', '>=', $fourDaysAgo)
