@@ -16,6 +16,10 @@ nav[role="navigation"][aria-label="Pagination Navigation"] a svg{
     /* أي ستايل تحبه */
     width: 25px;
 }
+nav[role="navigation"][aria-label="Pagination Navigation"] span svg{
+    /* أي ستايل تحبه */
+    width: 25px;
+}
 
 </style>
     <div class="row">
