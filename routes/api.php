@@ -114,6 +114,7 @@ Route::post('update/otp/ayenati','App\Http\Controllers\Admin\ShipmentsController
 Route::any('shipments/status-shipment', 'App\Http\Controllers\LogisticsController@getShipmentStatus');
 Route::any('shipments/update-shipment', 'App\Http\Controllers\LogisticsController@updateShipment');
 
+Route::post('emergency', 'App\Http\Controllers\DriverController@emergencyBTN');
 
 Route::prefix('third-party')->group(function () {
     // Login route

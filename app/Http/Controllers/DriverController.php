@@ -130,7 +130,7 @@ class DriverController extends Controller
                 }
 
 
-//
+            //
                 return $this->response(true,'success',$user);
             }
         } catch (Exception $e) {
@@ -251,7 +251,7 @@ class DriverController extends Controller
                 }
 
 
-//
+        //
                 return $this->response(true,'success',$user);
             }
         } catch (Exception $e) {
@@ -766,8 +766,8 @@ class DriverController extends Controller
             $rules = [
                 'driver_id'   => 'required',
                 'car_id'   => 'required',
-//                'deliver_signature'   => 'required',
-//                'deliver_confirmationCode'   => 'required',
+                // 'deliver_signature'   => 'required',
+                // 'deliver_confirmationCode'   => 'required',
             ];
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
@@ -782,35 +782,35 @@ class DriverController extends Controller
                 }
 
 
-//                $image = $request->file('signature');
-//                $s3 = \Storage::disk('s3');
-//                $file_name = uniqid() .'.'. $image->getClientOriginalExtension();
-//                $s3filePath = '/assets/' . $file_name;
-//                $s3->put($s3filePath, file_get_contents($image), 'public');
+                //                $image = $request->file('signature');
+                //                $s3 = \Storage::disk('s3');
+                //                $file_name = uniqid() .'.'. $image->getClientOriginalExtension();
+                //                $s3filePath = '/assets/' . $file_name;
+                //                $s3->put($s3filePath, file_get_contents($image), 'public');
 
 
-//                $signature = '';
-//                if($request->signature != null){
-//                    $media = MediaUploader::fromSource($request->file('signature'))
-//                        ->toDestination('uploads', 'signature-car-images')
-//                        ->useHashForFilename()
-//                        ->upload();
-//
-//                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
-//                }else{
-//                    return $this->response(false,'driver signature is required');
-//                }
-//
-//                if($request->images != null){
-//                    $media = MediaUploader::fromSource($request->file('signature'))
-//                        ->toDestination('uploads', 'car-images')
-//                        ->useHashForFilename()
-//                        ->upload();
-//
-//                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
-//                }else{
-//                    return $this->response(false,'driver signature is required');
-//                }
+                //                $signature = '';
+                //                if($request->signature != null){
+                //                    $media = MediaUploader::fromSource($request->file('signature'))
+                //                        ->toDestination('uploads', 'signature-car-images')
+                //                        ->useHashForFilename()
+                //                        ->upload();
+                //
+                //                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
+                //                }else{
+                //                    return $this->response(false,'driver signature is required');
+                //                }
+                //
+                //                if($request->images != null){
+                //                    $media = MediaUploader::fromSource($request->file('signature'))
+                //                        ->toDestination('uploads', 'car-images')
+                //                        ->useHashForFilename()
+                //                        ->upload();
+                //
+                //                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
+                //                }else{
+                //                    return $this->response(false,'driver signature is required');
+                //                }
 
                 return $this->response(true,'success');
             }
@@ -874,6 +874,24 @@ class DriverController extends Controller
 
         return $this->response(true,'sucess',$response);
         // return response()->json($response);
+    }
+
+    public function emergencyBTN(Request $request) {
+        try {
+            $data = $request->only(['driver_id','car_id']);
+            $rules = [
+                'driver_id'   => 'required',
+                'car_id'   => 'required',
+            ];
+            $validator = Validator::make($data, $rules);
+            if ($validator->fails()) {
+                return $this->response(false,$this->validationHandle($validator->messages()));
+            } else {
+                return $this->response(true,'success');
+            }
+        } catch (Exception $e) {
+            return $this->response(false,'system error');
+        }
     }
 
 }
