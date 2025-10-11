@@ -790,7 +790,9 @@ class TasksController extends Controller
             $query->where($dateColumn, '<=', $dateTo);
         }
 
-        $tasks = $query->orderBy($sortColumn, $sortOrder)->paginate(10); // paginate بدل limit
+        $tasks = $query
+        // ->orderBy($sortColumn, $sortOrder)
+        ->paginate(10); // paginate بدل limit
 
         $clients = $logged_id_user->client_id 
             ? Client::where('id', $logged_id_user->client_id)->get()
