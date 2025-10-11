@@ -39,7 +39,7 @@
 
                             <div class="card-body p-4">
                                 <div class="text-center mt-2">
-                                    <h5 class="text-primary">Welcome Back !</h5>
+                                    <h5 class="text-primary">Welcome !</h5>
                                     <p class="text-muted">Sign in to continue to @lang('translation.appname').</p>
                                 </div>
                                 <div class="p-2 mt-4">
