@@ -263,7 +263,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // Top Drivers
         // =========================
         if ($loggedUser->client_id) {
-            $top_drivers = Cache::remember("top_drivers_client_{$loggedUser->client_id}", now()->addMinutes(2), function () use ($loggedUser) {
+            $top_drivers = Cache::remember("top_drivers_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
                 return Task::select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
                     ->leftJoin('drivers','drivers.id','=','tasks.driver_id')
                     ->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
@@ -276,7 +276,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                     ->get();
             });
         } else {
-            $top_drivers = Cache::remember('top_drivers', now()->addMinutes(2), function() {
+            $top_drivers = Cache::remember('top_drivers', now()->addMinutes(30), function() {
                 return DB::table('tasks')
                     ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
                     ->join('drivers', 'drivers.id', '=', 'tasks.driver_id')
@@ -292,27 +292,27 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // Statistics
         // =========================
         if ($loggedUser->client_id) {
-            $stats = Cache::remember("dashboard_stats_client_{$loggedUser->client_id}", now()->addMinutes(2), function () use ($loggedUser) {
-                return (object) [
-                    'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
-                        $query->where('client_id', $loggedUser->client_id);
-                    })->count(),
+            // $stats = Cache::remember("dashboard_stats_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
+            //     return (object) [
+            //         'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
+            //             $query->where('client_id', $loggedUser->client_id);
+            //         })->count(),
 
-                    'tasks' => Task::where('billing_client', $loggedUser->client_id)->count(),
+            //         'tasks' => Task::where('billing_client', $loggedUser->client_id)->count(),
 
-                    'samples' => Sample::leftJoin('tasks','tasks.id','=','task_id')
-                        ->where('tasks.billing_client',$loggedUser->client_id)
-                        ->count(),
+            //         'samples' => Sample::leftJoin('tasks','tasks.id','=','task_id')
+            //             ->where('tasks.billing_client',$loggedUser->client_id)
+            //             ->count(),
 
-                    'locations' => Location::leftJoin('client_location','client_location.location_id','=','locations.id')
-                        ->where('client_location.client_id',$loggedUser->client_id)
-                        ->count(),
+            //         'locations' => Location::leftJoin('client_location','client_location.location_id','=','locations.id')
+            //             ->where('client_location.client_id',$loggedUser->client_id)
+            //             ->count(),
 
-                    'clients' => 1, // ثابت
-                ];
-            });
+            //         'clients' => 1, // ثابت
+            //     ];
+            // });
         } else {
-            // $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(2), function () {
+            // $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
             //     return DB::selectOne("
             //         SELECT 
             //             (SELECT COUNT(*) FROM cars) as cars,
