@@ -82,7 +82,7 @@
             {{ trans('translation.tasks') }} {{ trans('translation.list') }}
         </div>
         <div class="card-body">
-            <table class="table table-bordered" id="tasksTable">
+            <!-- <table class="table table-bordered" id="tasksTable">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -100,7 +100,50 @@
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <div id="pagination-info"></div>
                 <ul class="pagination" id="pagination"></ul>
+            </div> -->
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Order Date</th>
+                        <th>Client</th>
+                        <th>Driver</th>
+                        <th>From Location</th>
+                        <th>To Location</th>
+                        <th>ETA</th>
+                        <th>Collection Date</th>
+                        <th>Close Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($tasks as $index => $task)
+                    <tr>
+                        <td>{{ $index + $tasks->firstItem() }}</td>
+                        <td>{{ $task->id }}</td>
+                        <td>{{ $task->created_at }}</td>
+                        <td>{{ optional($task->client)->english_name }}</td>
+                        <td>{{ optional($task->driver)->name }}</td>
+                        <td>{{ optional($task->from)->name }}</td>
+                        <td>{{ optional($task->to)->name }}</td>
+                        <td>{{ $task->eta }}</td>
+                        <td>{{ $task->collection_date }}</td>
+                        <td>{{ $task->close_date }}</td>
+                        <td>{{ $task->status }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="11" class="text-center">No tasks found</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            <div class="mt-2">
+                {{ $tasks->links() }} {{-- Pagination links --}}
             </div>
+
         </div>
     </div>
 @endsection
@@ -161,11 +204,11 @@
             }
 
             $('#search').on('click', function() {
-                loadTasks(1);
+                // loadTasks(1);
             });
 
             // Initial load
-            loadTasks();
+            // loadTasks();
 
             $('#export_excel').on('click', function() {
                 const query = $.param({

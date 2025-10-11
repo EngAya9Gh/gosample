@@ -381,118 +381,119 @@ class TasksController extends Controller
     //         'drivers' =>  $drivers
     //     ]);
     // }
-    public function index(Request $request)
-    {
-        $logged_id_user = auth()->user();
-        abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // لو الطلب Ajax (يعني جدول البيانات)
-        if ($request->ajax()) {
-            $sortColumn = $request->get('sort_by', 'collection_date');
-            $sortOrder  = $request->get('sort_order', 'desc');
+    // public function index(Request $request)
+    // {
+    //     $logged_id_user = auth()->user();
+    //     abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-            if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
-                $sortColumn = 'collection_date';
-            }
-            if (!in_array($sortOrder, ['asc', 'desc'])) {
-                $sortOrder = 'desc';
-            }
+    //     // لو الطلب Ajax (يعني جدول البيانات)
+    //     if ($request->ajax()) {
+    //         $sortColumn = $request->get('sort_by', 'collection_date');
+    //         $sortOrder  = $request->get('sort_order', 'desc');
 
-            $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
-                ->select('tasks.*');
+    //         if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
+    //             $sortColumn = 'collection_date';
+    //         }
+    //         if (!in_array($sortOrder, ['asc', 'desc'])) {
+    //             $sortOrder = 'desc';
+    //         }
 
-            // فلترة حسب العميل في حال المستخدم مربوط بعميل
-            if ($logged_id_user->client_id) {
-                $query->where('billing_client', $logged_id_user->client_id);
-            }
+    //         $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
+    //             ->select('tasks.*');
 
-            // فلترة ديناميكية
-            $query->when($request->status, fn($q, $v) => $q->where('status', $v))
-                ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
-                ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
-                ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
-                ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
-                ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+    //         // فلترة حسب العميل في حال المستخدم مربوط بعميل
+    //         if ($logged_id_user->client_id) {
+    //             $query->where('billing_client', $logged_id_user->client_id);
+    //         }
 
-            // فلترة التاريخ
-            $dateColumn = $request->search_date ?? 'tasks.created_at';
-            $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
-            $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
+    //         // فلترة ديناميكية
+    //         $query->when($request->status, fn($q, $v) => $q->where('status', $v))
+    //             ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
+    //             ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
+    //             ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
+    //             ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
+    //             ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
 
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
-            } elseif ($dateFrom) {
-                $query->where($dateColumn, '>=', $dateFrom);
-            } elseif ($dateTo) {
-                $query->where($dateColumn, '<=', $dateTo);
-            }
+    //         // فلترة التاريخ
+    //         $dateColumn = $request->search_date ?? 'tasks.created_at';
+    //         $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
+    //         $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
 
-            $query->orderBy($sortColumn, $sortOrder);
+    //         if ($dateFrom && $dateTo) {
+    //             $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+    //         } elseif ($dateFrom) {
+    //             $query->where($dateColumn, '>=', $dateFrom);
+    //         } elseif ($dateTo) {
+    //             $query->where($dateColumn, '<=', $dateTo);
+    //         }
 
-            // pagination خفيف وسريع
-            $tasks = $query->paginate(20);
+    //         $query->orderBy($sortColumn, $sortOrder);
 
-            // تنسيق البيانات (بدون Yajra)
-            $data = $tasks->map(function ($row) {
-                return [
-                    'id' => $row->id,
-                    'client' => optional($row->client)->english_name,
-                    'from_location_name' => optional($row->from)->name,
-                    'to_location_name' => optional($row->to)->name,
-                    'driver_name' => optional($row->driver)->name,
-                    'car_imei' => optional($row->car)->imei,
-                    'collection_date' => $row->collection_date,
-                    'close_date' => $row->close_date,
-                    'status' => $row->status,
-                    'hours' => ($row->collection_date && $row->close_date)
-                        ? parent::hoursandmins(
-                            Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
-                            '%02d Hours, %02d Minutes'
-                        )
-                        : '',
-                    'confirmed_received_by_driver' =>
-                        $row->confirmed_received_by_driver === 1 ? 'Confirmed' :
-                        ($row->confirmed_received_by_driver === 0 ? 'Not Confirmed' : ''),
-                    'driver_confirm_from_location' =>
-                        $row->driver_confirm_from_location === 1 ? 'Confirmed' :
-                        ($row->driver_confirm_from_location === 0 ? 'Not Confirmed' : ''),
-                    'driver_confirm_to_location' =>
-                        $row->driver_confirm_to_location === 1 ? 'Confirmed' :
-                        ($row->driver_confirm_to_location === 0 ? 'Not Confirmed' : ''),
-                ];
-            });
+    //         // pagination خفيف وسريع
+    //         $tasks = $query->paginate(20);
 
-            return response()->json([
-                'data' => $data,
-                'pagination' => [
-                    'total' => $tasks->total(),
-                    'per_page' => $tasks->perPage(),
-                    'current_page' => $tasks->currentPage(),
-                    'last_page' => $tasks->lastPage(),
-                ],
-            ]);
-        }
+    //         // تنسيق البيانات (بدون Yajra)
+    //         $data = $tasks->map(function ($row) {
+    //             return [
+    //                 'id' => $row->id,
+    //                 'client' => optional($row->client)->english_name,
+    //                 'from_location_name' => optional($row->from)->name,
+    //                 'to_location_name' => optional($row->to)->name,
+    //                 'driver_name' => optional($row->driver)->name,
+    //                 'car_imei' => optional($row->car)->imei,
+    //                 'collection_date' => $row->collection_date,
+    //                 'close_date' => $row->close_date,
+    //                 'status' => $row->status,
+    //                 'hours' => ($row->collection_date && $row->close_date)
+    //                     ? parent::hoursandmins(
+    //                         Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+    //                         '%02d Hours, %02d Minutes'
+    //                     )
+    //                     : '',
+    //                 'confirmed_received_by_driver' =>
+    //                     $row->confirmed_received_by_driver === 1 ? 'Confirmed' :
+    //                     ($row->confirmed_received_by_driver === 0 ? 'Not Confirmed' : ''),
+    //                 'driver_confirm_from_location' =>
+    //                     $row->driver_confirm_from_location === 1 ? 'Confirmed' :
+    //                     ($row->driver_confirm_from_location === 0 ? 'Not Confirmed' : ''),
+    //                 'driver_confirm_to_location' =>
+    //                     $row->driver_confirm_to_location === 1 ? 'Confirmed' :
+    //                     ($row->driver_confirm_to_location === 0 ? 'Not Confirmed' : ''),
+    //             ];
+    //         });
 
-        // لو مو Ajax (تحميل الصفحة عادي)
-        if ($logged_id_user->client_id != null) {
-            $clients = Client::where('id', $logged_id_user->client_id)->get();
-            $locations = Location::select('locations.*')
-                ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-                ->where('client_location.client_id', $logged_id_user->client_id)
-                ->get();
-            $drivers = Driver::all();
-        } else {
-            $clients = Client::all();
-            $locations = Location::all();
-            $drivers = Driver::all();
-        }
+    //         return response()->json([
+    //             'data' => $data,
+    //             'pagination' => [
+    //                 'total' => $tasks->total(),
+    //                 'per_page' => $tasks->perPage(),
+    //                 'current_page' => $tasks->currentPage(),
+    //                 'last_page' => $tasks->lastPage(),
+    //             ],
+    //         ]);
+    //     }
 
-        return view('admin.tasks.index', [
-            'clients' => $clients,
-            'locations' => $locations,
-            'drivers' => $drivers
-        ]);
-    }
+    //     // لو مو Ajax (تحميل الصفحة عادي)
+    //     if ($logged_id_user->client_id != null) {
+    //         $clients = Client::where('id', $logged_id_user->client_id)->get();
+    //         $locations = Location::select('locations.*')
+    //             ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+    //             ->where('client_location.client_id', $logged_id_user->client_id)
+    //             ->get();
+    //         $drivers = Driver::all();
+    //     } else {
+    //         $clients = Client::all();
+    //         $locations = Location::all();
+    //         $drivers = Driver::all();
+    //     }
+
+    //     return view('admin.tasks.index', [
+    //         'clients' => $clients,
+    //         'locations' => $locations,
+    //         'drivers' => $drivers
+    //     ]);
+    // }
 
     // public function index(Request $request)
     // {
@@ -627,6 +628,182 @@ class TasksController extends Controller
     //         'drivers' =>  $drivers
     //     ]);
     // }
+
+    // public function index(Request $request)
+    // {
+    //     $logged_id_user = auth()->user();
+    //     $sortColumn = $request->sort_by;
+    //     $sortOrder = $request->get('sort_order', 'desc');
+
+    //     if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
+    //         $sortColumn = 'collection_date';
+    //     }
+
+    //     if (!in_array($sortOrder, ['asc', 'desc'])) {
+    //         $sortOrder = 'desc'; 
+    //     }
+
+    //     abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    //     if ($request->ajax()) {
+    //         $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
+    //             ->select('tasks.*');
+
+    //         // فلتر حسب العميل إذا المستخدم مربوط بعميل
+    //         if ($logged_id_user->client_id) {
+    //             $query->where('billing_client', $logged_id_user->client_id);
+    //         }
+
+    //         // فلترة ذكية باستخدام when()
+    //         $query->when($request->status, fn($q, $v) => $q->where('status', $v))
+    //             ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
+    //             ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
+    //             ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
+    //             ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
+    //             ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+
+    //         // فلترة التاريخ
+    //         $dateColumn = $request->search_date ?? 'tasks.created_at';
+    //         $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
+    //         $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
+
+    //         if ($dateFrom && $dateTo) {
+    //             $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+    //         } elseif ($dateFrom) {
+    //             $query->where($dateColumn, '>=', $dateFrom);
+    //         } elseif ($dateTo) {
+    //             $query->where($dateColumn, '<=', $dateTo);
+    //         }
+            
+    //         $query->orderBy($sortColumn, $sortOrder);
+
+    //         $table = Datatables::of($query)
+    //             ->addColumn('placeholder', '&nbsp;')
+    //             ->addColumn('actions', '&nbsp;')
+    //             ->addColumn('sequence', function () {
+    //                 static $index = 0;
+    //                 return ++$index;
+    //             })
+    //             ->editColumn('actions', function ($row) {
+    //                 return view('partials.datatablesActions', [
+    //                     'viewGate' => 'task_show',
+    //                     'editGate' => 'task_edit',
+    //                     'deleteGate' => 'task_delete',
+    //                     'crudRoutePart' => 'tasks',
+    //                     'row' => $row
+    //                 ]);
+    //             })
+    //             ->addColumn('from_location_name', fn($row) => optional($row->from)->name)
+    //             ->addColumn('to_location_name', fn($row) => optional($row->to)->name)
+    //             ->addColumn('client', fn($row) => optional($row->client)->english_name)
+    //             ->addColumn('driver_name', fn($row) => optional($row->driver)->name)
+    //             ->addColumn('car_imei', fn($row) => optional($row->car)->imei)
+    //             ->addColumn('hours', function ($row) {
+    //                 if (!$row->collection_date || !$row->close_date) {
+    //                     return '';
+    //                 }
+    //                 return parent::hoursandmins(
+    //                     Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+    //                     '%02d Hours, %02d Minutes'
+    //                 );
+    //             })
+    //             ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
+    //                 ? '<span class="confirmed">Confirmed</span>'
+    //                 : ($row->confirmed_received_by_driver === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+    //             )
+    //             ->editColumn('driver_confirm_from_location', fn($row) => $row->driver_confirm_from_location === 1
+    //                 ? '<span class="confirmed">Confirmed</span>'
+    //                 : ($row->driver_confirm_from_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+    //             )
+    //             ->editColumn('driver_confirm_to_location', fn($row) => $row->driver_confirm_to_location === 1
+    //                 ? '<span class="confirmed">Confirmed</span>'
+    //                 : ($row->driver_confirm_to_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+    //             )
+    //             ->rawColumns([
+    //                 'actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 
+    //                 'driver', 'car', 'driver_confirm_from_location', 'driver_confirm_to_location', 'confirmed_received_by_driver'
+    //             ]);
+
+    //         return $table->make(true);
+    //     } 
+
+    //     if( $logged_id_user->client_id != null)
+    //     {
+    //             $clients = Client::where('id', $logged_id_user->client_id)->get();
+    //             $locations = Location::select('locations.*')
+    //             ->leftJoin('client_location','client_location.location_id','locations.id')
+    //             ->where('client_location.client_id',$logged_id_user->client_id)
+    //             ->get();
+    //             $drivers = Driver::all();
+    //     } else{
+    //         $clients = Client::all();
+    //         $locations = Location::all();
+    //         $drivers = Driver::all();
+    //     }
+
+    //     return view('admin.tasks.index',[
+    //         'clients' =>  $clients,
+    //         'locations' =>  $locations,
+    //         'drivers' =>  $drivers
+    //     ]);
+    // }
+    public function index(Request $request)
+    {
+        $logged_id_user = auth()->user();
+        $sortColumn = $request->sort_by;
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
+            $sortColumn = 'collection_date';
+        }
+
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'desc'; 
+        }
+
+        abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
+                    ->select('tasks.*');
+
+        if ($logged_id_user->client_id) {
+            $query->where('billing_client', $logged_id_user->client_id);
+        }
+
+        // فلاتر
+        $query->when($request->status, fn($q, $v) => $q->where('status', $v))
+            ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
+            ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
+            ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
+            ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
+            ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+
+        // فلترة التاريخ
+        $dateColumn = $request->search_date ?? 'tasks.created_at';
+        $dateFrom   = $request->date_from ? Carbon::parse($request->date_from) : null;
+        $dateTo     = $request->date_to ? Carbon::parse($request->date_to) : null;
+
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+        } elseif ($dateFrom) {
+            $query->where($dateColumn, '>=', $dateFrom);
+        } elseif ($dateTo) {
+            $query->where($dateColumn, '<=', $dateTo);
+        }
+
+        $tasks = $query->orderBy($sortColumn, $sortOrder)->paginate(10); // paginate بدل limit
+
+        $clients = $logged_id_user->client_id 
+            ? Client::where('id', $logged_id_user->client_id)->get()
+            : Client::all();
+
+        $locations = $logged_id_user->client_id
+            ? Location::whereHas('clients', fn($q) => $q->where('client_id', $logged_id_user->client_id))->get()
+            : Location::all();
+
+        $drivers = Driver::all();
+
+        return view('admin.tasks.index', compact('tasks','clients','locations','drivers'));
+    }
 
 
 
