@@ -122,7 +122,7 @@ Route::prefix('third-party')->group(function () {
 
     // Protected routes
     Route::middleware('client.auth')->group(function () {
-        Route::post('{clientId}/tasks/create', [TasksController::class, 'createCustomTask']);
+        // Route::post('{clientId}/tasks/create', [TasksController::class, 'createCustomTask']);
         Route::get('{clientId}/locations', [TasksController::class, 'getLocations']);
     });
 });
