@@ -554,7 +554,7 @@ class TasksController extends Controller
             }
 
             // $query->orderBy($sortColumn, $sortOrder);
-            $query->limit(100);
+            $query->limit(15);
             // $query->get();
             // DD($query);
             // dd($query->get());
