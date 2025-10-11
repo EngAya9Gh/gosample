@@ -126,7 +126,7 @@
                 };
 
                 $.ajax({
-                    url: "{{ route('tasks.ajax') }}",
+                    url: "{{ route('admin.tasks.index') }}",
                     data: params,
                     beforeSend: function() {
                         $('#tasksTable tbody').html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
