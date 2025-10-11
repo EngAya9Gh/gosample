@@ -18,6 +18,9 @@ use League\Csv\Reader;
 use Akaunting\Apexcharts\Chart;
 use App\Models\CarTracking;
 use Illuminate\Support\Facades\Cache;
+
+use const Adminer\DB;
+
 class HomeController extends Controller
 {
     /**
@@ -292,25 +295,25 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // Statistics
         // =========================
         if ($loggedUser->client_id) {
-            // $stats = Cache::remember("dashboard_stats_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
-            //     return (object) [
-            //         'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
-            //             $query->where('client_id', $loggedUser->client_id);
-            //         })->count(),
+            $stats = Cache::remember("dashboard_stats_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
+                return (object) [
+                    'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
+                        $query->where('client_id', $loggedUser->client_id);
+                    })->count(),
 
-            //         'tasks' => Task::where('billing_client', $loggedUser->client_id)->count(),
+                    'tasks' => Task::where('billing_client', $loggedUser->client_id)->count(),
 
-            //         'samples' => Sample::leftJoin('tasks','tasks.id','=','task_id')
-            //             ->where('tasks.billing_client',$loggedUser->client_id)
-            //             ->count(),
+                    'samples' => Sample::leftJoin('tasks','tasks.id','=','task_id')
+                        ->where('tasks.billing_client',$loggedUser->client_id)
+                        ->count(),
 
-            //         'locations' => Location::leftJoin('client_location','client_location.location_id','=','locations.id')
-            //             ->where('client_location.client_id',$loggedUser->client_id)
-            //             ->count(),
+                    'locations' => Location::leftJoin('client_location','client_location.location_id','=','locations.id')
+                        ->where('client_location.client_id',$loggedUser->client_id)
+                        ->count(),
 
-            //         'clients' => 1, // ثابت
-            //     ];
-            // });
+                    'clients' => 1, // ثابت
+                ];
+            });
         } else {
             // $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
             //     return DB::selectOne("
@@ -324,6 +327,17 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             //             (SELECT COUNT(*) FROM clients) as clients
             //     ");
             // });
+            $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
+                return [
+                    'cars' => DB::table('cars')->count(),
+                    'tasks' => DB::table('tasks')->count(),
+                    'samples' => DB::table('samples')->count(),
+                    'drivers' => DB::table('drivers')->count(),
+                    'users' => DB::table('users')->count(),
+                    'locations' => DB::table('locations')->count(),
+                    'clients' => DB::table('clients')->count(),
+                ];
+            });
         }
 
         // =========================
@@ -331,21 +345,21 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // =========================
         return view('dashboard', [
             'top_drivers'   => $top_drivers,
-            // 'clients'       => $stats->clients,
-            'clients'       => 0,
+            'clients'       => $stats->clients,
+            // 'clients'       => 0,
             'notifications' => $notifications,
-            // 'tasks'         => $stats->tasks,
-            // 'locations'     => $stats->locations,
-            // 'drivers'       => $stats->drivers ?? Driver::count(),
-            // 'samples'       => $stats->samples,
-            // 'cars'          => $stats->cars,
-            // 'users'         => $stats->users ?? User::count(),
-            'tasks'         => 0,
-            'locations'     => 0,
-            'drivers'       => 0,
-            'samples'       => 0,
-            'cars'          => 0,
-            'users'         => 0,
+            'tasks'         => $stats->tasks,
+            'locations'     => $stats->locations,
+            'drivers'       => $stats->drivers ?? Driver::count(),
+            'samples'       => $stats->samples,
+            'cars'          => $stats->cars,
+            'users'         => $stats->users ?? User::count(),
+            // 'tasks'         => 0,
+            // 'locations'     => 0,
+            // 'drivers'       => 0,
+            // 'samples'       => 0,
+            // 'cars'          => 0,
+            // 'users'         => 0,
         ]);
     }
 
