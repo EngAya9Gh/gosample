@@ -554,17 +554,16 @@ class TasksController extends Controller
             }
 
             // $query->orderBy($sortColumn, $sortOrder);
-            $query->limit(10);
+            // $query->limit(10);
             // $query->get();
-            dd($query->get());
+            // dd($query->get());
             $table = Datatables::of($query)
-                ->skipPaging() // تأكد أنه مفعّل إذا عندك نسخة جديدة
                 ->addColumn('placeholder', '&nbsp;')
                 ->addColumn('actions', '&nbsp;')
-                ->addColumn('sequence', function () {
-                    static $index = 0;
-                    return ++$index;
-                })
+                // ->addColumn('sequence', function () {
+                //     static $index = 0;
+                //     return ++$index;
+                // })
                 ->editColumn('actions', function ($row) {
                     return view('partials.datatablesActions', [
                         'viewGate' => 'task_show',
@@ -579,15 +578,15 @@ class TasksController extends Controller
                 ->addColumn('client', fn($row) => $row->client_name)
                 ->addColumn('driver_name', fn($row) => $row->driver_name)
                 ->addColumn('car_imei', fn($row) => $row->car_imei)
-                ->addColumn('hours', function ($row) {
-                    if (!$row->collection_date || !$row->close_date) {
-                        return '';
-                    }
-                    return parent::hoursandmins(
-                        Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
-                        '%02d Hours, %02d Minutes'
-                    );
-                })
+                // ->addColumn('hours', function ($row) {
+                //     if (!$row->collection_date || !$row->close_date) {
+                //         return '';
+                //     }
+                //     return parent::hoursandmins(
+                //         Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+                //         '%02d Hours, %02d Minutes'
+                //     );
+                // })
                 ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
                     ? '<span class="confirmed">Confirmed</span>'
                     : ($row->confirmed_received_by_driver === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
