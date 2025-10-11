@@ -554,7 +554,7 @@ class TasksController extends Controller
         }
 
         $query->orderBy($sortColumn, $sortOrder);
-
+        dd($query->get());
         $table = Datatables::of($query)
             ->skipPaging() // تأكد أنه مفعّل إذا عندك نسخة جديدة
             ->addColumn('placeholder', '&nbsp;')
