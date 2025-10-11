@@ -28,7 +28,7 @@
                                 <h4 class="fs-16 mb-1">Good Morning, {{ Auth::user()->name }}!</h4>
                                 <p class="text-muted mb-0">Here's what's happening today.</p>
                             </div>
-                            <?php /* 
+                            <?php /* */ ?>
                             <div class="mt-3 mt-lg-0">
                                 <form action="javascript:void(0);">
                                     <div class="row g-3 mb-0 align-items-center">
@@ -61,13 +61,13 @@
                                     <!--end row-->
                                 </form>
                             </div>
-                            */ ?>
+                            <?php /* */ ?>
                         </div><!-- end card header -->
                     </div>
                     <!--end col-->
                 </div>
                 <!--end row-->
-                <?php /*
+                <?php /**/ ?>
                 <div class="row">
                     <div class="col-xl-3 col-md-6">
                         <!-- card -->
@@ -398,12 +398,12 @@
                         </div> <!-- .card-->
                     </div> <!-- .col-->
                 </div> <!-- end row-->
-                */ ?>
+                <?php /* */ ?>
             </div> <!-- end .h-100-->
 
         </div> <!-- end col -->
 	@can('client_access')
-    <?php /*
+    <?php /**/ ?>
         <div class="col-auto layout-rightside-col">
             <div class="overlay"></div>
             <div class="layout-rightside">
@@ -445,7 +445,8 @@
             </div> <!-- end .rightbar-->
 
         </div> <!-- end col -->
-                */ ?>
+               
+    <?php /* */ ?>
 @endcan
     </div>
 @endsection
