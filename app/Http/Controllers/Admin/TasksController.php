@@ -495,137 +495,140 @@ class TasksController extends Controller
     // }
 
     public function index(Request $request)
-{
-    $logged_id_user = auth()->user();
-    $sortColumn = $request->sort_by;
-    $sortOrder = $request->get('sort_order', 'desc');
+    {
+        $logged_id_user = auth()->user();
+        $sortColumn = $request->sort_by;
+        $sortOrder = $request->get('sort_order', 'desc');
 
-    if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
-        $sortColumn = 'collection_date';
-    }
-
-    if (!in_array($sortOrder, ['asc', 'desc'])) {
-        $sortOrder = 'desc'; 
-    }
-
-    abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-    if ($request->ajax()) {
-
-        // تحسين الاستعلام باستخدام joins بدلاً من with() لتقليل الذاكرة
-        $query = Task::select(
-            'tasks.*',
-            'from_loc.name as from_location_name',
-            'to_loc.name as to_location_name',
-            'clients.english_name as client_name',
-            'drivers.name as driver_name',
-            'cars.imei as car_imei'
-        )
-        ->leftJoin('locations as from_loc', 'tasks.from_location', '=', 'from_loc.id')
-        ->leftJoin('locations as to_loc', 'tasks.to_location', '=', 'to_loc.id')
-        ->leftJoin('clients', 'tasks.billing_client', '=', 'clients.id')
-        ->leftJoin('drivers', 'tasks.driver_id', '=', 'drivers.id')
-        ->leftJoin('cars', 'tasks.car_id', '=', 'cars.id');
-
-        // فلتر حسب العميل إذا المستخدم مربوط بعميل
-        if ($logged_id_user->client_id) {
-            $query->where('billing_client', $logged_id_user->client_id);
+        if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
+            $sortColumn = 'collection_date';
         }
 
-        // فلترة ذكية
-        $query->when($request->status, fn($q, $v) => $q->where('status', $v))
-            ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
-            ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
-            ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
-            ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
-            ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
-
-        // فلترة التاريخ
-        $dateColumn = $request->search_date ?? 'tasks.created_at';
-        $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
-        $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
-
-        if ($dateFrom && $dateTo) {
-            $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
-        } elseif ($dateFrom) {
-            $query->where($dateColumn, '>=', $dateFrom);
-        } elseif ($dateTo) {
-            $query->where($dateColumn, '<=', $dateTo);
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'desc'; 
         }
 
-        $query->orderBy($sortColumn, $sortOrder);
-        dd($query->get());
-        $table = Datatables::of($query)
-            ->skipPaging() // تأكد أنه مفعّل إذا عندك نسخة جديدة
-            ->addColumn('placeholder', '&nbsp;')
-            ->addColumn('actions', '&nbsp;')
-            ->addColumn('sequence', function () {
-                static $index = 0;
-                return ++$index;
-            })
-            ->editColumn('actions', function ($row) {
-                return view('partials.datatablesActions', [
-                    'viewGate' => 'task_show',
-                    'editGate' => 'task_edit',
-                    'deleteGate' => 'task_delete',
-                    'crudRoutePart' => 'tasks',
-                    'row' => $row
+        abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if ($request->ajax()) {
+
+            // تحسين الاستعلام باستخدام joins بدلاً من with() لتقليل الذاكرة
+            $query = Task::select(
+                'tasks.*',
+                'from_loc.name as from_location_name',
+                'to_loc.name as to_location_name',
+                'clients.english_name as client_name',
+                'drivers.name as driver_name',
+                'cars.imei as car_imei'
+            )
+            ->leftJoin('locations as from_loc', 'tasks.from_location', '=', 'from_loc.id')
+            ->leftJoin('locations as to_loc', 'tasks.to_location', '=', 'to_loc.id')
+            ->leftJoin('clients', 'tasks.billing_client', '=', 'clients.id')
+            ->leftJoin('drivers', 'tasks.driver_id', '=', 'drivers.id')
+            ->leftJoin('cars', 'tasks.car_id', '=', 'cars.id');
+
+            // فلتر حسب العميل إذا المستخدم مربوط بعميل
+            if ($logged_id_user->client_id) {
+                $query->where('billing_client', $logged_id_user->client_id);
+            }
+
+            // فلترة ذكية
+            $query->when($request->status, fn($q, $v) => $q->where('status', $v))
+                ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
+                ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
+                ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
+                ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
+                ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+
+            // فلترة التاريخ
+            $dateColumn = $request->search_date ?? 'tasks.created_at';
+            $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
+            $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
+
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+            } elseif ($dateFrom) {
+                $query->where($dateColumn, '>=', $dateFrom);
+            } elseif ($dateTo) {
+                $query->where($dateColumn, '<=', $dateTo);
+            }
+
+            $query->orderBy($sortColumn, $sortOrder);
+            $query->limit(10);
+            $query->get();
+            DD($query);
+            // dd($query->get());
+            $table = Datatables::of($query)
+                ->skipPaging() // تأكد أنه مفعّل إذا عندك نسخة جديدة
+                ->addColumn('placeholder', '&nbsp;')
+                ->addColumn('actions', '&nbsp;')
+                ->addColumn('sequence', function () {
+                    static $index = 0;
+                    return ++$index;
+                })
+                ->editColumn('actions', function ($row) {
+                    return view('partials.datatablesActions', [
+                        'viewGate' => 'task_show',
+                        'editGate' => 'task_edit',
+                        'deleteGate' => 'task_delete',
+                        'crudRoutePart' => 'tasks',
+                        'row' => $row
+                    ]);
+                })
+                ->addColumn('from_location_name', fn($row) => $row->from_location_name)
+                ->addColumn('to_location_name', fn($row) => $row->to_location_name)
+                ->addColumn('client', fn($row) => $row->client_name)
+                ->addColumn('driver_name', fn($row) => $row->driver_name)
+                ->addColumn('car_imei', fn($row) => $row->car_imei)
+                ->addColumn('hours', function ($row) {
+                    if (!$row->collection_date || !$row->close_date) {
+                        return '';
+                    }
+                    return parent::hoursandmins(
+                        Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+                        '%02d Hours, %02d Minutes'
+                    );
+                })
+                ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
+                    ? '<span class="confirmed">Confirmed</span>'
+                    : ($row->confirmed_received_by_driver === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+                )
+                ->editColumn('driver_confirm_from_location', fn($row) => $row->driver_confirm_from_location === 1
+                    ? '<span class="confirmed">Confirmed</span>'
+                    : ($row->driver_confirm_from_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+                )
+                ->editColumn('driver_confirm_to_location', fn($row) => $row->driver_confirm_to_location === 1
+                    ? '<span class="confirmed">Confirmed</span>'
+                    : ($row->driver_confirm_to_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
+                )
+                ->rawColumns([
+                    'actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 
+                    'driver', 'car', 'driver_confirm_from_location', 'driver_confirm_to_location', 'confirmed_received_by_driver'
                 ]);
-            })
-            ->addColumn('from_location_name', fn($row) => $row->from_location_name)
-            ->addColumn('to_location_name', fn($row) => $row->to_location_name)
-            ->addColumn('client', fn($row) => $row->client_name)
-            ->addColumn('driver_name', fn($row) => $row->driver_name)
-            ->addColumn('car_imei', fn($row) => $row->car_imei)
-            ->addColumn('hours', function ($row) {
-                if (!$row->collection_date || !$row->close_date) {
-                    return '';
-                }
-                return parent::hoursandmins(
-                    Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
-                    '%02d Hours, %02d Minutes'
-                );
-            })
-            ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
-                ? '<span class="confirmed">Confirmed</span>'
-                : ($row->confirmed_received_by_driver === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-            )
-            ->editColumn('driver_confirm_from_location', fn($row) => $row->driver_confirm_from_location === 1
-                ? '<span class="confirmed">Confirmed</span>'
-                : ($row->driver_confirm_from_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-            )
-            ->editColumn('driver_confirm_to_location', fn($row) => $row->driver_confirm_to_location === 1
-                ? '<span class="confirmed">Confirmed</span>'
-                : ($row->driver_confirm_to_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-            )
-            ->rawColumns([
-                'actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 
-                'driver', 'car', 'driver_confirm_from_location', 'driver_confirm_to_location', 'confirmed_received_by_driver'
-            ]);
 
-        return $table->make(true);
+            return $table->make(true);
+        }
+
+        // البيانات للواجهة العادية
+        if ($logged_id_user->client_id != null) {
+            $clients = Client::where('id', $logged_id_user->client_id)->get();
+            $locations = Location::select('locations.*')
+                ->leftJoin('client_location','client_location.location_id','locations.id')
+                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->get();
+            $drivers = Driver::all();
+        } else {
+            $clients = Client::all();
+            $locations = Location::all();
+            $drivers = Driver::all();
+        }
+
+        return view('admin.tasks.index',[
+            'clients' =>  $clients,
+            'locations' =>  $locations,
+            'drivers' =>  $drivers
+        ]);
     }
-
-    // البيانات للواجهة العادية
-    if ($logged_id_user->client_id != null) {
-        $clients = Client::where('id', $logged_id_user->client_id)->get();
-        $locations = Location::select('locations.*')
-            ->leftJoin('client_location','client_location.location_id','locations.id')
-            ->where('client_location.client_id',$logged_id_user->client_id)
-            ->get();
-        $drivers = Driver::all();
-    } else {
-        $clients = Client::all();
-        $locations = Location::all();
-        $drivers = Driver::all();
-    }
-
-    return view('admin.tasks.index',[
-        'clients' =>  $clients,
-        'locations' =>  $locations,
-        'drivers' =>  $drivers
-    ]);
-}
 
 
 
