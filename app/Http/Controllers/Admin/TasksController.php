@@ -1868,26 +1868,27 @@ class TasksController extends Controller
             }
 
             for ($i=0; $i < $request->time_of_visit; $i++) {
-                $task = new Task();
-                $task->from_location = $request->from_location;
-                $task->to_location = $request->to_location;
-                $task->type = $request->type;
-                $task->pickup_time = $request->pickup_time;
-                $task->dropoff_time = $request->dropoff_time;
-                $task->takasi = $request->takasi;
-                $task->time_of_visit = $request->time_of_visit;
-                $task->task_type = $request->task_type;
-                $task->billing_client = $clientId;
-                $task->added_by = $logged_id_user->email;
-                $task->created_at = now();
-                $task->eta = null;
-                $task->save();
+                // $task = new Task();
+                // $task->from_location = $request->from_location;
+                // $task->to_location = $request->to_location;
+                // $task->type = $request->type;
+                // $task->pickup_time = $request->pickup_time;
+                // $task->dropoff_time = $request->dropoff_time;
+                // $task->takasi = $request->takasi;
+                // $task->time_of_visit = $request->time_of_visit;
+                // $task->task_type = $request->task_type;
+                // $task->billing_client = $clientId;
+                // $task->added_by = $logged_id_user->email;
+                // $task->created_at = now();
+                // $task->eta = null;
+                // $task->save();
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Task created',
-                'data' => $task
+                'message' => 'Task created with love',
+                // 'data' => $task
+                'data' => []
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'System error'], 500);
