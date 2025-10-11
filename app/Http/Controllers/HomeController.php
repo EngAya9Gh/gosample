@@ -312,18 +312,18 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 ];
             });
         } else {
-            $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(2), function () {
-                return DB::selectOne("
-                    SELECT 
-                        (SELECT COUNT(*) FROM cars) as cars,
-                        (SELECT COUNT(*) FROM tasks) as tasks,
-                        (SELECT COUNT(*) FROM samples) as samples,
-                        (SELECT COUNT(*) FROM drivers) as drivers,
-                        (SELECT COUNT(*) FROM users) as users,
-                        (SELECT COUNT(*) FROM locations) as locations,
-                        (SELECT COUNT(*) FROM clients) as clients
-                ");
-            });
+            // $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(2), function () {
+            //     return DB::selectOne("
+            //         SELECT 
+            //             (SELECT COUNT(*) FROM cars) as cars,
+            //             (SELECT COUNT(*) FROM tasks) as tasks,
+            //             (SELECT COUNT(*) FROM samples) as samples,
+            //             (SELECT COUNT(*) FROM drivers) as drivers,
+            //             (SELECT COUNT(*) FROM users) as users,
+            //             (SELECT COUNT(*) FROM locations) as locations,
+            //             (SELECT COUNT(*) FROM clients) as clients
+            //     ");
+            // });
         }
 
         // =========================
@@ -331,14 +331,21 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // =========================
         return view('dashboard', [
             'top_drivers'   => $top_drivers,
-            'clients'       => $stats->clients,
+            // 'clients'       => $stats->clients,
+            'clients'       => 0,
             'notifications' => $notifications,
-            'tasks'         => $stats->tasks,
-            'locations'     => $stats->locations,
-            'drivers'       => $stats->drivers ?? Driver::count(),
-            'samples'       => $stats->samples,
-            'cars'          => $stats->cars,
-            'users'         => $stats->users ?? User::count(),
+            // 'tasks'         => $stats->tasks,
+            // 'locations'     => $stats->locations,
+            // 'drivers'       => $stats->drivers ?? Driver::count(),
+            // 'samples'       => $stats->samples,
+            // 'cars'          => $stats->cars,
+            // 'users'         => $stats->users ?? User::count(),
+            'tasks'         => 0,
+            'locations'     => 0,
+            'drivers'       => 0,
+            'samples'       => 0,
+            'cars'          => 0,
+            'users'         => 0,
         ]);
     }
 
