@@ -393,10 +393,10 @@
                         name: '{{ trans('translation.actions') }}'
                     }
                 ],
-                orderCellsTop: true,
-                order: [
-                    [3, 'desc']
-                ],
+                // orderCellsTop: true,
+                // order: [
+                //     [3, 'desc']
+                // ],
                 pageLength: 10,
             };
             let table = $('.datatable-Task').DataTable(dtOverrideGlobals);
