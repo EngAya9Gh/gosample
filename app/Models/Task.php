@@ -12,7 +12,8 @@ class Task extends Model
 {
     use SoftDeletes;
     use HasFactory;
-    public $table = 'tasks_new';
+    public $table = 'tasks';
+    // public $table = 'tasks_new';
 
     public const TAKASI_SELECT = [
         'NO'  => 'NO',
@@ -48,7 +49,6 @@ class Task extends Model
         'OUT_FREEZER' => 'OUT_FREEZER',
     ];
 
-    // public $table = 'tasks';
 
     protected $dates = [
         'driver_start_date',
