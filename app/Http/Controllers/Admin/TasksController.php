@@ -554,9 +554,9 @@ class TasksController extends Controller
             }
 
             // $query->orderBy($sortColumn, $sortOrder);
-            $query->limit(10);
-            $query->get();
-            DD($query);
+            // $query->limit(10);
+            // $query->get();
+            // DD($query);
             // dd($query->get());
             $table = Datatables::of($query)
                 ->skipPaging() // تأكد أنه مفعّل إذا عندك نسخة جديدة
