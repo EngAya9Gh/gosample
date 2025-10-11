@@ -554,7 +554,7 @@ class TasksController extends Controller
             }
 
             // $query->orderBy($sortColumn, $sortOrder);
-            // $query->limit(1);
+            $query->limit(10);
             // $query->get();
             dd($query->get());
             $table = Datatables::of($query)
