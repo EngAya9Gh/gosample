@@ -553,7 +553,7 @@ class TasksController extends Controller
                 $query->where($dateColumn, '<=', $dateTo);
             }
 
-            $query->orderBy($sortColumn, $sortOrder);
+            // $query->orderBy($sortColumn, $sortOrder);
             $query->limit(10);
             $query->get();
             DD($query);
