@@ -12,34 +12,9 @@
         @endslot
     @endcomponent
 <style>
-    /* تصغير حجم pagination */
-.pagination {
-    font-size: 0.875rem; /* حجم الخط أصغر */
-    margin: 0; /* إزالة المسافة الزائدة */
-}
-
-.pagination li {
-    margin: 0 2px; /* مسافة صغيرة بين الأزرار */
-}
-
-.pagination li a,
-.pagination li span {
-    padding: 4px 8px; /* تصغير البادينغ */
-    min-width: 32px; /* عرض ثابت صغير */
-    height: 32px; /* ارتفاع ثابت */
-    line-height: 24px; /* محاذاة النص */
-    border-radius: 4px; /* حواف دائرية صغيرة */
-}
-
-.pagination li.active span {
-    background-color: #0d6efd; /* لون الخلفية للصفحة النشطة */
-    color: #fff;
-    border-color: #0d6efd;
-}
-
-.pagination li a:hover {
-    background-color: #e2e6ea; /* لون عند المرور على الرابط */
-    color: #000;
+nav[role="navigation"][aria-label="Pagination Navigation"] a svg{
+    /* أي ستايل تحبه */
+    width: 25px;
 }
 
 </style>
