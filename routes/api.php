@@ -1,24 +1,24 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ClientAuthController;
-use App\Http\Controllers\Admin\TasksController;
+// use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Route;
+// use App\Http\Controllers\ClientAuthController;
+// use App\Http\Controllers\Admin\TasksController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+// /*
+// |--------------------------------------------------------------------------
+// | API Routes
+// |--------------------------------------------------------------------------
+// |
+// | Here is where you can register API routes for your application. These
+// | routes are loaded by the RouteServiceProvider within a group which
+// | is assigned the "api" middleware group. Enjoy building your API!
+// |
+// */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+// // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+// //     return $request->user();
+// // });
 
 // Route::post('webhook/samples/tracking/add','App\Http\Controllers\SampleController@addSamplesToTracking')->middleware('api.key');
 // Route::post('/samples/types/report','App\Http\Controllers\SampleController@report');
@@ -125,4 +125,4 @@ use App\Http\Controllers\Admin\TasksController;
 //         Route::post('{clientId}/tasks/create', [TasksController::class, 'createCustomTask']);
 //         Route::get('{clientId}/locations', [TasksController::class, 'getLocations']);
 //     });
-});
+// });
