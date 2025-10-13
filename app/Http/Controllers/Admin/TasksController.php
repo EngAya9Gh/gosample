@@ -292,11 +292,11 @@ class TasksController extends Controller
             // $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
             // $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
             $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, config('app.timezone'))
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from)
                 : null;
-
+     
             $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, config('app.timezone'))
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
                 : null;
 
             // dd($dateFrom);
