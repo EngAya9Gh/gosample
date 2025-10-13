@@ -223,7 +223,7 @@
                 order: [
                     [1, 'desc']
                 ],
-                pageLength: 100,
+                pageLength: 10,
             };
             let table = $('.datatable-Sample').DataTable(dtOverrideGlobals);
             $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e) {
