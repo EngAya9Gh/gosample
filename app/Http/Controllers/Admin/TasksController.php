@@ -299,7 +299,7 @@ class TasksController extends Controller
                 ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, config('app.timezone'))
                 : null;
 
-            dd($dateFrom);
+            // dd($dateFrom);
             if ($dateFrom && $dateTo) {
                 $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
             } elseif ($dateFrom) {
