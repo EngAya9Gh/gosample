@@ -1728,12 +1728,12 @@ class SampleController extends Controller
 
                 // return $request;
                 // check task
-                $task = Task::find($request->task_id);
-                // \Log::info($task);
-                if($task == null)
-                {
-                    return $this->response(false,'task is not found');
-                } else{
+                // $task = Task::find($request->task_id);
+                // // \Log::info($task);
+                // if($task == null)
+                // {
+                //     return $this->response(false,'task is not found');
+                // } else{
 ////                    return $task;
 //                    if($task->status != 'CLOSED')
 //                    {
@@ -1795,7 +1795,7 @@ class SampleController extends Controller
 //                        ->where('tasks.to_location',$task->to_location)
 //                        ->where('tasks.billing_client',$task->billing_client)->get();
 //                    return $this->response(true,'success',$samples);
-                }
+                // }
 
 
 
