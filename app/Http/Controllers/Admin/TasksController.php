@@ -309,7 +309,7 @@ class TasksController extends Controller
             }
 
             // ترتيب النتائج
-            // $query->orderBy($sortColumn, $sortOrder);
+            $query->orderBy('id', 'desc');
 
             // تجهيز الجدول
             $table = Datatables::of($query)
