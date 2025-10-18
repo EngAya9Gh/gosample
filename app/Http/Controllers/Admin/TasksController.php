@@ -338,8 +338,8 @@ class TasksController extends Controller
 
             // ترتيب النتائج
             $query->orderBy('collection_date', 'desc');
-            $query->limit(10);
-            dd($query->get());
+            // $query->limit(10);
+            // dd($query->get());
             // تجهيز الجدول
             $table = Datatables::of($query)
                 ->addColumn('placeholder', '&nbsp;')
