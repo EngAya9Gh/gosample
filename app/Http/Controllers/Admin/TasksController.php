@@ -291,8 +291,8 @@ class TasksController extends Controller
             $dateColumn = $request->search_date ?? 'tasks.created_at';
             // $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
             // $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
-            $dateFrom   = $request->date_from;
-            $dateTo     = $request->date_to;
+            // $dateFrom   = $request->date_from;
+            // $dateTo     = $request->date_to;
             // $dateFrom = $request->date_from
             //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from)
             //     : null;
@@ -301,10 +301,22 @@ class TasksController extends Controller
             //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
             //     : null;
 
+            $dateFrom = $request->date_from
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, config('app.timezone'))
+                : null;
+
+            $dateTo = $request->date_to
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, config('app.timezone'))
+                : null;
+
             // dd($dateFrom);
             if ($dateFrom && $dateTo) {
-                dd($dateFrom. "" . $dateTo);
-                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+                // dd($dateFrom. "" . $dateTo);
+                // $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+                $query->whereBetween($dateColumn, [
+                    $dateFrom->toDateTimeString(),
+                    $dateTo->toDateTimeString(),
+                ]);
             } elseif ($dateFrom) {
                 $query->where($dateColumn, '>=', $dateFrom);
             } elseif ($dateTo) {
