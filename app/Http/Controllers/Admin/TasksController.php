@@ -316,7 +316,12 @@ class TasksController extends Controller
             if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
                 [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
             }
-
+            dd([
+                'request_from' => $request->date_from,
+                'request_to' => $request->date_to,
+                'parsed_from' => $dateFrom?->toDateTimeString(),
+                'parsed_to' => $dateTo?->toDateTimeString(),
+            ]);
             // dd($dateFrom);
             if ($dateFrom && $dateTo) {
                 // dd($dateFrom. "" . $dateTo);
