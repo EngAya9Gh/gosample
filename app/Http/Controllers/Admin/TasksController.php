@@ -316,16 +316,8 @@ class TasksController extends Controller
             if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
                 [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
             }
-            // dd([
-            //     'request_from' => $request->date_from,
-            //     'request_to' => $request->date_to,
-            //     'parsed_from' => $dateFrom?->toDateTimeString(),
-            //     'parsed_to' => $dateTo?->toDateTimeString(),
-            // ]);
-            // dd($dateFrom);
+
             if ($dateFrom && $dateTo) {
-                // dd($dateFrom. "" . $dateTo);
-                // $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
                 $query->whereBetween($dateColumn, [
                     $dateFrom->toDateTimeString(),
                     $dateTo->toDateTimeString(),
@@ -338,8 +330,7 @@ class TasksController extends Controller
 
             // ترتيب النتائج
             $query->orderBy('collection_date', 'desc');
-            // $query->limit(10);
-            // dd($query->get());
+    
             // تجهيز الجدول
             $table = Datatables::of($query)
                 ->addColumn('placeholder', '&nbsp;')
@@ -362,12 +353,30 @@ class TasksController extends Controller
                 ->addColumn('client', fn($row) => optional($row->client)->english_name)
                 ->addColumn('driver_name', fn($row) => optional($row->driver)->name)
                 ->addColumn('car_imei', fn($row) => optional($row->car)->imei)
+                // ->addColumn('hours', function ($row) {
+                //     if (!$row->collection_date || !$row->close_date) {
+                //         return '';
+                //     }
+                //     return parent::hoursandmins(
+                //         Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+                //         '%02d Hours, %02d Minutes'
+                //     );
+                // })
                 ->addColumn('hours', function ($row) {
                     if (!$row->collection_date || !$row->close_date) {
                         return '';
                     }
+
+                    $start = $row->collection_date;
+                    $end   = $row->close_date;
+
+                    // تأكد إنو start <= end
+                    if ($start > $end) {
+                        [$start, $end] = [$end, $start];
+                    }
+
                     return parent::hoursandmins(
-                        Period::make($row->collection_date, $row->close_date, Precision::MINUTE())->length(),
+                        Period::make($start, $end, Precision::MINUTE())->length(),
                         '%02d Hours, %02d Minutes'
                     );
                 })
