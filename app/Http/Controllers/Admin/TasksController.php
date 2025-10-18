@@ -289,15 +289,15 @@ class TasksController extends Controller
 
             // فلترة التاريخ
             $dateColumn = $request->search_date ?? 'tasks.created_at';
-            // $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
-            // $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
-            $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from)
-                : null;
+            $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
+            $dateTo     = $request->date_to ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to) : null;
+            // $dateFrom = $request->date_from
+            //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from)
+            //     : null;
      
-            $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
-                : null;
+            // $dateTo = $request->date_to
+            //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
+            //     : null;
 
             // dd($dateFrom);
             if ($dateFrom && $dateTo) {
@@ -309,7 +309,7 @@ class TasksController extends Controller
             }
 
             // ترتيب النتائج
-            $query->orderBy('id', 'desc');
+            $query->orderBy('collection_date', 'desc');
 
             // تجهيز الجدول
             $table = Datatables::of($query)
