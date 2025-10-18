@@ -303,6 +303,7 @@ class TasksController extends Controller
 
             // dd($dateFrom);
             if ($dateFrom && $dateTo) {
+                dd($dateFrom. "" . $dateTo);
                 $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
             } elseif ($dateFrom) {
                 $query->where($dateColumn, '>=', $dateFrom);
