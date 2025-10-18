@@ -301,13 +301,21 @@ class TasksController extends Controller
             //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
             //     : null;
 
+            // Assume user inputs are in local (browser) time
+            $userTimezone = 'Asia/Riyadh'; // Or detect dynamically if your app supports it
+
             $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, config('app.timezone'))
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, $userTimezone)->setTimezone('UTC')
                 : null;
 
             $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, config('app.timezone'))
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, $userTimezone)->setTimezone('UTC')
                 : null;
+
+            // Make sure start <= end
+            if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+                [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            }
 
             // dd($dateFrom);
             if ($dateFrom && $dateTo) {
