@@ -380,6 +380,12 @@ class TasksController extends Controller
                     //     Period::make($start, $end, Precision::MINUTE())->length(),
                     //     '%02d Hours, %02d Minutes'
                     // );
+                    if($row->collection_date == null || $row->close_date)
+                    {
+                        return '';
+                    }
+                    return $row->close_date ? parent::hoursandmins(Period::make($row->collection_date,$row->close_date,  Precision::MINUTE())->length(), '%02d Hours, %02d Minutes')
+                    : '';
                 })
                 ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
                     ? '<span class="confirmed">Confirmed</span>'
