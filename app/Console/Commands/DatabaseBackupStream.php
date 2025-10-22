@@ -102,15 +102,13 @@ class DatabaseBackupStream extends Command
 
             $sel = $pdo->query("SELECT * FROM `$table`");
             $batch = [];
-            $count = 0;
 
             while ($r = $sel->fetch(PDO::FETCH_NUM)) {
                 foreach ($r as &$v) {
                     if ($v === null) $v = 'NULL';
                     else $v = $pdo->quote($v);
                 }
-                $batch[] = '(' . implode(',', $r) . ')';
-                $count++;
+                $batch[] = '(' . implode(',', $v = $r) . ')';
 
                 if (count($batch) >= $batchSize) {
                     $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
@@ -119,7 +117,6 @@ class DatabaseBackupStream extends Command
                 }
             }
 
-            // Remaining rows
             if ($batch) {
                 $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
                 \gzflush($gz);
@@ -129,10 +126,9 @@ class DatabaseBackupStream extends Command
         $w("SET FOREIGN_KEY_CHECKS=1;\n");
         \gzclose($gz);
 
-        $publicUrl = "/storage/backups/{$filename}";
         $this->info("✅ Backup complete");
-        $this->info("Saved to: $filepath");
-        $this->info("Download: {$publicUrl}");
+        $this->info("📁 Saved to: $filepath");
+        $this->info("🌐 Download: /storage/backups/{$filename}");
         return 0;
     }
 }
