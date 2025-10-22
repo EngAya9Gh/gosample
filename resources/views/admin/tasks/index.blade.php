@@ -239,6 +239,10 @@
         $(document).ready(function() {
             $('.select2').select2();
         });
+        $(document).ready(function() {
+            // بحال المتصفح رجّع قيمة قديمة بدون ما تبين
+            $("#date_from, #date_to").val('');
+        });
     </script>
 
     <script>
