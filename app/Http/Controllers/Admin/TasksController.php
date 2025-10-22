@@ -329,7 +329,8 @@ class TasksController extends Controller
             }
 
             // ترتيب النتائج
-            $query->orderBy('collection_date', 'desc');
+            // $query->orderBy('collection_date', 'desc');
+            $query->orderBy($sortColumn, $sortOrder);
     
             // تجهيز الجدول
             $table = Datatables::of($query)
