@@ -280,32 +280,13 @@ class TasksController extends Controller
             }
 
             // فلترة ذكية باستخدام when()
-            // $query->when($request->status, fn($q, $v) => $q->where('status', $v))
-            //     ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
-            //     ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
-            //     ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
-            //     ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
-            //     ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
-            $query->filter(function ($query)  use ($request) {
-                if ($request->status !=null) {
-                    $query = $query->where('status', '=',  $request->status );
-                }
-                if ($request->driver_id !=null) {
-                    $query = $query->where('driver_id', '=', $request->driver_id );
-                }
-                if ($request->billing_client !=null) {
-                    $query = $query->where('billing_client', '=', $request->billing_client );
-                }
-                if ($request->from_location !=null) {
-                    $query = $query->where('from_location', '=', $request->from_location );
-                }
-                if ($request->to_location !=null) {
-                    $query = $query->where('to_location', '=', $request->to_location );
-                }
-                if ($request->keyword !=null) {
-                    $query =  $query->where('tasks.id', '=', $request->keyword );
-                }
-            });
+            $query->when($request->status, fn($q, $v) => $q->where('status', $v))
+                ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
+                ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
+                ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
+                ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
+                ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+
             // فلترة التاريخ
             $dateColumn = $request->search_date ?? 'tasks.created_at';
             // $dateFrom   = $request->date_from ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from) : null;
