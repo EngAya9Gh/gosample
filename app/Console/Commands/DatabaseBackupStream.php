@@ -3,18 +3,17 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use PDO;
 use PDOException;
 
 class DatabaseBackupStream extends Command
 {
     protected $signature = 'db:backup-stream';
-    protected $description = 'Stream MySQL backup to storage/app/public/backups as .sql.gz without mysqldump';
+    protected $description = 'Stream MySQL backup to storage/app/public/backups with progress, no mysqldump.';
 
     public function handle()
     {
-        $this->info("Starting streaming DB backup (PHP mode, no mysqldump)...");
+        $this->info("🚀 Starting streaming DB backup (PHP mode, no mysqldump)...");
 
         @set_time_limit(0);
         ini_set('memory_limit', '-1');
@@ -32,6 +31,7 @@ class DatabaseBackupStream extends Command
             return 1;
         }
 
+        // Prepare backup dir
         $backupDir = storage_path('app/public/backups');
         if (!is_dir($backupDir)) {
             mkdir($backupDir, 0775, true);
@@ -41,19 +41,19 @@ class DatabaseBackupStream extends Command
         $filename = "{$dbName}-{$timestamp}.sql.gz";
         $filepath = $backupDir . DIRECTORY_SEPARATOR . $filename;
 
-        // open gz for writing
-        $gz = gzopen($filepath, 'w9');
+        // Open gzip file
+        $gz = \gzopen($filepath, 'w9');
         if (!$gz) {
             $this->error("Failed to open backup file for writing: $filepath");
             return 1;
         }
 
-        // helper write function
+        // Write helper
         $w = function($s) use ($gz) {
-            gzwrite($gz, $s);
+            \gzwrite($gz, $s);
         };
 
-        // connect PDO (unbuffered)
+        // Connect PDO (stream mode)
         $dsn = "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4";
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -64,12 +64,13 @@ class DatabaseBackupStream extends Command
         try {
             $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
         } catch (PDOException $e) {
-            gzclose($gz);
-            unlink($filepath);
-            $this->error("PDO Connection failed: " . $e->getMessage());
+            \gzclose($gz);
+            @unlink($filepath);
+            $this->error("PDO connection failed: " . $e->getMessage());
             return 1;
         }
 
+        // Header
         $w("-- DB backup (PHP streaming)\n-- Database: `{$dbName}`\n-- Generated: " . date('c') . "\n\n");
         $w("SET FOREIGN_KEY_CHECKS=0;\n");
 
@@ -79,8 +80,13 @@ class DatabaseBackupStream extends Command
         while ($r = $stmt->fetch(PDO::FETCH_NUM)) {
             $tables[] = $r[0];
         }
+        $totalTables = count($tables);
 
-        foreach ($tables as $table) {
+        $batchSize = 500;
+
+        foreach ($tables as $i => $table) {
+            $this->info("📦 Dumping table " . ($i+1) . "/{$totalTables}: {$table}");
+
             $w("\n-- ---------------------------\n");
             $w("-- Structure for table `$table`\n");
             $w("-- ---------------------------\n");
@@ -89,40 +95,44 @@ class DatabaseBackupStream extends Command
             $row = $pdo->query("SHOW CREATE TABLE `$table`")->fetch(PDO::FETCH_ASSOC);
             $w($row['Create Table'] . ";\n\n");
 
+            // Data
             $w("-- Data for table `$table`\n");
             $cols = array_column($pdo->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_ASSOC), 'Field');
             $colList = "`" . implode("`,`", $cols) . "`";
 
             $sel = $pdo->query("SELECT * FROM `$table`");
             $batch = [];
-            $BATCH_SIZE = 500;
+            $count = 0;
+
             while ($r = $sel->fetch(PDO::FETCH_NUM)) {
                 foreach ($r as &$v) {
                     if ($v === null) $v = 'NULL';
                     else $v = $pdo->quote($v);
                 }
                 $batch[] = '(' . implode(',', $r) . ')';
+                $count++;
 
-                if (count($batch) >= $BATCH_SIZE) {
+                if (count($batch) >= $batchSize) {
                     $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
                     $batch = [];
-                    gzflush($gz);
+                    \gzflush($gz);
                 }
             }
+
+            // Remaining rows
             if ($batch) {
                 $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
-                gzflush($gz);
+                \gzflush($gz);
             }
         }
 
         $w("SET FOREIGN_KEY_CHECKS=1;\n");
-        gzclose($gz);
+        \gzclose($gz);
 
-        $publicUrl = "/storage/backups/$filename";
-
+        $publicUrl = "/storage/backups/{$filename}";
         $this->info("✅ Backup complete");
         $this->info("Saved to: $filepath");
-        $this->info("Download: $publicUrl");
+        $this->info("Download: {$publicUrl}");
         return 0;
     }
 }
