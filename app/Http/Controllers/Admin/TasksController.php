@@ -364,22 +364,22 @@ class TasksController extends Controller
                 //     );
                 // })
                 ->addColumn('hours', function ($row) {
-                    if (!$row->collection_date || !$row->close_date) {
-                        return '';
-                    }
+                    // if (!$row->collection_date || !$row->close_date) {
+                    //     return '';
+                    // }
 
-                    $start = $row->collection_date;
-                    $end   = $row->close_date;
+                    // $start = $row->collection_date;
+                    // $end   = $row->close_date;
 
-                    // تأكد إنو start <= end
-                    if ($start > $end) {
-                        [$start, $end] = [$end, $start];
-                    }
+                    // // تأكد إنو start <= end
+                    // if ($start > $end) {
+                    //     [$start, $end] = [$end, $start];
+                    // }
 
-                    return parent::hoursandmins(
-                        Period::make($start, $end, Precision::MINUTE())->length(),
-                        '%02d Hours, %02d Minutes'
-                    );
+                    // return parent::hoursandmins(
+                    //     Period::make($start, $end, Precision::MINUTE())->length(),
+                    //     '%02d Hours, %02d Minutes'
+                    // );
                 })
                 ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
                     ? '<span class="confirmed">Confirmed</span>'
