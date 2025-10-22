@@ -303,14 +303,37 @@ class TasksController extends Controller
 
             // Assume user inputs are in local (browser) time
 
-            $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')
+            // $dateFrom = $request->date_from
+            //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')
+            //     : null;
+
+            // $dateTo = $request->date_to
+            //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')
+            //     : null;
+
+
+            // // Make sure start <= end
+            // if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+            //     [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            // }
+
+            // if ($dateFrom && $dateTo) {
+            //     $query->whereBetween($dateColumn, [
+            //         $dateFrom->toDateTimeString(),
+            //         $dateTo->toDateTimeString(),
+            //     ]);
+            // } elseif ($dateFrom) {
+            //     $query->where($dateColumn, '>=', $dateFrom);
+            // } elseif ($dateTo) {
+            //     $query->where($dateColumn, '<=', $dateTo);
+            // }
+            $dateFrom = $request->filled('date_from')
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')->clone()->setTimezone('UTC')
                 : null;
 
-            $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')
+            $dateTo = $request->filled('date_to')
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')->clone()->setTimezone('UTC')
                 : null;
-
 
             // Make sure start <= end
             if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
@@ -318,15 +341,13 @@ class TasksController extends Controller
             }
 
             if ($dateFrom && $dateTo) {
-                $query->whereBetween($dateColumn, [
-                    $dateFrom->toDateTimeString(),
-                    $dateTo->toDateTimeString(),
-                ]);
+                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
             } elseif ($dateFrom) {
                 $query->where($dateColumn, '>=', $dateFrom);
             } elseif ($dateTo) {
                 $query->where($dateColumn, '<=', $dateTo);
             }
+
 
             // ترتيب النتائج
             // $query->orderBy('collection_date', 'desc');
