@@ -31,7 +31,6 @@ class DatabaseBackupStream extends Command
             return 1;
         }
 
-        // Prepare backup dir
         $backupDir = storage_path('app/public/backups');
         if (!is_dir($backupDir)) {
             mkdir($backupDir, 0775, true);
@@ -41,19 +40,16 @@ class DatabaseBackupStream extends Command
         $filename = "{$dbName}-{$timestamp}.sql.gz";
         $filepath = $backupDir . DIRECTORY_SEPARATOR . $filename;
 
-        // Open gzip file
         $gz = \gzopen($filepath, 'w9');
         if (!$gz) {
             $this->error("Failed to open backup file for writing: $filepath");
             return 1;
         }
 
-        // Write helper
         $w = function($s) use ($gz) {
             \gzwrite($gz, $s);
         };
 
-        // Connect PDO (stream mode)
         $dsn = "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4";
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -70,18 +66,15 @@ class DatabaseBackupStream extends Command
             return 1;
         }
 
-        // Header
         $w("-- DB backup (PHP streaming)\n-- Database: `{$dbName}`\n-- Generated: " . date('c') . "\n\n");
         $w("SET FOREIGN_KEY_CHECKS=0;\n");
 
-        // fetch tables
         $stmt = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
         $tables = [];
         while ($r = $stmt->fetch(PDO::FETCH_NUM)) {
             $tables[] = $r[0];
         }
         $totalTables = count($tables);
-
         $batchSize = 500;
 
         foreach ($tables as $i => $table) {
@@ -90,13 +83,12 @@ class DatabaseBackupStream extends Command
             $w("\n-- ---------------------------\n");
             $w("-- Structure for table `$table`\n");
             $w("-- ---------------------------\n");
-
             $w("DROP TABLE IF EXISTS `$table`;\n");
+
             $row = $pdo->query("SHOW CREATE TABLE `$table`")->fetch(PDO::FETCH_ASSOC);
             $w($row['Create Table'] . ";\n\n");
 
-            // Data
-            $w("-- Data for table `$table`\n");
+            // Dump data
             $cols = array_column($pdo->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_ASSOC), 'Field');
             $colList = "`" . implode("`,`", $cols) . "`";
 
@@ -108,7 +100,7 @@ class DatabaseBackupStream extends Command
                     if ($v === null) $v = 'NULL';
                     else $v = $pdo->quote($v);
                 }
-                $batch[] = '(' . implode(',', $v = $r) . ')';
+                $batch[] = '(' . implode(',', $r) . ')';
 
                 if (count($batch) >= $batchSize) {
                     $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
@@ -117,7 +109,7 @@ class DatabaseBackupStream extends Command
                 }
             }
 
-            if ($batch) {
+            if (!empty($batch)) {
                 $w("INSERT INTO `$table` ($colList) VALUES\n" . implode(",\n", $batch) . ";\n");
                 \gzflush($gz);
             }
@@ -126,9 +118,12 @@ class DatabaseBackupStream extends Command
         $w("SET FOREIGN_KEY_CHECKS=1;\n");
         \gzclose($gz);
 
+        $publicUrl = "/storage/backups/{$filename}";
+
         $this->info("✅ Backup complete");
         $this->info("📁 Saved to: $filepath");
-        $this->info("🌐 Download: /storage/backups/{$filename}");
+        $this->info("🌐 Download: {$publicUrl}");
+
         return 0;
     }
 }
