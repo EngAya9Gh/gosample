@@ -293,7 +293,8 @@
                 processing: true,
                 serverSide: true,
                 retrieve: true,
-                ordering: false, // <=== هنا أضفنا
+                // ordering: false, // <=== هنا أضفنا
+                ordering: true, // <=== هنا أضفنا
                 // aaSorting: [],
                 ajax: {
                     url: "{{ route('admin.tasks.index') }}",
