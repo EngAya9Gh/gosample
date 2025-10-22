@@ -313,20 +313,20 @@ class TasksController extends Controller
 
 
             // Make sure start <= end
-            if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
-                [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
-            }
+            // if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+            //     [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            // }
 
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween($dateColumn, [
-                    $dateFrom->toDateTimeString(),
-                    $dateTo->toDateTimeString(),
-                ]);
-            } elseif ($dateFrom) {
-                $query->where($dateColumn, '>=', $dateFrom);
-            } elseif ($dateTo) {
-                $query->where($dateColumn, '<=', $dateTo);
-            }
+            // if ($dateFrom && $dateTo) {
+            //     $query->whereBetween($dateColumn, [
+            //         $dateFrom->toDateTimeString(),
+            //         $dateTo->toDateTimeString(),
+            //     ]);
+            // } elseif ($dateFrom) {
+            //     $query->where($dateColumn, '>=', $dateFrom);
+            // } elseif ($dateTo) {
+            //     $query->where($dateColumn, '<=', $dateTo);
+            // }
 
             // ترتيب النتائج
             // $query->orderBy('collection_date', 'desc');
