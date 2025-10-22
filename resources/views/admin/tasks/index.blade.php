@@ -111,7 +111,7 @@
                                     <option value="excel">EXCEL</option>
                                 </select>
                             </div>
-                            <!-- <div class="col-lg-4">
+                            <div class="col-lg-4">
                                 <label for="sort_by">{{ trans('global.sort_by') }}</label>
                                 <select class="form-control" name="sort_by" id="sort_by">
                                     <option value="created_at">{{ trans('translation.task.fields.created_at') }}</option>
@@ -119,15 +119,15 @@
                                     <option value="collection_date">{{ trans('translation.task.fields.collection_date') }}
                                     </option>
                                 </select>
-                            </div> -->
-                            <!-- <div class="col-lg-4">
+                            </div>
+                            <div class="col-lg-4">
                                 <label for="sort_order">{{ trans('global.sort_order') }}</label>
                                 <select class="form-control" name="sort_order" id="sort_order">
                                     <option value="desc">Desc</option>
                                     <option value="asc">Asc</option>
                                     </option>
                                 </select>
-                            </div> -->
+                            </div>
 
                             <div class="col-lg-12 d-flex justify-content-between mt-2">
                                 <button class="btn btn-danger" type="button" id="search">
