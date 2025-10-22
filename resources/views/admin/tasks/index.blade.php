@@ -241,7 +241,7 @@
         });
         $(document).ready(function() {
             // بحال المتصفح رجّع قيمة قديمة بدون ما تبين
-            $("#date_from, #date_to").val('');
+            // $("#date_from, #date_to").val('');
         });
     </script>
 
