@@ -329,35 +329,35 @@ class TasksController extends Controller
             }
 
             if ($request->has('order.0.column')) {
-                $columnIndex = $request->input('order.0.column'); // رقم العمود
-                $dir = $request->input('order.0.dir') ?? 'desc';   // asc | desc
+                // $columnIndex = $request->input('order.0.column'); // رقم العمود
+                // $dir = $request->input('order.0.dir') ?? 'desc';   // asc | desc
 
-                // مصفوفة mapping للعمود الفعلي
-                $columns = [
-                    1 => 'id',              // sequence ما هو DB فيمكن تبدأ 2
-                    2 => 'id',
-                    3 => 'created_at',
-                    4 => 'billing_client',
-                    5 => 'driver_id',
-                    6 => 'from_location',
-                    7 => 'to_location',
-                    8 => 'eta',
-                    9 => 'collection_date',
-                    10 => 'freezer_date',
-                    11 => 'close_date',
-                    12 => 'status',
-                    13 => 'task_type',
-                    14 => 'added_by',
-                    15 => 'hours', // هذا ليس في DB، تجاهله
-                ];
+                // // مصفوفة mapping للعمود الفعلي
+                // $columns = [
+                //     1 => 'id',              // sequence ما هو DB فيمكن تبدأ 2
+                //     2 => 'id',
+                //     3 => 'created_at',
+                //     4 => 'billing_client',
+                //     5 => 'driver_id',
+                //     6 => 'from_location',
+                //     7 => 'to_location',
+                //     8 => 'eta',
+                //     9 => 'collection_date',
+                //     10 => 'freezer_date',
+                //     11 => 'close_date',
+                //     12 => 'status',
+                //     13 => 'task_type',
+                //     14 => 'added_by',
+                //     15 => 'hours', // هذا ليس في DB، تجاهله
+                // ];
 
-                if (array_key_exists($columnIndex, $columns)) {
-                    $query->orderBy($columns[$columnIndex], $dir);
-                } else {
-                    $query->orderBy('created_at', 'desc'); // fallback
-                }
+                // if (array_key_exists($columnIndex, $columns)) {
+                //     $query->orderBy($columns[$columnIndex], $dir);
+                // } else {
+                //     $query->orderBy('created_at', 'desc'); // fallback
+                // }
             } else {
-                $query->orderBy('created_at', 'desc');
+                // $query->orderBy('created_at', 'desc');
             }
 
 
