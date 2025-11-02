@@ -16,11 +16,11 @@ class ApiKeyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        Log::info("header plazma " . $request->header('secret-key'));
         if(!$request->header('secret-key'))
             return response()->failed('403 Forbidden',403);
         $token = env('BLAZMA_SECRET_KEY');
 
+        Log::info("header plazma " . $request->header('secret-key') . " " . $token);
         return $request->header('secret-key') == $token ? $next($request) : response()->failed('403 Forbidden',403);
     }
 }
