@@ -921,6 +921,8 @@ class SampleController extends Controller
 
     public function addSamplesToTracking(Request $request)
     {
+        
+        \Log::info('request me from plazma');
         try {
             $data = $request->only(['sample_id','profile_id','order_id','hospital_id','hospital_name','collection_hospital_id','collection_hospital_name']);
             $rules = [

@@ -1970,7 +1970,7 @@ class TasksController extends Controller
                 // $task->eta = null;
                 // $task->save();
             }
-            \Log::info('This from THIRD API');
+            // \Log::info('This from THIRD API');
             return response()->json([
                 'success' => true,
                 'message' => 'Task created with love',
