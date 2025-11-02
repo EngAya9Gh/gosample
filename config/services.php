@@ -33,5 +33,10 @@ return [
     'ayenati' => [
         'base_url' => env('AYENATI_BASE_URL', 'https://default-url.com'),
         'carrierId' => env('AYENATI_CARRIER_ID', '1'),
-    ]
+    ],
+    'blazma' => [
+        'LOG_SECRETE_KEY' => env('LOG_SECRETE_KEY', "as_das#DA3AWR2313%432^3essd#@4_#$="),
+        'LOG_HOSTS' => env('LOG_HOSTS', "http://158.101.243.250"),
+        'BLAZMA_SECRET_KEY' => env('BLAZMA_SECRET_KEY', 'mtc&jZ4_om^%aR$2ARd3al_36I67D243-12&^%'),
+    ],
 ];

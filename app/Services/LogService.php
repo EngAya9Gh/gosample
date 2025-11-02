@@ -41,7 +41,8 @@ class LogService
     }
 
     public function getSecretKey(){
-        return env('LOG_SECRETE_KEY',"as_das#DA3AWR2313%432^3essd#@4_#$=");
+        // return env('LOG_SECRETE_KEY',"as_das#DA3AWR2313%432^3essd#@4_#$=");
+        return config('services.blazma.LOG_SECRETE_KEY');
     }
 
     public function do($method, $url, $payload = null)
