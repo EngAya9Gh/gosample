@@ -20,7 +20,7 @@ class ApiKeyMiddleware
             return response()->failed('403 Forbidden',403);
         $token = config('services.blazma.BLAZMA_SECRET_KEY');
 
-        Log::info("header plazma " . $request->header('secret-key') . " " . $token);
+        // Log::info("header plazma " . $request->header('secret-key') . " " . $token);
         return $request->header('secret-key') == $token ? $next($request) : response()->failed('403 Forbidden',403);
     }
 }
