@@ -132,6 +132,7 @@ class Task extends Model
         'to_location_confirmation_timestamp',
         'driver_start_date',
 
+        'poririty'
     ];
 
 
