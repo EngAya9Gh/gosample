@@ -234,7 +234,7 @@
                                 </button>
                             `;
                         }
-                    }،
+                    },
                     {
                         data: 'actions',
                         name: '{{ trans('global.actions') }}'
