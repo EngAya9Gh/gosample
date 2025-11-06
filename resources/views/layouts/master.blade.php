@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     {{-- @vite(['resources/scss/app.scss', 'resources/js/app.js']) --}}
 
-    @include('layouts.head-css')
 </head>
 {{-- @vite('resources/js/app.js') --}}
 @section('body')

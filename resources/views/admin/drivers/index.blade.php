@@ -1,5 +1,10 @@
 @extends('layouts.master')
 @section('content')
+    <style>
+        #driverTasksList li {
+            cursor: move;
+        }
+    </style>
     @can('driver_create')
         <div style="margin-bottom: 10px;" class="row">
             <div class="col-lg-12">
@@ -280,6 +285,8 @@
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script>
         // Modal + Sortable Tasks Logic
         $(document).on('click', '.view-tasks', function() {
@@ -290,23 +297,41 @@
             $.get(`/admin/drivers/${driverId}/tasks`, function(response) {
                 let tasksHtml = '';
                 response.tasks.forEach(task => {
+                    // tasksHtml += `
+                    //     <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
+                    //         <div>
+                    //             <strong>${task.id}</strong><br>
+                    //             <strong>${task.from_location_name}</strong><br>
+                    //             <strong>${task.to_location_name}</strong><br>
+                    //             ETA: ${task.eta ?? '-'}
+                    //         </div>
+                    //         <span class="badge badge-info">#${task.priority ?? '-'}</span>
+                    //     </li>`;
                     tasksHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
-                            <div>
-                                <strong>${task.id}</strong><br>
-                                <strong>${task.from_location_name}</strong><br>
-                                <strong>${task.to_location_name}</strong><br>
-                                ETA: ${task.eta ?? '-'}
-                            </div>
-                            <span class="badge badge-info">#${task.priority ?? '-'}</span>
-                        </li>`;
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
+                        <span class="handle mr-2 text-muted"><i class="fas fa-bars"></i></span>
+                        <div>
+                            <strong>${task.id}</strong><br>
+                            <strong>${task.from_location_name}</strong><br>
+                            <strong>${task.to_location_name}</strong><br>
+                            ETA: ${task.eta ?? '-'}
+                        </div>
+                        <span class="badge badge-info">#${task.priority ?? '-'}</span>
+                    </li>`;
                 });
                 $('#driverTasksList').html(tasksHtml);
 
                 // Make the list sortable
+                // $('#driverTasksList').sortable({
+                //     placeholder: 'list-group-item bg-light',
+                //     update: function(event, ui) {
+                //         $('#saveTaskOrder').prop('disabled', false);
+                //     }
+                // });
                 $('#driverTasksList').sortable({
+                    handle: '.handle',
                     placeholder: 'list-group-item bg-light',
-                    update: function(event, ui) {
+                    update: function() {
                         $('#saveTaskOrder').prop('disabled', false);
                     }
                 });
