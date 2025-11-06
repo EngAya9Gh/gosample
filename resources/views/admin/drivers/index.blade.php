@@ -222,6 +222,17 @@
                         name: 'accepted_terms'
                     },
                     {
+                        data: 'view_tasks',
+                        name: '{{ trans('global.actions') }}',
+                        render: function (data, type, row) {
+                            return `
+                                <button class="btn btn-sm btn-primary view-tasks" data-id="${row.id}">
+                                    <i class="fas fa-tasks"></i> Tasks
+                                </button>
+                            `;
+                        }
+                    }،
+                    {
                         data: 'actions',
                         name: '{{ trans('global.actions') }}'
                     }
@@ -243,5 +254,87 @@
             });
 
         });
+    </script>
+    <!-- Driver Tasks Modal -->
+    <div class="modal fade" id="driverTasksModal" tabindex="-1" aria-labelledby="driverTasksModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="driverTasksModalLabel">Driver Tasks</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul id="driverTasksList" class="list-group">
+                    <!-- tasks will be loaded here -->
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('global.cancel') }}</button>
+                <button type="button" class="btn btn-success" id="saveTaskOrder">Save Order</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Modal + Sortable Tasks Logic
+        $(document).on('click', '.view-tasks', function() {
+            const driverId = $(this).data('id');
+            $('#driverTasksModal').modal('show');
+            $('#driverTasksList').html('<li class="list-group-item text-center">Loading...</li>');
+
+            $.get(`/admin/drivers/${driverId}/tasks`, function(response) {
+                let tasksHtml = '';
+                response.tasks.forEach(task => {
+                    tasksHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
+                            <div>
+                                <strong>${task.title}</strong><br>
+                                ETA: ${task.eta ?? '-'}
+                            </div>
+                            <span class="badge badge-info">#${task.priority ?? '-'}</span>
+                        </li>`;
+                });
+                $('#driverTasksList').html(tasksHtml);
+
+                // Make the list sortable
+                $('#driverTasksList').sortable({
+                    placeholder: 'list-group-item bg-light',
+                    update: function(event, ui) {
+                        $('#saveTaskOrder').prop('disabled', false);
+                    }
+                });
+            });
+        });
+
+        $('#saveTaskOrder').on('click', function() {
+            const order = [];
+            $('#driverTasksList li').each(function(index) {
+                order.push({
+                    id: $(this).data('id'),
+                    priority: index + 1
+                });
+            });
+
+            const driverId = $('.view-tasks[data-id]').data('id');
+
+            $.ajax({
+                url: `/admin/drivers/${driverId}/tasks/reorder`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order: order
+                },
+                success: function() {
+                    alert('Task order saved successfully!');
+                    $('#driverTasksModal').modal('hide');
+                },
+                error: function() {
+                    alert('Failed to save order.');
+                }
+            });
+        });
+
     </script>
 @endsection

@@ -1,6 +1,9 @@
 <?php
 
 // Route::redirect('/welcome', '/welcome');
+
+use App\Http\Controllers\DriverController;
+
 Route::redirect('/', '/login');
 // Route::redirect('/login', '/login');
 Route::get('/home', function () {
@@ -203,3 +206,5 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Htt
 // Auth::routes();
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'tasksOfDriver']);
+Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks']);

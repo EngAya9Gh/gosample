@@ -348,9 +348,9 @@ class DriverController extends Controller
                         // count bags of this task
                         $task->numberOfBags = Sample::where('task_id',$task->id)->distinct('bag_code')->count('bag_code');
 
-//                        $task->counts = $samples = Sample::select('bag_code','temperature_type',DB::raw('count(*) as total'))->where('task_id',$request->task_id)
-//                            ->where('container_id',$request->container_id)
-//                            ->groupBy('bag_code','temperature_type')->get();
+                        // $task->counts = $samples = Sample::select('bag_code','temperature_type',DB::raw('count(*) as total'))->where('task_id',$request->task_id)
+                        // ->where('container_id',$request->container_id)
+                        // ->groupBy('bag_code','temperature_type')->get();
                         if($request->status =='NEW')
                         {
                             $task->rtCount= 0;
@@ -380,42 +380,42 @@ class DriverController extends Controller
                             $task->frzCount=0;
 
                             foreach ( $task->counts as $count){
-				if($task->ayenati == 'YES') {
+				                if($task->ayenati == 'YES') {
                                     $shipment = Shipment::where('task_id',$task->id)->first();
                                     if ($shipment && isset($shipment->id)) {
                                         $task->otp = $shipment->dropoff_otp ?? '';
                                     }
                                 }
-                                    if($task->task_type == 'SAMPLE')
+                                if($task->task_type == 'SAMPLE')
+                                {
+                                    if($count->temperature_type == 'ROOM')
                                     {
-                                        if($count->temperature_type == 'ROOM')
-                                        {
-                                            $task->rtCount=$count->count;
-                                        }
-                                        if($count->temperature_type == 'REFRIGERATE')
-                                        {
-                                            $task->refCount=$count->count;
-                                        }
-                                        if($count->temperature_type == 'FROZEN')
-                                        {
-                                            $task->frzCount=$count->count;
-                                        }
-                                    }else{
-                                        if($count->temperature_type == 'ROOM')
-                                        {
-                                            $task->rtCount=$task->sample_count;
-                                            $task->counts[0]->count=$task->sample_count;
-                                        }
-                                        if($count->temperature_type == 'REFRIGERATE')
-                                        {
-                                            $task->refCount=$task->sample_count;
-                                            $task->counts[0]->count=$task->sample_count;
-                                        }
-                                        if($count->temperature_type == 'FROZEN')
-                                        {
-                                            $task->frzCount=$task->sample_count;
-                                            $task->counts[0]->count=$task->sample_count;
-                                        }
+                                        $task->rtCount=$count->count;
+                                    }
+                                    if($count->temperature_type == 'REFRIGERATE')
+                                    {
+                                        $task->refCount=$count->count;
+                                    }
+                                    if($count->temperature_type == 'FROZEN')
+                                    {
+                                        $task->frzCount=$count->count;
+                                    }
+                                } else{
+                                    if($count->temperature_type == 'ROOM')
+                                    {
+                                        $task->rtCount=$task->sample_count;
+                                        $task->counts[0]->count=$task->sample_count;
+                                    }
+                                    if($count->temperature_type == 'REFRIGERATE')
+                                    {
+                                        $task->refCount=$task->sample_count;
+                                        $task->counts[0]->count=$task->sample_count;
+                                    }
+                                    if($count->temperature_type == 'FROZEN')
+                                    {
+                                        $task->frzCount=$task->sample_count;
+                                        $task->counts[0]->count=$task->sample_count;
+                                    }
                                 }
                             }
 
@@ -425,7 +425,7 @@ class DriverController extends Controller
                         // $task->counts =  $task->sample_count;
                     }
                 }
-//                $this->sendGeneralNotification($driver,$driver,'App\\Notifications\\TaskCreated');
+                // $this->sendGeneralNotification($driver,$driver,'App\\Notifications\\TaskCreated');
 
                 return $this->response(true,'success',$tasks);
             }
@@ -893,5 +893,21 @@ class DriverController extends Controller
             return $this->response(false,'system error');
         }
     }
+
+    public function tasksOfDriver(Driver $driver)
+    {
+        $tasks = $driver->tasks()->select('id', 'title', 'eta', 'priority')->orderBy('priority')->get();
+        return response()->json(['tasks' => $tasks]);
+    }
+
+    public function reorderTasks(Request $request, Driver $driver)
+    {
+        foreach ($request->order as $item) {
+            $driver->tasks()->where('id', $item['id'])->update(['priority' => $item['priority']]);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
 
 }
