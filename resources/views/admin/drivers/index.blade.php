@@ -306,7 +306,7 @@
                     //         <span class="badge badge-info">#${task.priority ?? '-'}</span>
                     //     </li>`;
                     tasksHtml += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
+                    <li class="list-group-item d-flex align-items-center" data-id="${task.id}">
                         <span class="handle mr-2 text-muted"><i class="fas fa-bars"></i></span>
                         <div>
                             <strong>${task.id}</strong><br>
