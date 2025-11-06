@@ -89,6 +89,12 @@ class Driver extends Authenticatable  implements JWTSubject
     {
         return $this->hasMany('App\Models\Task','driver_id');
     }
+
+    public function activeTasks()
+    {
+        return $this->hasMany('App\Models\Task','driver_id')
+            ->whereNotIn('status', ['CLOSED', 'NEW', 'NO_SAMPLES', 'OUT_FREEZER']);
+    }
     
     public function driverTasks()
     {
