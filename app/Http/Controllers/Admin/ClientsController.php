@@ -19,7 +19,12 @@ class ClientsController extends Controller
     {
         abort_if(Gate::denies('client_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $clients = Client::all();
+        $logged_id_user = auth()->user();
+        if ($logged_id_user->client_id !== null) {
+            $clients = Client::where('id', $logged_id_user->client_id)->get();
+        } else {
+            $clients = Client::all();
+        }
 
         return view('admin.clients.index', compact('clients'));
     }
