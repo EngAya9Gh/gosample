@@ -896,7 +896,19 @@ class DriverController extends Controller
 
     public function tasksOfDriver(Driver $driver)
     {
-        $tasks = $driver->activeTasks()->select('id', 'from_location', 'to_location', 'eta', 'poririty')->orderBy('poririty')->get();
+        $tasks = $driver->activeTasks()
+            ->select(
+                'tasks.id',
+                'tasks.to_location',
+                'tasks.eta',
+                'tasks.poririty',
+                'from_locations.name as from_location_name',
+                'to_locations.name as to_location_name'
+            )
+            ->leftJoin('locations as from_locations', 'from_locations.id', '=', 'tasks.from_location')
+            ->leftJoin('locations as to_locations', 'to_locations.id', '=', 'tasks.to_location')
+            ->orderBy('tasks.poririty')
+            ->get();
         return response()->json(['tasks' => $tasks]);
     }
 

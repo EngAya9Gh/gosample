@@ -293,7 +293,9 @@
                     tasksHtml += `
                         <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
                             <div>
-                                <strong>${task.title}</strong><br>
+                                <strong>${task.id}</strong><br>
+                                <strong>${from_location_name}</strong><br>
+                                <strong>${to_location_name}</strong><br>
                                 ETA: ${task.eta ?? '-'}
                             </div>
                             <span class="badge badge-info">#${task.priority ?? '-'}</span>
