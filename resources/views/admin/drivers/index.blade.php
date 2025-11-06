@@ -4,6 +4,27 @@
         #driverTasksList li {
             cursor: move;
         }
+        .sortable-item {
+            background-color: #fff;
+            margin-bottom: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 8px;
+            transition: transform 0.15s ease;
+        }
+
+        .sortable-item.dragging {
+            background-color: #f8f9fa;
+            opacity: 0.8;
+        }
+
+        .ui-state-highlight {
+            height: 70px;
+            background: #e9f3ff;
+            border: 2px dashed #007bff;
+            border-radius: 5px;
+            margin-bottom: 6px;
+        }
     </style>
     @can('driver_create')
         <div style="margin-bottom: 10px;" class="row">
@@ -366,78 +387,163 @@
 
     </script>
     <script>
-    $(document).on('click', '.view-tasks', function() {
-        const driverId = $(this).data('id');
-        $('#driverTasksModal').modal('show');
-        $('#driverTasksList').html('<li class="list-group-item text-center">Loading...</li>');
+        $(document).on('click', '.view-tasks', function() {
+            const driverId = $(this).data('id');
+            $('#driverTasksModal').modal('show');
+            $('#driverTasksList').html('<li class="list-group-item text-center">Loading...</li>');
 
-        $.get(`/admin/drivers/${driverId}/tasks`, function(response) {
-            let tasksHtml = '';
-            response.tasks.forEach(task => {
-                tasksHtml += `
-                    <li class="list-group-item d-flex align-items-center" data-id="${task.id}" style="cursor: grab;">
-                        <span class="handle mr-3 text-muted" style="cursor: grab;">
-                            <i class="fas fa-bars fa-lg"></i>
-                        </span>
-                        <div class="flex-grow-1">
-                            <strong>ID:</strong> ${task.id}<br>
-                            <strong>From:</strong> ${task.from_location_name}<br>
-                            <strong>To:</strong> ${task.to_location_name}<br>
-                            ETA: ${task.eta ?? '-'}
-                        </div>
-                        <span class="badge badge-info">#${task.priority ?? '-'}</span>
-                    </li>`;
-            });
-            $('#driverTasksList').html(tasksHtml);
+            $.get(`/admin/drivers/${driverId}/tasks`, function(response) {
+                let tasksHtml = '';
 
-            // ✅ نضمن حذف أي sortable قديم قبل التهيئة
-            if ($('#driverTasksList').data('ui-sortable')) {
-                $('#driverTasksList').sortable('destroy');
-            }
+                response.tasks.forEach(task => {
+                    tasksHtml += `
+                        <li class="list-group-item sortable-item" data-id="${task.id}">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="handle text-muted mr-3" style="cursor: grab; width: 20px;">
+                                    <i class="fas fa-bars fa-lg"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <strong>ID:</strong> ${task.id}<br>
+                                    <strong>From:</strong> ${task.from_location_name}<br>
+                                    <strong>To:</strong> ${task.to_location_name}<br>
+                                    ETA: ${task.eta ?? '-'}
+                                </div>
+                                <span class="badge badge-info">#${task.priority ?? '-'}</span>
+                            </div>
+                        </li>`;
+                });
 
-            // ✅ تفعيل السحب والإفلات
-            $('#driverTasksList').sortable({
-                handle: '.handle',
-                placeholder: 'list-group-item bg-light',
-                tolerance: 'pointer',
-                axis: 'y',
-                revert: 150,
-                start: function(e, ui) {
-                    ui.placeholder.height(ui.helper.outerHeight());
-                },
-                update: function() {
-                    $('#saveTaskOrder').prop('disabled', false);
+                $('#driverTasksList').html(tasksHtml);
+
+                // ندمج sortable بتهيئة آمنة
+                try {
+                    if ($.ui && $.ui.sortable) {
+                        $('#driverTasksList').sortable('destroy'); // لو كان مفعّل من قبل
+                        $('#driverTasksList').sortable({
+                            handle: '.handle',
+                            placeholder: 'ui-state-highlight',
+                            tolerance: 'pointer',
+                            axis: 'y',
+                            revert: 200,
+                            start: function(e, ui) {
+                                ui.placeholder.height(ui.item.outerHeight());
+                                ui.item.addClass('dragging');
+                            },
+                            stop: function(e, ui) {
+                                ui.item.removeClass('dragging');
+                            },
+                            update: function() {
+                                console.log('order changed');
+                                $('#saveTaskOrder').prop('disabled', false);
+                            }
+                        }).disableSelection();
+                    } else {
+                        console.error('jQuery UI sortable not available.');
+                    }
+                } catch (err) {
+                    console.error('sortable init error:', err);
                 }
-            }).disableSelection();
-        });
-    });
-
-    $('#saveTaskOrder').on('click', function() {
-        const order = [];
-        $('#driverTasksList li').each(function(index) {
-            order.push({
-                id: $(this).data('id'),
-                priority: index + 1
             });
         });
+        $('#saveTaskOrder').on('click', function() {
+            const order = [];
+            $('#driverTasksList li').each(function(index) {
+                order.push({
+                    id: $(this).data('id'),
+                    priority: index + 1
+                });
+            });
 
-        const driverId = $('.view-tasks[data-id]').data('id');
+            const driverId = $('.view-tasks[data-id]').data('id');
 
-        $.ajax({
-            url: `/admin/drivers/${driverId}/tasks/reorder`,
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                order: order
-            },
-            success: function() {
-                alert('✅ Task order saved successfully!');
-                $('#driverTasksModal').modal('hide');
-            },
-            error: function() {
-                alert('❌ Failed to save order.');
-            }
+            $.ajax({
+                url: `/admin/drivers/${driverId}/tasks/reorder`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order: order
+                },
+                success: function() {
+                    alert('✅ Task order saved successfully!');
+                    $('#driverTasksModal').modal('hide');
+                },
+                error: function() {
+                    alert('❌ Failed to save order.');
+                }
+            });
         });
-    });
+    // $(document).on('click', '.view-tasks', function() {
+    //     const driverId = $(this).data('id');
+    //     $('#driverTasksModal').modal('show');
+    //     $('#driverTasksList').html('<li class="list-group-item text-center">Loading...</li>');
+
+    //     $.get(`/admin/drivers/${driverId}/tasks`, function(response) {
+    //         let tasksHtml = '';
+    //         response.tasks.forEach(task => {
+    //             tasksHtml += `
+    //                 <li class="list-group-item d-flex align-items-center" data-id="${task.id}" style="cursor: grab;">
+    //                     <span class="handle mr-3 text-muted" style="cursor: grab;">
+    //                         <i class="fas fa-bars fa-lg"></i>
+    //                     </span>
+    //                     <div class="flex-grow-1">
+    //                         <strong>ID:</strong> ${task.id}<br>
+    //                         <strong>From:</strong> ${task.from_location_name}<br>
+    //                         <strong>To:</strong> ${task.to_location_name}<br>
+    //                         ETA: ${task.eta ?? '-'}
+    //                     </div>
+    //                     <span class="badge badge-info">#${task.priority ?? '-'}</span>
+    //                 </li>`;
+    //         });
+    //         $('#driverTasksList').html(tasksHtml);
+
+    //         // ✅ نضمن حذف أي sortable قديم قبل التهيئة
+    //         if ($('#driverTasksList').data('ui-sortable')) {
+    //             $('#driverTasksList').sortable('destroy');
+    //         }
+
+    //         // ✅ تفعيل السحب والإفلات
+    //         $('#driverTasksList').sortable({
+    //             handle: '.handle',
+    //             placeholder: 'list-group-item bg-light',
+    //             tolerance: 'pointer',
+    //             axis: 'y',
+    //             revert: 150,
+    //             start: function(e, ui) {
+    //                 ui.placeholder.height(ui.helper.outerHeight());
+    //             },
+    //             update: function() {
+    //                 $('#saveTaskOrder').prop('disabled', false);
+    //             }
+    //         }).disableSelection();
+    //     });
+    // });
+
+    // $('#saveTaskOrder').on('click', function() {
+    //     const order = [];
+    //     $('#driverTasksList li').each(function(index) {
+    //         order.push({
+    //             id: $(this).data('id'),
+    //             priority: index + 1
+    //         });
+    //     });
+
+    //     const driverId = $('.view-tasks[data-id]').data('id');
+
+    //     $.ajax({
+    //         url: `/admin/drivers/${driverId}/tasks/reorder`,
+    //         method: 'POST',
+    //         data: {
+    //             _token: '{{ csrf_token() }}',
+    //             order: order
+    //         },
+    //         success: function() {
+    //             alert('✅ Task order saved successfully!');
+    //             $('#driverTasksModal').modal('hide');
+    //         },
+    //         error: function() {
+    //             alert('❌ Failed to save order.');
+    //         }
+    //     });
+    // });
 </script>
 @endsection
