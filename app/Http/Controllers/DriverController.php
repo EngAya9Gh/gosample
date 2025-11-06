@@ -896,7 +896,7 @@ class DriverController extends Controller
 
     public function tasksOfDriver(Driver $driver)
     {
-        $tasks = $driver->tasks()->select('id', 'title', 'eta', 'priority')->orderBy('priority')->get();
+        $tasks = $driver->tasks()->select('id', 'from_location', 'to_location', 'eta', 'priority')->orderBy('priority')->get();
         return response()->json(['tasks' => $tasks]);
     }
 
