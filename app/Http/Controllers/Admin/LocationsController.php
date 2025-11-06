@@ -18,6 +18,8 @@ class LocationsController extends Controller
     {
         abort_if(Gate::denies('location_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $logged_id_user = auth()->user();
+        
         if ($request->ajax()) {
             $query = Location::withoutGlobalScope('enabled')
             ->select(sprintf('%s.*', (new Location)->getTable()));
@@ -31,6 +33,12 @@ class LocationsController extends Controller
             }
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
+            }
+
+            if ($logged_id_user->client_id !== null) {
+                $query = $query->whereHas('locationsClients', function ($q) use ($logged_id_user) {
+                    $q->where('clients.id', $logged_id_user->client_id);
+                });
             }
            
             // if ($request->filled('client_id')) {
