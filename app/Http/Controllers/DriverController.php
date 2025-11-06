@@ -896,14 +896,14 @@ class DriverController extends Controller
 
     public function tasksOfDriver(Driver $driver)
     {
-        $tasks = $driver->tasks()->select('id', 'from_location', 'to_location', 'eta', 'priority')->orderBy('priority')->get();
+        $tasks = $driver->tasks()->select('id', 'from_location', 'to_location', 'eta', 'poririty')->orderBy('poririty')->get();
         return response()->json(['tasks' => $tasks]);
     }
 
     public function reorderTasks(Request $request, Driver $driver)
     {
         foreach ($request->order as $item) {
-            $driver->tasks()->where('id', $item['id'])->update(['priority' => $item['priority']]);
+            $driver->tasks()->where('id', $item['id'])->update(['poririty' => $item['poririty']]);
         }
 
         return response()->json(['status' => 'ok']);
