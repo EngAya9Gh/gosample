@@ -1,10 +1,10 @@
 @extends('layouts.master')
 @section('content')
-    <style>
+    <!-- <style>
         #driverTasksList li {
             cursor: move;
         }
-    </style>
+    </style> -->
     @can('driver_create')
         <div style="margin-bottom: 10px;" class="row">
             <div class="col-lg-12">
