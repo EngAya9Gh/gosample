@@ -415,36 +415,38 @@
 
                 $('#driverTasksList').html(tasksHtml);
 
-                // ندمج sortable بتهيئة آمنة
-                try {
-                    if ($.ui && $.ui.sortable) {
-                        // $('#driverTasksList').sortable('destroy'); // لو كان مفعّل من قبل
-                        $('#driverTasksList').sortable({
-                            handle: '.handle',
-                            placeholder: 'ui-state-highlight',
-                            tolerance: 'pointer',
-                            axis: 'y',
-                            revert: 200,
-                            start: function(e, ui) {
-                                ui.placeholder.height(ui.item.outerHeight());
-                                ui.item.addClass('dragging');
-                            },
-                            stop: function(e, ui) {
-                                ui.item.removeClass('dragging');
-                            },
-                            update: function() {
-                                console.log('order changed');
-                                $('#saveTaskOrder').prop('disabled', false);
-                            }
-                        }).disableSelection();
-                    } else {
-                        console.error('jQuery UI sortable not available.');
-                    }
-                } catch (err) {
-                    console.error('sortable init error:', err);
+                // نحذف أي sortable قديم
+                if ($('#driverTasksList').data('ui-sortable')) {
+                    $('#driverTasksList').sortable('destroy');
                 }
+
+                // نفعّل السحب فقط بعد فتح المودال فعلياً
+                $('#driverTasksModal').off('shown.bs.modal').on('shown.bs.modal', function() {
+                    $('#driverTasksList').sortable({
+                        handle: '.handle',
+                        placeholder: 'ui-state-highlight',
+                        axis: 'y',
+                        tolerance: 'pointer',
+                        revert: 150,
+                        start: function(e, ui) {
+                            ui.placeholder.height(ui.item.outerHeight());
+                            ui.item.addClass('dragging');
+                        },
+                        stop: function(e, ui) {
+                            ui.item.removeClass('dragging');
+                        },
+                        update: function() {
+                            $('#saveTaskOrder').prop('disabled', false);
+                            console.log('✅ order changed');
+                        }
+                    }).disableSelection();
+
+                    // منع الأيقونة من تعطيل السحب
+                    $('.handle i').css('pointer-events', 'none');
+                });
             });
         });
+
         $('#saveTaskOrder').on('click', function() {
             const order = [];
             $('#driverTasksList li').each(function(index) {
