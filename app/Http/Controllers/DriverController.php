@@ -894,8 +894,36 @@ class DriverController extends Controller
         }
     }
 
-    public function tasksOfDriver(Driver $driver)
+    // public function tasksOfDriver(Driver $driver)
+    // {
+    //     $tasks = $driver->activeTasks()
+    //         ->select(
+    //             'tasks.id',
+    //             'tasks.to_location',
+    //             'tasks.eta',
+    //             'tasks.poririty',
+    //             'from_locations.name as from_location_name',
+    //             'to_locations.name as to_location_name'
+    //         )
+    //         ->leftJoin('locations as from_locations', 'from_locations.id', '=', 'tasks.from_location')
+    //         ->leftJoin('locations as to_locations', 'to_locations.id', '=', 'tasks.to_location')
+    //         ->orderBy('tasks.poririty')
+    //         ->get();
+    //     return response()->json(['tasks' => $tasks]);
+    // }
+
+    // public function reorderTasks(Request $request, Driver $driver)
+    // {
+    //     foreach ($request->order as $item) {
+    //         $driver->tasks()->where('id', $item['id'])->update(['poririty' => $item['poririty']]);
+    //     }
+
+    //     return response()->json(['status' => 'ok']);
+    // }
+
+    public function showTasks($driverId)
     {
+        $driver = Driver::findOrFail($driverId);
         $tasks = $driver->activeTasks()
             ->select(
                 'tasks.id',
@@ -909,17 +937,22 @@ class DriverController extends Controller
             ->leftJoin('locations as to_locations', 'to_locations.id', '=', 'tasks.to_location')
             ->orderBy('tasks.poririty')
             ->get();
-        return response()->json(['tasks' => $tasks]);
+
+        return view('admin.drivers.tasks', compact('driver', 'tasks'));
     }
 
-    public function reorderTasks(Request $request, Driver $driver)
+    public function reorderTasks(Request $request, $driverId)
     {
-        foreach ($request->order as $item) {
-            $driver->tasks()->where('id', $item['id'])->update(['poririty' => $item['poririty']]);
+        $order = $request->input('order', []);
+
+        foreach ($order as $item) {
+            \App\Models\Task::where('id', $item['id'])
+                ->update(['priority' => $item['priority']]);
         }
 
-        return response()->json(['status' => 'ok']);
+        return response()->json(['success' => true]);
     }
+
 
 
 }

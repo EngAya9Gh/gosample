@@ -206,5 +206,11 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Htt
 // Auth::routes();
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'tasksOfDriver']);
-Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks']);
+// Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'tasksOfDriver']);
+// Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks']);
+
+Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'showTasks'])
+    ->name('admin.drivers.tasks');
+
+Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks'])
+    ->name('admin.drivers.tasks.reorder');

@@ -249,18 +249,17 @@
                     {
                         data: 'accepted_terms',
                         name: 'accepted_terms'
-                    },
-                    {
-                        data: 'view_tasks',
-                        name: '{{ trans('global.actions') }}',
-                        render: function (data, type, row) {
-                            return `
-                                <button class="btn btn-sm btn-primary view-tasks" data-id="${row.id}">
-                                    <i class="fas fa-tasks"></i> Tasks
-                                </button>
-                            `;
-                        }
-                    },
+                    },{
+                    data: 'view_tasks',
+                    name: '{{ trans('global.actions') }}',
+                    render: function (data, type, row) {
+                        return `
+                            <a href="/admin/drivers/${row.id}/tasks" class="btn btn-sm btn-primary">
+                                <i class="fas fa-tasks"></i> Tasks
+                            </a>
+                        `;
+                    }
+                },
                     {
                         data: 'actions',
                         name: '{{ trans('global.actions') }}'
