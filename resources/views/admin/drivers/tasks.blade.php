@@ -2,53 +2,35 @@
 
 @section('content')
 <style>
-    #driverTasksList li {
-        cursor: move;
-    }
     .sortable-item {
         background-color: #fff;
         margin-bottom: 6px;
         border: 1px solid #ccc;
         border-radius: 6px;
-        padding: 8px;
-        transition: transform 0.15s ease;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background 0.2s;
     }
-    .sortable-item.dragging {
+
+    .sortable-item:hover {
         background-color: #f8f9fa;
-        opacity: 0.8;
-    }
-    .ui-state-highlight {
-        height: 70px;
-        background: #e9f3ff;
-        border: 2px dashed #007bff;
-        border-radius: 5px;
-        margin-bottom: 6px;
-    }
-        /* تأكد إن كل شيء فوق ممكن يظهر أثناء السحب */
-    .card,
-    .card-body,
-    .container,
-    .content,
-    .content-wrapper,
-    .modal,
-    body {
-        overflow: visible !important;
     }
 
-    /* خلي العنصر المنسحب فوق كل شي */
-    .ui-sortable-helper {
-        z-index: 99999 !important;
+    .task-controls button {
+        border: none;
+        background: transparent;
+        color: #007bff;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0 4px;
     }
 
-    /* غلاف التحريك */
-    .ui-state-highlight {
-        height: 65px !important;
-        background: #dff0ff !important;
-        border: 2px dashed #007bff !important;
-        border-radius: 8px;
-        margin-bottom: 6px;
+    .task-controls button:disabled {
+        color: #aaa;
+        cursor: not-allowed;
     }
-
 </style>
 
 <div class="card">
@@ -60,17 +42,20 @@
     <div class="card-body">
         <ul id="driverTasksList" class="list-group">
             @foreach($tasks as $task)
-                <li class="list-group-item sortable-item d-flex align-items-center justify-content-between" data-id="{{ $task->id }}">
-                    <div class="handle text-muted mr-3" style="cursor: grab;">
-                        <i class="fas fa-bars fa-lg"></i>
-                    </div>
-                    <div class="flex-grow-1">
+                <li class="list-group-item sortable-item" data-id="{{ $task->id }}">
+                    <div>
                         <strong>ID:</strong> {{ $task->id }}<br>
                         <strong>From:</strong> {{ $task->fromLocation->name ?? '-' }}<br>
                         <strong>To:</strong> {{ $task->toLocation->name ?? '-' }}<br>
                         ETA: {{ $task->eta ?? '-' }}
                     </div>
-                    <span class="badge badge-info">#{{ $task->priority ?? '-' }}</span>
+                    <div class="d-flex align-items-center">
+                        <span class="badge badge-info mr-3">#{{ $task->priority ?? '-' }}</span>
+                        <div class="task-controls">
+                            <button class="move-up" title="Move Up">↑</button>
+                            <button class="move-down" title="Move Down">↓</button>
+                        </div>
+                    </div>
                 </li>
             @endforeach
         </ul>
@@ -85,41 +70,38 @@
 @section('scripts')
 @parent
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
-$(document).ready(function() {
-    console.log('✅ jQuery UI Sortable loaded:', !!$.ui?.sortable);
-
+$(function() {
     const $list = $('#driverTasksList');
+    const $saveBtn = $('#saveTaskOrder');
 
-    if (!$list.length) {
-        console.error('❌ driverTasksList not found');
-        return;
+    function refreshButtons() {
+        // تعطيل السهم للأول والأخير
+        $list.find('.move-up, .move-down').prop('disabled', false);
+        $list.find('li:first .move-up').prop('disabled', true);
+        $list.find('li:last .move-down').prop('disabled', true);
     }
 
-    // تفعيل السحب والإفلات بعد تحميل الصفحة فعليًا
-    setTimeout(() => {
-        $list.sortable({
-            handle: '.handle',
-            placeholder: 'ui-state-highlight',
-            axis: 'y',
-            revert: 150,
-            tolerance: 'pointer',
-            start: function(e, ui) {
-                ui.placeholder.height(ui.item.outerHeight());
-                ui.item.addClass('dragging');
-            },
-            stop: function(e, ui) {
-                ui.item.removeClass('dragging');
-            },
-            update: function() {
-                console.log('✅ order changed');
-                $('#saveTaskOrder').prop('disabled', false);
-            }
-        }).disableSelection();
-    }, 300);
+    refreshButtons();
 
-    $('#saveTaskOrder').click(function() {
+    // تحريك للأعلى
+    $list.on('click', '.move-up', function() {
+        const $li = $(this).closest('li');
+        $li.prev().before($li);
+        $saveBtn.prop('disabled', false);
+        refreshButtons();
+    });
+
+    // تحريك للأسفل
+    $list.on('click', '.move-down', function() {
+        const $li = $(this).closest('li');
+        $li.next().after($li);
+        $saveBtn.prop('disabled', false);
+        refreshButtons();
+    });
+
+    // حفظ الترتيب
+    $saveBtn.on('click', function() {
         const order = [];
         $list.find('li').each(function(index) {
             order.push({
@@ -139,7 +121,7 @@ $(document).ready(function() {
             },
             success: function() {
                 alert('✅ Task order saved successfully!');
-                $('#saveTaskOrder').prop('disabled', true);
+                $saveBtn.prop('disabled', true);
             },
             error: function(err) {
                 console.error('❌ AJAX error:', err);
