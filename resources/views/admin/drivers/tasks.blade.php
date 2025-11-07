@@ -50,7 +50,7 @@
                         ETA: {{ $task->eta ?? '-' }}
                     </div>
                     <div class="d-flex align-items-center">
-                        <span class="badge badge-info mr-3">#{{ $task->priority ?? '-' }}</span>
+                        <span class="badge badge-info mr-3">#{{ $task->poririty ?? '-' }}</span>
                         <div class="task-controls">
                             <button class="move-up" title="Move Up">↑</button>
                             <button class="move-down" title="Move Down">↓</button>

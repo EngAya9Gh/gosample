@@ -947,7 +947,7 @@ class DriverController extends Controller
 
         foreach ($order as $item) {
             \App\Models\Task::where('id', $item['id'])
-                ->update(['poririty' => $item['poririty']]);
+                ->update(['poririty' => $item['priority']]);
         }
 
         return response()->json(['success' => true]);
