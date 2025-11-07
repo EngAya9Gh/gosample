@@ -6,7 +6,7 @@
 <script src="{{ URL::asset('build/js/plugins.js') }}"></script>
 {{-- <script src="{{ URL::asset('build/js/pages/datatables.init.js') }}"></script> --}}
 <script src="{{ URL::asset('build/js/app.js') }}"></script>
-<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script> -->
 
 
 
