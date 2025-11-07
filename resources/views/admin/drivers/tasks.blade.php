@@ -1,4 +1,5 @@
 @extends('layouts.master')
+
 @section('content')
 <style>
     #driverTasksList li {
@@ -54,43 +55,57 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('scripts')
 @parent
 <script>
-$(function() {
-    // تفعيل السحب والإفلات
-    $('#driverTasksList').sortable({
-        handle: '.handle',
-        placeholder: 'ui-state-highlight',
-        axis: 'y',
-        revert: 150,
-        start: function(e, ui) {
-            ui.placeholder.height(ui.item.outerHeight());
-            ui.item.addClass('dragging');
-        },
-        stop: function(e, ui) {
-            ui.item.removeClass('dragging');
-        },
-        update: function() {
-            $('#saveTaskOrder').prop('disabled', false);
-        }
-    }).disableSelection();
+$(document).ready(function() {
+    console.log('✅ jQuery UI Sortable loaded:', !!$.ui?.sortable);
+
+    const $list = $('#driverTasksList');
+
+    if (!$list.length) {
+        console.error('❌ driverTasksList not found');
+        return;
+    }
+
+    // تفعيل السحب والإفلات بعد تحميل الصفحة فعليًا
+    setTimeout(() => {
+        $list.sortable({
+            handle: '.handle',
+            placeholder: 'ui-state-highlight',
+            axis: 'y',
+            revert: 150,
+            tolerance: 'pointer',
+            start: function(e, ui) {
+                ui.placeholder.height(ui.item.outerHeight());
+                ui.item.addClass('dragging');
+            },
+            stop: function(e, ui) {
+                ui.item.removeClass('dragging');
+            },
+            update: function() {
+                console.log('✅ order changed');
+                $('#saveTaskOrder').prop('disabled', false);
+            }
+        }).disableSelection();
+    }, 300);
 
     $('#saveTaskOrder').click(function() {
         const order = [];
-        $('#driverTasksList li').each(function(index) {
+        $list.find('li').each(function(index) {
             order.push({
                 id: $(this).data('id'),
                 priority: index + 1
             });
         });
 
+        console.log('📦 Sending order:', order);
+
         $.ajax({
             url: "{{ route('admin.drivers.tasks.reorder', $driver->id) }}",
-            method: 'POST',
+            type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
                 order: order
@@ -99,7 +114,8 @@ $(function() {
                 alert('✅ Task order saved successfully!');
                 $('#saveTaskOrder').prop('disabled', true);
             },
-            error: function() {
+            error: function(err) {
+                console.error('❌ AJAX error:', err);
                 alert('❌ Failed to save order.');
             }
         });
