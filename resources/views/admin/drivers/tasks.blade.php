@@ -24,6 +24,31 @@
         border-radius: 5px;
         margin-bottom: 6px;
     }
+        /* تأكد إن كل شيء فوق ممكن يظهر أثناء السحب */
+    .card,
+    .card-body,
+    .container,
+    .content,
+    .content-wrapper,
+    .modal,
+    body {
+        overflow: visible !important;
+    }
+
+    /* خلي العنصر المنسحب فوق كل شي */
+    .ui-sortable-helper {
+        z-index: 99999 !important;
+    }
+
+    /* غلاف التحريك */
+    .ui-state-highlight {
+        height: 65px !important;
+        background: #dff0ff !important;
+        border: 2px dashed #007bff !important;
+        border-radius: 8px;
+        margin-bottom: 6px;
+    }
+
 </style>
 
 <div class="card">
