@@ -418,7 +418,7 @@
                 // ندمج sortable بتهيئة آمنة
                 try {
                     if ($.ui && $.ui.sortable) {
-                        $('#driverTasksList').sortable('destroy'); // لو كان مفعّل من قبل
+                        // $('#driverTasksList').sortable('destroy'); // لو كان مفعّل من قبل
                         $('#driverTasksList').sortable({
                             handle: '.handle',
                             placeholder: 'ui-state-highlight',
