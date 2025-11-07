@@ -45,8 +45,8 @@
                 <li class="list-group-item sortable-item" data-id="{{ $task->id }}">
                     <div>
                         <strong>ID:</strong> {{ $task->id }}<br>
-                        <strong>From:</strong> {{ $task->fromLocation->name ?? '-' }}<br>
-                        <strong>To:</strong> {{ $task->toLocation->name ?? '-' }}<br>
+                        <strong>From:</strong> {{ $task->from_location_name ?? '-' }}<br>
+                        <strong>To:</strong> {{ $task->to_location_name ?? '-' }}<br>
                         ETA: {{ $task->eta ?? '-' }}
                     </div>
                     <div class="d-flex align-items-center">
