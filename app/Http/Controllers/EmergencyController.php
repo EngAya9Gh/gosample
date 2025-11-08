@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 
-class DriverController extends Controller
+class EmergencyController extends Controller
 {
     public function checkEmergency()
     {
