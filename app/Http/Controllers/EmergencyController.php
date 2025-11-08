@@ -23,7 +23,7 @@ class EmergencyController extends Controller
     {
         Cache::forget('emergency_status');
 
-        return response()->json(['status' => true]);
+        return response()->json(['status' => false]);
     }
 
 
