@@ -219,4 +219,4 @@ Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'r
 
 Route::post('/emergency', [EmergencyController::class, 'emergencyBTN']);
 Route::get('/check-emergency', [EmergencyController::class, 'checkEmergency']);
-Route::post('/clear-emergency', [EmergencyController::class, 'clearEmergency'])
+Route::post('/clear-emergency', [EmergencyController::class, 'clearEmergency']);
