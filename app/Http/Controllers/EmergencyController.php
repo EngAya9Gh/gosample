@@ -24,7 +24,7 @@ class EmergencyController extends Controller
     public function clearEmergency()
     {
         $flag = EmergencyFlag::where('active', 1)->first();
-        $flag->status = 0;
+        $flag->active = 0;
         $flag->save();
         Cache::forget('emergency_status');
 
