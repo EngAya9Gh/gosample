@@ -7,19 +7,17 @@ class EmergencyController extends Controller
 {
     public function checkEmergency()
     {
-        $flag = \App\Models\EmergencyFlag::find(1);
-        return response()->json([
-            'active' => $flag?->active ?? false,
-            'message' => $flag?->message ?? '',
+        $status = Cache::get('emergency_status', [
+            'active' => false,
+            'message' => '',
         ]);
+
+        return response()->json($status);
     }
 
     public function clearEmergency()
     {
-        $flag = \App\Models\EmergencyFlag::find(1);
-        if ($flag) {
-            $flag->update(['active' => false]);
-        }
+        Cache::forget('emergency_status');
 
         return response()->json(['status' => true]);
     }

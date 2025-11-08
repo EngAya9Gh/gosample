@@ -27,6 +27,7 @@ use Mail;
 use App\Models\Shipment;
 use App\Models\EmergencyFlag;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 
 use DB;
 class DriverController extends Controller
@@ -900,6 +901,10 @@ class DriverController extends Controller
                     'message' => '🚨 تنبيه طارئ من السائق #' . $data['driver_id'] . ' في السيارة #' . $data['car_id'],
                 ]
             );
+            Cache::put('emergency_status', [
+                'active' => true,
+                'message' => $message,
+            ], now()->addMinutes(5));
 
             return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
         } catch (Exception $e) {

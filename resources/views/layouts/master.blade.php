@@ -9,7 +9,7 @@
     <meta content="MTC" name="description" />
     <meta content="MTC" name="author" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/min/dropzone.min.css" rel="stylesheet">
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ URL::asset('build/images/favicon.ico') }}">
@@ -278,7 +278,14 @@
 
         async function clearEmergency() {
             try {
-                await fetch('/clear-emergency', { method: 'POST' });
+                await fetch('/clear-emergency', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                });
+
                 const box = document.getElementById('emergencyAlert');
                 if (box) box.remove();
             } catch (err) {
