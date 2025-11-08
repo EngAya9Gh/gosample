@@ -294,7 +294,7 @@
         }
 
         // استعلام كل 5 ثواني
-        setInterval(checkEmergency, 5000);
+        setInterval(checkEmergency, 60000);
     </script>
 
 
