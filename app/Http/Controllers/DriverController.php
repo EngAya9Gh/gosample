@@ -25,6 +25,8 @@ use DateTime;
 use NotificationChannels\Fcm\FcmChannel;
 use Mail;
 use App\Models\Shipment;
+use App\Models\EmergencyFlag;
+use Exception;
 
 use DB;
 class DriverController extends Controller
@@ -877,20 +879,31 @@ class DriverController extends Controller
     }
 
     public function emergencyBTN(Request $request) {
+
         try {
-            $data = $request->only(['driver_id','car_id']);
+            $data = $request->only(['driver_id', 'car_id']);
             $rules = [
-                'driver_id'   => 'required',
-                'car_id'   => 'required',
+                'driver_id' => 'required',
+                'car_id'    => 'required',
             ];
+
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
-                return $this->response(false,$this->validationHandle($validator->messages()));
-            } else {
-                return $this->response(true,'success');
+                return $this->response(false, $this->validationHandle($validator->messages()));
             }
+
+            // إنشاء أو تحديث حالة الطوارئ
+            EmergencyFlag::updateOrCreate(
+                ['id' => 1],
+                [
+                    'active'  => true,
+                    'message' => '🚨 تنبيه طارئ من السائق #' . $data['driver_id'] . ' في السيارة #' . $data['car_id'],
+                ]
+            );
+
+            return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false, 'system error');
         }
     }
 

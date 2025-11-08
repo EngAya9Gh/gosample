@@ -4,6 +4,8 @@
 
 use App\Http\Controllers\DriverController;
 
+use App\Http\Controllers\EmergencyController;
+
 Route::redirect('/', '/login');
 // Route::redirect('/login', '/login');
 Route::get('/home', function () {
@@ -214,3 +216,7 @@ Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'showTasks'
 
 Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks'])
     ->name('admin.drivers.tasks.reorder');
+
+Route::post('/emergency', [EmergencyController::class, 'emergencyBTN']);
+Route::get('/check-emergency', [EmergencyController::class, 'checkEmergency']);
+Route::post('/clear-emergency', [EmergencyController::class, 'clearEmergency'])

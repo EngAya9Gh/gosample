@@ -225,6 +225,70 @@
 <!-- JAVASCRIPT -->
 @include('layouts.vendor-scripts')
 
+    <script>
+        async function checkEmergency() {
+            try {
+                const res = await fetch('/check-emergency');
+                const data = await res.json();
+
+                if (data.active) {
+                    showEmergencyAlert(data.message);
+                }
+            } catch (err) {
+                console.error('Error checking emergency:', err);
+            }
+        }
+
+        function showEmergencyAlert(message) {
+            // لا تكرر التنبيه إذا ظاهر مسبقاً
+            if (document.getElementById('emergencyAlert')) return;
+
+            const alertBox = document.createElement('div');
+            alertBox.id = 'emergencyAlert';
+            alertBox.style = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #dc3545;
+                color: #fff;
+                padding: 20px 25px;
+                border-radius: 10px;
+                z-index: 999999;
+                font-size: 16px;
+                font-weight: bold;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                width: 320px;
+            `;
+
+            alertBox.innerHTML = `
+                <div style="margin-bottom:10px;">${message}</div>
+                <button onclick="clearEmergency()" style="
+                    background:#fff;
+                    color:#dc3545;
+                    border:none;
+                    border-radius:5px;
+                    padding:6px 12px;
+                    cursor:pointer;
+                    font-weight:bold;
+                ">إغلاق التنبيه</button>
+            `;
+
+            document.body.appendChild(alertBox);
+        }
+
+        async function clearEmergency() {
+            try {
+                await fetch('/clear-emergency', { method: 'POST' });
+                const box = document.getElementById('emergencyAlert');
+                if (box) box.remove();
+            } catch (err) {
+                console.error('Error clearing emergency:', err);
+            }
+        }
+
+        // استعلام كل 5 ثواني
+        setInterval(checkEmergency, 5000);
+    </script>
 
 
 </html>
