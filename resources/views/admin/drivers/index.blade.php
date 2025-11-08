@@ -250,19 +250,23 @@
                         data: 'accepted_terms',
                         name: 'accepted_terms'
                     },{
-                    data: 'view_tasks',
-                    name: '{{ trans('global.actions') }}',
-                    render: function (data, type, row) {
-                        return `
-                            <a href="/admin/drivers/${row.id}/tasks" class="btn btn-sm btn-primary">
-                                <i class="fas fa-tasks"></i> Tasks
-                            </a>
-                        `;
-                    }
+                        data: 'view_tasks',
+                        name: '{{ trans('global.actions') }}',
+                        render: function (data, type, row) {
+                            return `
+                                <a href="/admin/drivers/${row.id}/tasks" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-tasks"></i> Tasks
+                                </a>
+                            `;
+                        },
+                        orderable: false,
+                        searchable: false
                 },
                     {
                         data: 'actions',
-                        name: '{{ trans('global.actions') }}'
+                        name: '{{ trans('global.actions') }}',
+                        orderable: false,
+                        searchable: false
                     }
                 ],
                 orderCellsTop: true,
