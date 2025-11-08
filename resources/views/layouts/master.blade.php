@@ -224,9 +224,13 @@
 
 <!-- JAVASCRIPT -->
 @include('layouts.vendor-scripts')
-
+    <script>
+        const AUTH_CLIENT_ID = {{ auth()->check() ? (auth()->user()->client_id ?? 'null') : 'null' }};
+    </script>
     <script>
         async function checkEmergency() {
+            if (AUTH_CLIENT_ID !== null) return;
+
             try {
                 const res = await fetch('/check-emergency');
                 const data = await res.json();
@@ -277,6 +281,8 @@
         }
 
         async function clearEmergency() {
+            if (AUTH_CLIENT_ID !== null) return;
+            
             try {
                 await fetch('/clear-emergency', {
                     method: 'POST',
@@ -292,9 +298,10 @@
                 console.error('Error clearing emergency:', err);
             }
         }
-
-        // استعلام كل 5 ثواني
-        setInterval(checkEmergency, 60000);
+        if (AUTH_CLIENT_ID === null) {
+            setInterval(checkEmergency, 60000);
+            checkEmergency();
+        }
     </script>
 
 
