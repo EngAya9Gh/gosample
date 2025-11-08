@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\EmergencyFlag;
 use Illuminate\Support\Facades\Cache;
 
 class EmergencyController extends Controller
