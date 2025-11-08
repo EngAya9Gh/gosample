@@ -17,7 +17,7 @@ class EmergencyController extends Controller
         ];
 
         // خزنه بالكاش لمدة 10 ثواني (تقدر تغيرها)
-        Cache::put('emergency_status', $status, now()->addSeconds(10));
+        Cache::put('emergency_status', $status, now()->addMinutes(5));
         return response()->json($status);
     }
 
