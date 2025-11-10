@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\MassDestroyLocationRequest;
 use App\Http\Requests\StoreLocationRequest;
 use App\Http\Requests\UpdateLocationRequest;
+use App\Models\ClientLocation;
 use App\Models\Location;
 use Gate;
 use Illuminate\Http\Request;
@@ -144,6 +145,16 @@ class LocationsController extends Controller
     public function store(StoreLocationRequest $request)
     {
         $location = Location::create($request->all());
+
+        $logged_id_user = auth()->user();
+        if ($logged_id_user->client_id !== null) {
+            $clientLocation = new ClientLocation();
+            $clientLocation->client_id = $logged_id_user->client_id;
+            $clientLocation->location_id = $location->id;
+            $clientLocation->created_at = now();
+            $clientLocation->updated_at = now();
+            $clientLocation->save();
+        }
 
         return redirect()->route('admin.locations.index');
     }
