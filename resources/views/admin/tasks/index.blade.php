@@ -363,7 +363,8 @@
                     },
                     {
                         data: 'status',
-                        name: 'status'
+                        name: 'status',
+                        orderable: false
                     },
                     {
                         data: 'task_type',
