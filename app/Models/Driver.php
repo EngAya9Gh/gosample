@@ -18,6 +18,7 @@ class Driver extends Authenticatable  implements JWTSubject
     use SoftDeletes;
     use HasFactory;
     use Notifiable;
+    use Auditable;
 
 
     public const LANGUAGE_SELECT = [
