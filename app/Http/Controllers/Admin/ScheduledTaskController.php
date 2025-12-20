@@ -161,38 +161,78 @@ class ScheduledTaskController extends Controller
 
 
 
+    // public function store(StoreScheduledTaskRequest $request)
+    // {
+
+    //     $data = $request->except(['from_location_id', 'selected_days', 'visit_hours']); // Exclude from_location, selected_days, and visit_hours
+    //     $fromLocations = $request->input('from_location_id');
+    //     $selectedDays = $request->input('days');
+    //     $selectedHours = $request->input('visit_hours');
+
+    //     $numberOfLocations = count($fromLocations);
+    //     $totalVisits =  $numberOfLocations;
+
+
+    //     if (!is_array($selectedHours) || count($selectedHours) !== $totalVisits) {
+    //         $errorMessage = 'The number of visit hours must be equal to ' . count($fromLocations) . ' (number of selected locations in from_location)';
+    //         return redirect()->back()->withInput()->withErrors(['visit_hours' => $errorMessage]);
+    //     }
+
+    //     //need add parent id
+    //     $parent_id = null;
+    //     foreach ($fromLocations as $locationIndex => $fromLocationId) {
+    //         foreach ($selectedDays as $selectedDay) {
+    //             // Get the selected hour for this location (use modulo to loop through the hours)
+    //             $selectedHour = $selectedHours[$locationIndex % count($selectedHours)];
+
+    //             // Create a new scheduled task with the same details
+    //             $scheduledTask = new ScheduledTask($data);
+    //             $scheduledTask->parent_id = $parent_id;
+    //             $scheduledTask->from_location_id = $fromLocationId;
+    //             $scheduledTask->day = $selectedDay;
+    //             $scheduledTask->selected_hour = $selectedHour;
+    //             $scheduledTask->save();
+    //             if (empty($parent_id)) {
+    //                 $parent_id = $scheduledTask->id;
+    //             }
+    //         }
+    //     }
+
+    //     return redirect()->route('admin.scheduled-tasks.index');
+    // }
     public function store(StoreScheduledTaskRequest $request)
     {
+        $data = $request->except(['from_location_id', 'days', 'visit_hours']);
 
-        $data = $request->except(['from_location_id', 'selected_days', 'visit_hours']); // Exclude from_location, selected_days, and visit_hours
-        $fromLocations = $request->input('from_location_id');
-        $selectedDays = $request->input('days');
-        $selectedHours = $request->input('visit_hours');
+        $fromLocations = $request->input('from_location_id', []);
+        $selectedDays  = $request->input('days', []);
+        $selectedHours = $request->input('visit_hours', []);
 
-        $numberOfLocations = count($fromLocations);
-        $totalVisits =  $numberOfLocations;
-
-
-        if (!is_array($selectedHours) || count($selectedHours) !== $totalVisits) {
-            $errorMessage = 'The number of visit hours must be equal to ' . count($fromLocations) . ' (number of selected locations in from_location)';
-            return redirect()->back()->withInput()->withErrors(['visit_hours' => $errorMessage]);
+        // تحقق إنو كل location عندها ساعة
+        foreach ($fromLocations as $fromLocationId) {
+            if (!isset($selectedHours[$fromLocationId]) || empty($selectedHours[$fromLocationId])) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors([
+                        'visit_hours' => 'Each from location must have a visit hour'
+                    ]);
+            }
         }
 
-        //need add parent id
         $parent_id = null;
-        foreach ($fromLocations as $locationIndex => $fromLocationId) {
-            foreach ($selectedDays as $selectedDay) {
-                // Get the selected hour for this location (use modulo to loop through the hours)
-                $selectedHour = $selectedHours[$locationIndex % count($selectedHours)];
 
-                // Create a new scheduled task with the same details
+        foreach ($fromLocations as $fromLocationId) {
+            foreach ($selectedDays as $selectedDay) {
+
                 $scheduledTask = new ScheduledTask($data);
                 $scheduledTask->parent_id = $parent_id;
                 $scheduledTask->from_location_id = $fromLocationId;
                 $scheduledTask->day = $selectedDay;
-                $scheduledTask->selected_hour = $selectedHour;
+                $scheduledTask->selected_hour = $selectedHours[$fromLocationId]; // 👈 FIX
                 $scheduledTask->save();
-                if (empty($parent_id)) {
+
+                if (is_null($parent_id)) {
                     $parent_id = $scheduledTask->id;
                 }
             }
@@ -200,6 +240,7 @@ class ScheduledTaskController extends Controller
 
         return redirect()->route('admin.scheduled-tasks.index');
     }
+
 
 
 
