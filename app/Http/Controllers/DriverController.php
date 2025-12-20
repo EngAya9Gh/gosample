@@ -892,21 +892,25 @@ class DriverController extends Controller
             if ($validator->fails()) {
                 return $this->response(false, $this->validationHandle($validator->messages()));
             }
+            
+            $driver = Driver::where('id', $data['driver_id'])->first();
+            $car = Car::where('id', $data['car_id'])->first();
+            if(isset($driver) && isset($car)) {
+                // إنشاء أو تحديث حالة الطوارئ
+                EmergencyFlag::updateOrCreate(
+                    ['driver_id' => $data['driver_id'], 'active' => true],
+                    [
+                        'car_id'  => $data['car_id'],
+                        'message' => $message,
+                    ]
+                );
+                Cache::put('emergency_status', [
+                    'active' => true,
+                    'message' => $message,
+                ], now()->addMinutes(5));
 
-            // إنشاء أو تحديث حالة الطوارئ
-            EmergencyFlag::updateOrCreate(
-                ['id' => 1],
-                [
-                    'active'  => true,
-                    'message' => '🚨 تنبيه طارئ من السائق #' . $data['driver_id'] . ' في السيارة #' . $data['car_id'],
-                ]
-            );
-            Cache::put('emergency_status', [
-                'active' => true,
-                'message' => $message,
-            ], now()->addMinutes(5));
-
-            return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
+                return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
+            }
         } catch (Exception $e) {
             return $this->response(false, 'system error');
         }
