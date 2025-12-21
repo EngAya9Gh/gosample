@@ -236,11 +236,11 @@
                     {
                         data: 'end_date',
                         name: 'end_date'
-                    },
+                    },/*
                     {
                         data: 'from_location_name',
                         name: 'from_location.name'
-                    },
+                    },*/
                     {
                         data: 'to_location_name',
                         name: 'to_location.name'

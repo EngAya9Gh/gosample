@@ -76,9 +76,9 @@ class ScheduledTaskController extends Controller
                 return $row->status ? ScheduledTask::STATUS_SELECT[$row->status] : '';
             });
 
-            $table->addColumn('from_location_name', function ($row) {
-                return $row->from_location ? $row->from_location->name : '';
-            });
+            // $table->addColumn('from_location_name', function ($row) {
+            //     return $row->from_location ? $row->from_location->name : '';
+            // });
 
             $table->addColumn('to_location_name', function ($row) {
                 return $row->to_location ? $row->to_location->name : '';
