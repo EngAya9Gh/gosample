@@ -40,7 +40,7 @@ class TasksController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
 
         if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'])) {
-            $sortColumn = 'collection_date'; // Default to 'created_at' if an invalid column is provided
+            $sortColumn = 'created_at'; // Default to 'created_at' if an invalid column is provided
         }
 
         if (!in_array($sortOrder, ['asc', 'desc'])) {
