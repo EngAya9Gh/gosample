@@ -112,9 +112,9 @@
                         <th>
                             {{ trans('cruds.scheduledTask.fields.end_date') }}
                         </th>
-                        <th>
+                        <!-- <th>
                             {{ trans('cruds.scheduledTask.fields.from_location') }}
-                        </th>
+                        </th> -->
                         <th>
                             {{ trans('cruds.scheduledTask.fields.to_location') }}
                         </th>
