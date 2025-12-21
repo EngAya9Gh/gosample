@@ -2013,13 +2013,13 @@ class TasksController extends Controller
         $toPoint   = $toLocation->lat . ',' . $toLocation->lng;
 
         $time1 = $this->getTravelTime($startPoint, $fromPoint);
-        // \Log::info($time1);
+        \Log::info($time1);
 
         $time2 = $this->getTravelTime($fromPoint, $toPoint);
-        // \Log::info($time2);
+        \Log::info($time2);
 
         $totalSeconds = $time1 + $time2;
-        // \Log::info($totalSeconds);
+        \Log::info($totalSeconds);
 
         $waitingTime = 0;
         if ($lastTask && $lastTask->eta) {
