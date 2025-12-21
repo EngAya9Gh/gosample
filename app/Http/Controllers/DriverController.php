@@ -896,20 +896,23 @@ class DriverController extends Controller
             $driver = Driver::where('id', $data['driver_id'])->first();
             $car = Car::where('id', $data['car_id'])->first();
             if(isset($driver) && isset($car)) {
-                $message = '🚨 تنبيه طارئ من السائق #' . $driver->name . ' في السيارة #' . $car->plate_number;
-                EmergencyFlag::updateOrCreate(
-                    ['driver_id' => $data['driver_id'], 'active' => true],
-                    [
-                        'car_id'  => $data['car_id'],
-                        'message' => $message,
-                    ]
-                );
-                Cache::put('emergency_status', [
-                    'active' => true,
-                    'message' => $message,
-                ], now()->addMinutes(5));
+                $message = '🚨 تنبيه طارئ من السائق ' . $driver->name .
+                ' في السيارة ' . $car->plate_number;
 
-                return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
+                $exists = EmergencyFlag::where('active', 1)
+                    ->where('message', $message)
+                    ->exists();
+
+                if ($exists) {
+                    return $this->response(true, '🚨 التنبيه مُسجل مسبقاً');
+                }
+
+                EmergencyFlag::create([
+                    'active'  => 1,
+                    'message' => $message,
+                ]);
+
+                return $this->response(true, '🚨 تم إرسال التنبيه الطارئ بنجاح');
             }
         } catch (Exception $e) {
             \Log::info("error in create emergency request");
