@@ -1991,8 +1991,9 @@ class TasksController extends Controller
         if (!$fromLocation || !$toLocation) {
             return 0;
         }
-
-        $lastTask = $driver->driverActiveTasks()->orderBy('id', 'desc')->first();
+        
+        $lastTask = $driver->driverActiveTasks()
+        ->whereDate('pickup_time', today())->orderBy('id', 'desc')->first();
         // \Log::info($lastTask);
         if ($lastTask) {
             $lastToLocation = Location::find($lastTask->to_location);
