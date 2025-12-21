@@ -912,6 +912,8 @@ class DriverController extends Controller
                 return $this->response(true, 'تم تفعيل تنبيه الطوارئ بنجاح');
             }
         } catch (Exception $e) {
+            \Log::info("error in create emergency request");
+            \Log::info($e->getMessage());
             return $this->response(false, 'system error');
         }
     }
