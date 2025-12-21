@@ -203,8 +203,9 @@ class ScheduledTaskController extends Controller
     public function store(StoreScheduledTaskRequest $request)
     {
         $data = $request->except(['from_location_id', 'days', 'visit_hours']);
+        $driver = Driver::find($request->driver_id);
 
-        $fromLocations = $request->input('from_location_id', []);
+        $data['name'] = optional($driver)->name . ' - ' . \Carbon\Carbon::parse($request->start_date)->format('Y-m-d');        $fromLocations = $request->input('from_location_id', []);
         $selectedDays  = $request->input('days', []);
         $selectedHours = $request->input('visit_hours', []);
 

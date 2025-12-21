@@ -17,10 +17,10 @@ class StoreScheduledTaskRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => [
-                'string',
-                'required',
-            ],
+            // 'name' => [
+            //     'string',
+            //     'required',
+            // ],
             'start_date' => [
                 'required',
                 // 'date_format:' . config('panel.date_format'),

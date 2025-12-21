@@ -22,11 +22,19 @@
 
             {{-- NAME + STATUS --}}
             <div class="row">
-                <div class="col-6">
+                <!-- <div class="col-6">
                     <div class="form-group">
                         <label class="required">Name</label>
                         <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                     </div>
+                </div> -->
+                <div class="col-6">
+                    <label class="required">Driver</label>
+                    <select name="driver_id" class="form-control select2" required>
+                        @foreach ($drivers as $id => $entry)
+                            <option value="{{ $id }}">{{ $entry }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-6">
                     <div class="form-group">
@@ -121,12 +129,12 @@
                 </div>
 
                 <div class="col-6">
-                    <label class="required">Driver</label>
+                    <!-- <label class="required">Driver</label>
                     <select name="driver_id" class="form-control select2" required>
                         @foreach ($drivers as $id => $entry)
                             <option value="{{ $id }}">{{ $entry }}</option>
                         @endforeach
-                    </select>
+                    </select> -->
                 </div>
             </div>
 
