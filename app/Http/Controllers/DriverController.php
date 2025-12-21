@@ -896,7 +896,7 @@ class DriverController extends Controller
             $driver = Driver::where('id', $data['driver_id'])->first();
             $car = Car::where('id', $data['car_id'])->first();
             if(isset($driver) && isset($car)) {
-                // إنشاء أو تحديث حالة الطوارئ
+                $message = '🚨 تنبيه طارئ من السائق #' . $driver->name . ' في السيارة #' . $car->plate_number;
                 EmergencyFlag::updateOrCreate(
                     ['driver_id' => $data['driver_id'], 'active' => true],
                     [
