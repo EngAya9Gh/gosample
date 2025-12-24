@@ -63,7 +63,7 @@
                                 <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
                                 <select class="form-control" name="status" id="statusInput">
                                     <option value="1">Enable</option>
-                                    <option value="0">Disable</option>
+                                    <option value="2">Disable</option>
                                 </select>
                             </div>
 
