@@ -982,7 +982,7 @@ class DriverController extends Controller
                 }
 
                 // 2️⃣ إعادة حساب ETA
-                $this->recalculateDriverTasksETA($driverId);
+                // $this->recalculateDriverTasksETA($driverId);
             });
 
             return response()->json(['success' => true]);
