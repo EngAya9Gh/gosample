@@ -982,7 +982,7 @@ class DriverController extends Controller
                 }
 
                 // 2️⃣ إعادة حساب ETA
-                // $this->recalculateDriverTasksETA($driverId);
+                $this->recalculateDriverTasksETA($driverId);
             });
 
             return response()->json(['success' => true]);
@@ -1021,7 +1021,54 @@ class DriverController extends Controller
         }
     }
 
+    public function calcETA($driver, $fromLocationId, $toLocationId)
+    {
+        $fromLocation = Location::find($fromLocationId);
+        $toLocation   = Location::find($toLocationId);
 
+        if (!$fromLocation || !$toLocation) {
+            return 0;
+        }
+        
+        $lastTask = $driver->driverActiveTasks()
+        ->whereDate('pickup_time', today())->orderBy('poririty', 'desc')->first();
+        // \Log::info($lastTask);
+        if ($lastTask) {
+            $lastToLocation = Location::find($lastTask->to_location);
+            $startPoint = $lastToLocation 
+                ? $lastToLocation->lat . ',' . $lastToLocation->lng 
+                : ($fromLocation->lat . ',' . $fromLocation->lng);
+        } else {
+            $car = $driver->car;
+            $carTracking = $car?->carTracking()->first();
+            if ($carTracking) {
+                $startPoint = $carTracking->lat . ',' . $carTracking->lng;
+            } else {
+                $startPoint = $fromLocation->lat . ',' . $fromLocation->lng;
+            }
+        }
 
+        $fromPoint = $fromLocation->lat . ',' . $fromLocation->lng;
+        $toPoint   = $toLocation->lat . ',' . $toLocation->lng;
+
+        $time1 = $this->getTravelTime($startPoint, $fromPoint);
+        \Log::info($time1);
+
+        $time2 = $this->getTravelTime($fromPoint, $toPoint);
+        \Log::info($time2);
+
+        $totalSeconds = $time1 + $time2;
+        \Log::info($totalSeconds);
+
+        $waitingTime = 0;
+        if ($lastTask && $lastTask->eta) {
+            $waitingTime = intval($lastTask->eta) * 60;
+        }
+
+        $totalSeconds += $waitingTime;
+        // \Log::info($totalSeconds);
+
+        return (int) ceil($totalSeconds / 60);
+    }
 
 }
