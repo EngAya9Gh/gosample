@@ -333,7 +333,8 @@ class DriverController extends Controller
                     ->where('driver_id',$request->driver_id)
                     ->where('tasks.status',$request->status)
                     ->where('tasks.created_at','>=',$last_week)
-                    ->orderBy('pickup_time','asc')->get();
+                    // ->orderBy('pickup_time','asc')->get();
+                    ->orderBy('poririty','asc')->get();
 
                 foreach ($tasks as $task) {
     			$shipment = null;
