@@ -1904,7 +1904,7 @@ class TasksController extends Controller
         }
         
         $lastTask = $driver->driverActiveTasks()
-        ->whereDate('pickup_time', today())->orderBy('priority', 'desc')->first();
+        ->whereDate('pickup_time', today())->orderBy('poririty', 'desc')->first();
         // \Log::info($lastTask);
         if ($lastTask) {
             $lastToLocation = Location::find($lastTask->to_location);
