@@ -977,7 +977,7 @@ class DriverController extends Controller
                 // 1️⃣ تحديث الأولويات
                 foreach ($order as $item) {
                     Task::where('id', $item['id'])
-                        ->update(['priority' => $item['priority']]);
+                        ->update(['poririty' => $item['priority']]);
                 }
 
                 // 2️⃣ إعادة حساب ETA
@@ -993,7 +993,7 @@ class DriverController extends Controller
 
         $tasks = Task::where('driver_id', $driverId)
             ->whereDate('pickup_time', today())
-            ->orderBy('priority')
+            ->orderBy('poririty')
             ->get();
 
         $previousTask = null;
