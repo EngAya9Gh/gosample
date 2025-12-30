@@ -200,12 +200,14 @@ public function handle()
 
         if ($response->status() == 200) {
             $data = $response->json();
-            $token = $data["data"]["token"];
+            if(isset($data["data"]["token"])) {
+                $token = $data["data"]["token"];
 
-            $tokenModel = new Afaqi();
-            $tokenModel->token = $token;
-            $tokenModel->save();
-            return  $token ;
+                $tokenModel = new Afaqi();
+                $tokenModel->token = $token;
+                $tokenModel->save();
+                return  $token ;
+            }
         }
     }
 }

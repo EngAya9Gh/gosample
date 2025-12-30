@@ -970,15 +970,56 @@ class DriverController extends Controller
 
     public function reorderTasks(Request $request, $driverId)
     {
-        $order = $request->input('order', []);
+        DB::transaction(function () use ($request, $driverId) {
 
-        foreach ($order as $item) {
-            \App\Models\Task::where('id', $item['id'])
-                ->update(['poririty' => $item['priority']]);
-        }
+                $order = $request->input('order', []);
 
-        return response()->json(['success' => true]);
+                // 1️⃣ تحديث الأولويات
+                foreach ($order as $item) {
+                    Task::where('id', $item['id'])
+                        ->update(['priority' => $item['priority']]);
+                }
+
+                // 2️⃣ إعادة حساب ETA
+                $this->recalculateDriverTasksETA($driverId);
+            });
+
+            return response()->json(['success' => true]);
     }
+
+    protected function recalculateDriverTasksETA($driverId)
+    {
+        $driver = Driver::with(['car.carTracking'])->findOrFail($driverId);
+
+        $tasks = Task::where('driver_id', $driverId)
+            ->whereDate('pickup_time', today())
+            ->orderBy('priority')
+            ->get();
+
+        $previousTask = null;
+
+        foreach ($tasks as $task) {
+
+            if ($previousTask) {
+                // من آخر موقع للتاسك السابق
+                $fromLocationId = $previousTask->to_location;
+            } else {
+                // أول تاسك: من موقع السيارة
+                $fromLocationId = $task->from_location;
+            }
+
+            $eta = $this->calcETA(
+                $driver,
+                $fromLocationId,
+                $task->to_location
+            );
+
+            $task->update(['eta' => $eta]);
+
+            $previousTask = $task;
+        }
+    }
+
 
 
 
