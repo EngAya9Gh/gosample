@@ -304,11 +304,11 @@ class TasksController extends Controller
             // Assume user inputs are in local (browser) time
 
             $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')->utc()
                 : null;
 
             $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')
+                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')->utc()
                 : null;
 
 
