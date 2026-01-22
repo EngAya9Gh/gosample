@@ -165,7 +165,7 @@ class CarDashboardController extends Controller
         $payload = [
             "data" => [
                 "username" => "mtc-adm",
-                "password" => "Mtc-adm@12345",
+                "password" => "Mtc-adm@123456",
                 "lang" => "en",
                 "expire" => 24,
             ],
