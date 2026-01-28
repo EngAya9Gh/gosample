@@ -40,14 +40,14 @@ class CarDashboardController extends Controller
 
         if(isset($loggedUser->client_id)) {
             $imeis = DB::table('cars')
-                ->whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
-                    $query->where('client_id', $loggedUser->client_id);
-                })
-                ->where('afaqi', 1)
-                ->where('status', 1)
-                ->whereNull('deleted_at')
-                ->whereNotNull('imei')
-                ->pluck('imei')
+                ->join('drivers', 'drivers.id', '=', 'cars.driver_id')
+                ->join('client_drivers', 'client_drivers.driver_id', '=', 'drivers.id')
+                ->where('client_drivers.client_id', $loggedUser->client_id)
+                ->where('cars.afaqi', 1)
+                ->where('cars.status', 1)
+                ->whereNull('cars.deleted_at')
+                ->whereNotNull('cars.imei')
+                ->pluck('cars.imei')
                 ->toArray();
         } else {
             $imeis = DB::table('cars')
