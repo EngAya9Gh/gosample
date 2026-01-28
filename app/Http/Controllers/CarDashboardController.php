@@ -41,8 +41,8 @@ class CarDashboardController extends Controller
         if(isset($loggedUser->client_id)) {
             $imeis = DB::table('cars')
                 ->join('drivers', 'drivers.id', '=', 'cars.driver_id')
-                ->join('client_drivers', 'client_drivers.driver_id', '=', 'drivers.id')
-                ->where('client_drivers.client_id', $loggedUser->client_id)
+                ->join('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
+                ->where('client_driver.client_id', $loggedUser->client_id)
                 ->where('cars.afaqi', 1)
                 ->where('cars.status', 1)
                 ->whereNull('cars.deleted_at')
