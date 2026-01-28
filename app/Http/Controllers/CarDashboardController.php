@@ -32,13 +32,32 @@ class CarDashboardController extends Controller
     {
         abort_if(Gate::denies('car-dashboard'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $imeis = DB::table('cars')
-            ->where('afaqi', 1)
-            ->where('status', 1)
-            ->whereNull('deleted_at')
-            ->whereNotNull('imei')
-            ->pluck('imei')
-            ->toArray();
+        $loggedUser = auth()->user();
+
+        // 'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
+        //     $query->where('client_id', $loggedUser->client_id);
+        // })->count(),
+
+        if(isset($loggedUser->client_id)) {
+            $imeis = DB::table('cars')
+                ->whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
+                    $query->where('client_id', $loggedUser->client_id);
+                })
+                ->where('afaqi', 1)
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->whereNotNull('imei')
+                ->pluck('imei')
+                ->toArray();
+        } else {
+            $imeis = DB::table('cars')
+                ->where('afaqi', 1)
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->whereNotNull('imei')
+                ->pluck('imei')
+                ->toArray();
+        }
         // \Log::info($imeis);
         $cars = [];
 
