@@ -131,7 +131,7 @@ class DriversController extends Controller
         abort_if(Gate::denies('driver_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
-        $driver->load('driverCarLinkHistories', 'driverTasks', 'driverSwaprequests', 'driverMoneyTransfers');
+        $driver->load('driverCarLinkHistories', 'driverTasks', 'driverMoneyTransfers');
 
         return view('admin.drivers.show', compact('driver'));
     }
