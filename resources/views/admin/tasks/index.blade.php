@@ -308,8 +308,8 @@
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                         d.keyword = $('#keyword').val();
-                        // d.sort_by = $('#sort_by option:selected').val();
-                        // d.sort_order = $('#sort_order option:selected').val();
+                        d.sort_by = $('#sort_by option:selected').val();
+                        d.sort_order = $('#sort_order option:selected').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
