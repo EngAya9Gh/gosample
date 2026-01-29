@@ -2194,7 +2194,10 @@ class SampleController extends Controller
         $task->save();
 
         $driver = Driver::find($task->driver_id);
-        $driver->sendNotification( 'Task acceptence', 'Task accepted successfully',[$driver->fcm_token],$task,'no_action');
+
+        if(isset($driver->fcm_token)) {
+            $driver->sendNotification( 'Task acceptence', 'Task accepted successfully',[$driver->fcm_token],$task,'no_action');
+        }
 
         return $this->response(true,'success');
     }
