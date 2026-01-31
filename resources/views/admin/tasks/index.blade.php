@@ -196,7 +196,7 @@
                             TO LOCATION
                         </th>
                         <th>
-                            ETA (in Minutes)
+                            EAT (in Minutes)
                         </th>
                         <th>
                             COLLECTION DATE
