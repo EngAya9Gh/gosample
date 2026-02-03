@@ -12,24 +12,38 @@
         align-items: center;
         justify-content: space-between;
         transition: background 0.2s;
+        cursor: move;
     }
 
     .sortable-item:hover {
         background-color: #f8f9fa;
     }
 
-    .task-controls button {
-        border: none;
-        background: transparent;
-        color: #007bff;
-        font-size: 18px;
-        cursor: pointer;
-        padding: 0 4px;
+    .sortable-item.sortable-ghost {
+        opacity: 0.4;
+        background-color: #e9ecef;
     }
 
-    .task-controls button:disabled {
-        color: #aaa;
-        cursor: not-allowed;
+    .sortable-item.sortable-drag {
+        opacity: 0.8;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .drag-handle {
+        cursor: grab;
+        color: #6c757d;
+        font-size: 20px;
+        margin-right: 10px;
+        user-select: none;
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .drag-handle::before {
+        content: "☰";
+        display: inline-block;
     }
 </style>
 
@@ -43,18 +57,17 @@
         <ul id="driverTasksList" class="list-group">
             @foreach($tasks as $task)
                 <li class="list-group-item sortable-item" data-id="{{ $task->id }}">
-                    <div>
-                        <strong>ID:</strong> {{ $task->id }}<br>
-                        <strong>From:</strong> {{ $task->from_location_name ?? '-' }}<br>
-                        <strong>To:</strong> {{ $task->to_location_name ?? '-' }}<br>
-                        ETA: {{ $task->eta ?? '-' }}
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <span class="drag-handle"></span>
+                        <div>
+                            <strong>ID:</strong> {{ $task->id }}<br>
+                            <strong>From:</strong> {{ $task->from_location_name ?? '-' }}<br>
+                            <strong>To:</strong> {{ $task->to_location_name ?? '-' }}<br>
+                            ETA: {{ $task->eta ?? '-' }}
+                        </div>
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="badge badge-info mr-3">#{{ $task->poririty ?? '-' }}</span>
-                        <div class="task-controls">
-                            <button class="move-up" title="Move Up">↑</button>
-                            <button class="move-down" title="Move Down">↓</button>
-                        </div>
                     </div>
                 </li>
             @endforeach
@@ -70,34 +83,22 @@
 @section('scripts')
 @parent
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
 $(function() {
     const $list = $('#driverTasksList');
     const $saveBtn = $('#saveTaskOrder');
 
-    function refreshButtons() {
-        // تعطيل السهم للأول والأخير
-        $list.find('.move-up, .move-down').prop('disabled', false);
-        $list.find('li:first .move-up').prop('disabled', true);
-        $list.find('li:last .move-down').prop('disabled', true);
-    }
-
-    refreshButtons();
-
-    // تحريك للأعلى
-    $list.on('click', '.move-up', function() {
-        const $li = $(this).closest('li');
-        $li.prev().before($li);
-        $saveBtn.prop('disabled', false);
-        refreshButtons();
-    });
-
-    // تحريك للأسفل
-    $list.on('click', '.move-down', function() {
-        const $li = $(this).closest('li');
-        $li.next().after($li);
-        $saveBtn.prop('disabled', false);
-        refreshButtons();
+    // Initialize SortableJS
+    const sortable = new Sortable($list[0], {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onEnd: function(evt) {
+            // Enable save button when order changes
+            $saveBtn.prop('disabled', false);
+        }
     });
 
     // حفظ الترتيب
