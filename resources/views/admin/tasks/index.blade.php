@@ -34,8 +34,8 @@
                                     <option value="">Select Status</option>
                                     <option value="NEW">NEW</option>
                                     <option value="COLLECTED">COLLECTED</option>
-                                    <option value="IN_FREEZER">IN_FREEZER</option>
-                                    <option value="OUT_FREEZER">OUT_FREEZER</option>
+                                    <option value="IN_FREEZER">IN CONTAINER</option>
+                                    <option value="OUT_FREEZER">OUT CONTAINER</option>
                                     <option value="CLOSED">CLOSED</option>
                                     <option value="NO_SAMPLES">NO_SAMPLES</option>
                                 </select>
@@ -202,7 +202,10 @@
                             COLLECTION DATE
                         </th>
                         <th>
-                            FREEZER DATE
+                            CONTAINER DATE
+                        </th>
+                        <th>
+                            CONTAINER OUT DATE
                         </th>
                         <th>
                             CLOSE DATE
@@ -356,6 +359,10 @@
                     {
                         data: 'freezer_date',
                         name: 'freezer_date'
+                    },
+                    {
+                        data: 'freezer_out_date',
+                        name: 'freezer_out_date'
                     },
                     {
                         data: 'close_date',
