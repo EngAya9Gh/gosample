@@ -182,6 +182,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');
     Route::post('schedule/quick', 'ScheduledTaskController@quickAction')->name('scheduled-tasks.quickAction');
     Route::get('schedule/delete/{scheduledTask}/parents', 'ScheduledTaskController@deleteBasedOnParent')->name('scheduled-tasks.deleteAllParent');
+    Route::get('scheduled-tasks/search/drivers', 'ScheduledTaskController@searchDrivers')->name('scheduled-tasks.searchDrivers');
+    Route::get('scheduled-tasks/search/locations', 'ScheduledTaskController@searchLocations')->name('scheduled-tasks.searchLocations');
     // Money Transfer
     Route::delete('money-transfers/destroy', 'MoneyTransferController@massDestroy')->name('money-transfers.massDestroy');
     Route::resource('money-transfers', 'MoneyTransferController');

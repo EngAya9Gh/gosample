@@ -553,4 +553,77 @@ class ScheduledTaskController extends Controller
         return $schedule;
     }
 
+    public function searchDrivers(Request $request)
+    {
+        $term = $request->get('q', '');
+        $logged_id_user = auth()->user();
+
+        $query = Driver::query();
+
+        // Filter by client if user is not admin
+        if ($logged_id_user->client_id != null) {
+            $query->leftJoin('client_driver', 'client_driver.driver_id', 'drivers.id')
+                  ->where('client_driver.client_id', $logged_id_user->client_id)
+                  ->select('drivers.*')
+                  ->distinct();
+        }
+
+        if (!empty($term)) {
+            $query->where(function($q) use ($term) {
+                $q->where('drivers.name', 'like', '%' . $term . '%')
+                  ->orWhere('drivers.mobile', 'like', '%' . $term . '%')
+                  ->orWhere('drivers.username', 'like', '%' . $term . '%');
+            });
+        }
+
+        $drivers = $query->limit(50)->get();
+
+        $results = [];
+        foreach ($drivers as $driver) {
+            $results[] = [
+                'id' => $driver->id,
+                'text' => $driver->name . ($driver->mobile ? ' (' . $driver->mobile . ')' : '')
+            ];
+        }
+
+        return response()->json(['results' => $results]);
+    }
+
+    public function searchLocations(Request $request)
+    {
+        $term = $request->get('q', '');
+        $logged_id_user = auth()->user();
+
+        $query = Location::select('locations.*');
+
+        if ($logged_id_user->client_id != null) {
+            $query->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+                  ->where('client_location.client_id', $logged_id_user->client_id)
+                  ->distinct();
+        }
+
+        if (!empty($term)) {
+            $query->where(function($q) use ($term) {
+                $q->where('locations.name', 'like', '%' . $term . '%')
+                  ->orWhere('locations.arabic_name', 'like', '%' . $term . '%');
+            });
+        }
+
+        $locations = $query->limit(50)->get();
+
+        $results = [];
+        foreach ($locations as $location) {
+            $displayText = $location->name;
+            if ($location->arabic_name) {
+                $displayText .= ' (' . $location->arabic_name . ')';
+            }
+            $results[] = [
+                'id' => $location->id,
+                'text' => $displayText
+            ];
+        }
+
+        return response()->json(['results' => $results]);
+    }
+
 }

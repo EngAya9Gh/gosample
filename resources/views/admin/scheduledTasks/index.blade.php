@@ -34,9 +34,14 @@
                         <label for="driver_id">{{ trans('translation.task.fields.driver') }}</label>
                         <select class="form-control select2" name="driver_id" id="driver_id">
                             <option value="">Select Driver</option>
-                            @foreach ($drivers as $id => $entry)
-                                <option value="{{ $entry->id }}">{{ $entry->name }}</option>
-                            @endforeach
+                            @if(request('driver_id'))
+                                @php
+                                    $selectedDriver = \App\Models\Driver::find(request('driver_id'));
+                                @endphp
+                                @if($selectedDriver)
+                                    <option value="{{ $selectedDriver->id }}" selected>{{ $selectedDriver->name }}</option>
+                                @endif
+                            @endif
                         </select>
                     </div>
 
@@ -44,18 +49,28 @@
                         <label for="from_location">{{ trans('translation.task.fields.from_location') }}</label>
                         <select class="form-control select2" name="from_location" id="from_location">
                             <option value="">Select Location</option>
-                            @foreach ($locations as $id => $entry)
-                                <option value="{{ $entry->id }}">{{ $entry->name }}</option>
-                            @endforeach
+                            @if(request('from_location'))
+                                @php
+                                    $selectedLocation = \App\Models\Location::find(request('from_location'));
+                                @endphp
+                                @if($selectedLocation)
+                                    <option value="{{ $selectedLocation->id }}" selected>{{ $selectedLocation->name }}</option>
+                                @endif
+                            @endif
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label for="to_location">{{ trans('translation.task.fields.to_location') }}</label>
                         <select class="form-control select2" name="to_location" id="to_location">
                             <option value="">Select Location</option>
-                            @foreach ($locations as $id => $entry)
-                                <option value="{{ $entry->id }}">{{ $entry->name }}</option>
-                            @endforeach
+                            @if(request('to_location'))
+                                @php
+                                    $selectedLocation = \App\Models\Location::find(request('to_location'));
+                                @endphp
+                                @if($selectedLocation)
+                                    <option value="{{ $selectedLocation->id }}" selected>{{ $selectedLocation->name }}</option>
+                                @endif
+                            @endif
                         </select>
                     </div>
 
@@ -149,6 +164,78 @@
     @parent
     <script>
         $(function() {
+            // Initialize Select2 with AJAX for driver_id
+            $('#driver_id').select2({
+                placeholder: 'Select Driver',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('admin.scheduled-tasks.searchDrivers') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+            // Initialize Select2 with AJAX for from_location
+            $('#from_location').select2({
+                placeholder: 'Select Location',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('admin.scheduled-tasks.searchLocations') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+            // Initialize Select2 with AJAX for to_location
+            $('#to_location').select2({
+                placeholder: 'Select Location',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('admin.scheduled-tasks.searchLocations') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
             @can('scheduled_task_delete')
                 let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
@@ -200,10 +287,10 @@
                 ajax: {
                     url: "{{ route('admin.scheduled-tasks.index') }}",
                     data: function(d) {
-                        d.client_id = $("#client_id option:selected").val();
-                        d.to_location = $("#to_location option:selected").val();
-                        d.driver_id = $("#driver_id option:selected").val();
-                        d.from_location = $("#from_location option:selected").val();
+                        d.client_id = $("#client_id").val();
+                        d.to_location = $("#to_location").val();
+                        d.driver_id = $("#driver_id").val();
+                        d.from_location = $("#from_location").val();
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                     }
