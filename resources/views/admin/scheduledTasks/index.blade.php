@@ -73,7 +73,7 @@
                             @endif
                         </select>
                     </div>
-
+                    @if(count($clients) > 1)
                     <div class="col-md-3">
                         <label for="client_id">{{ trans('translation.task.fields.billing_client') }}</label>
                         <select class="form-control select2" name="client_id" id="client_id">
@@ -83,7 +83,17 @@
                             @endforeach
                         </select>
                     </div>
-
+                    @else
+                    <div class="col-md-3" style="display: none;">
+                        <label for="client_id">{{ trans('translation.task.fields.billing_client') }}</label>
+                        <select class="form-control select2" name="client_id" id="client_id">
+                            <option value="">Select Client</option>
+                            @foreach ($clients as $id => $entry)
+                                <option selected value="{{ $entry->id }}">{{ $entry->english_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div class="col-md-12 text-right mt-2">
                         <button type="button" id="search" name="search"
                             class="btn btn-primary">{{ trans('global.search') }}</button>
