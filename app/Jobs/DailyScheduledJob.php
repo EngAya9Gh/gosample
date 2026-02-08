@@ -2,69 +2,105 @@
 
 namespace App\Jobs;
 
+use App\Models\ScheduledTask;
+use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
-
-use App\Models\ScheduledTask;
-use App\Models\Task;
-use Carbon\Carbon;
-
-
-class DailyScheduledJob implements ShouldQueue
+class CheckScheduledTasks implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-       
-    }
-
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
-        // \Log::info("DailyScheduledJob");
-
-        // Get all active scheduled tasks
-    $scheduledTasks = ScheduledTask::where('status', 'enabled')->get();
-
-    foreach ($scheduledTasks as $scheduledTask) {
-        // \Log::info($scheduledTask);
-        // Check if the scheduled task is due today
-        if ($scheduledTask->isDue()) {
-            // \Log::info("new genereated tasks");
-            // Create a new task based on the scheduled task's attributes
-            $newTask = new Task([
-                'status' => Task::STATUS_SELECT['NEW'], // Set the status to 'NEW' or any other appropriate value
-                // 'start_date' => Carbon::now(), // Set the start date to the current date and time
-                // Map other fields from ScheduledTask to Task here
-                'driver_id' => $scheduledTask->driver_id,
-                'from_location' => $scheduledTask->from_location_id,
-                'to_location' => $scheduledTask->to_location_id,
-                'billing_client' => $scheduledTask->client_id,
-                'task_type' => $scheduledTask->task_type,
-		'pickup_time'=>$scheduledTask->start_date.' '.$scheduledTask->selected_hour,
-                // Add more fields as needed
-            ]);
-            $newTask->save(); // Save the new task to the database
-        } else{
-            // \Log::info("already genereated");
+        
+        if (! Cache::add('check_scheduled_tasks_lock', true, 55)) {
+            return;
         }
-    }
 
+        try {
 
+            $now = now();
+            
+            $scheduledTasks = ScheduledTask::where('status', 'enabled')
+                ->where('execution_status', 'pending')
+                ->whereNull('executed_at')
+                ->where('day', $now->format('l'))
+                ->get();
+
+            foreach ($scheduledTasks as $scheduledTask) {
+
+                $scheduledAt = Carbon::parse(
+                    $now->format('Y-m-d') . ' ' . $scheduledTask->selected_hour
+                );
+
+                $scheduledTask->update([
+                    'last_checked_at' => now(),
+                ]);
+                
+                if ($scheduledAt->diffInMinutes($now, false) < -1) {
+                    continue;
+                }
+
+                if ($scheduledAt->diffInMinutes($now, false) > 2) {
+                    $scheduledTask->update([
+                        'execution_status' => 'skipped_late',
+                    ]);
+                    continue;
+                }
+                
+                $existingTask = Task::where('from_location', $scheduledTask->from_location_id)
+                    ->where('to_location', $scheduledTask->to_location_id)
+                    ->where('driver_id', $scheduledTask->driver_id)
+                    ->where('billing_client', $scheduledTask->client_id)
+                    ->where('pickup_time', $scheduledAt)
+                    ->first();
+
+                if ($existingTask) {
+                    $scheduledTask->update([
+                        'executed_at'      => now(),
+                        'execution_status' => 'executed',
+                    ]);
+                    continue;
+                }
+
+                DB::transaction(function () use ($scheduledTask, $scheduledAt) {
+
+                    Task::create([
+                        'from_location'  => $scheduledTask->from_location_id,
+                        'to_location'    => $scheduledTask->to_location_id,
+                        'billing_client' => $scheduledTask->client_id,
+                        'driver_id'      => $scheduledTask->driver_id,
+                        'task_type'      => $scheduledTask->task_type,
+                        'pickup_time'    => $scheduledAt,
+                    ]);
+
+                    $scheduledTask->update([
+                        'executed_at'      => now(),
+                        'execution_status' => 'executed',
+                    ]);
+                });
+            }
+
+        } catch (Throwable $e) {
+
+            ScheduledTask::where('execution_status', 'pending')
+                ->whereNull('executed_at')
+                ->update([
+                    'execution_status' => 'skipped_error',
+                ]);
+
+            throw $e;
+
+        } finally {
+            Cache::forget('check_scheduled_tasks_lock');
+        }
     }
 }

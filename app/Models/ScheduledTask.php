@@ -48,11 +48,20 @@ class ScheduledTask extends Model
         'client_id',
         'task_type',
         'added_by',
+        'status',
+        'execution_status',
+        'executed_at',
+        'last_checked_at',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
 
+    protected $casts = [
+        'executed_at'     => 'datetime',
+        'last_checked_at' => 'datetime',
+    ];
+    
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
