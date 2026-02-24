@@ -89,7 +89,7 @@ class BarcodesController extends Controller
 
     public function destroy(Barcode $barcode)
     {
-        abort_if(Gate::denies('barcode_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $barcode->delete();
 
@@ -98,6 +98,7 @@ class BarcodesController extends Controller
 
     public function massDestroy(MassDestroyBarcodeRequest $request)
     {
+        $this->authorize('can-delete');
         Barcode::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

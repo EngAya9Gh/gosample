@@ -73,7 +73,7 @@ class CarLinkHistoryController extends Controller
 
     public function destroy(CarLinkHistory $carLinkHistory)
     {
-        abort_if(Gate::denies('car_link_history_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $carLinkHistory->delete();
 
@@ -82,6 +82,7 @@ class CarLinkHistoryController extends Controller
 
     public function massDestroy(MassDestroyCarLinkHistoryRequest $request)
     {
+        $this->authorize('can-delete');
         CarLinkHistory::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

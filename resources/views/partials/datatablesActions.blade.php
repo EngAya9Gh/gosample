@@ -16,7 +16,7 @@
                         {{ trans('global.edit') }}</a>
                 </li>
             @endcan
-            @can($deleteGate)
+            @can('can-delete')
                 <li>
                     <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
                         onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">

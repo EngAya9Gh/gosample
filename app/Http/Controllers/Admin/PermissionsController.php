@@ -62,7 +62,7 @@ class PermissionsController extends Controller
 
     public function destroy(Permission $permission)
     {
-        abort_if(Gate::denies('permission_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $permission->delete();
 
@@ -71,6 +71,7 @@ class PermissionsController extends Controller
 
     public function massDestroy(MassDestroyPermissionRequest $request)
     {
+        $this->authorize('can-delete');
         Permission::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

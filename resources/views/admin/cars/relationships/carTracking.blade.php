@@ -83,7 +83,7 @@
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('task_delete')
+            @can('can-delete')
                 let deleteButtonTrans = '{{ trans('translation.datatables.delete') }}'
                 let deleteButton = {
                     text: deleteButtonTrans,

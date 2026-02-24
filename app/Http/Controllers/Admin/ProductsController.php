@@ -84,7 +84,7 @@ class ProductsController extends Controller
 
     public function destroy(Product $product)
     {
-        abort_if(Gate::denies('product_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $product->delete();
 
@@ -93,6 +93,7 @@ class ProductsController extends Controller
 
     public function massDestroy(MassDestroyProductRequest $request)
     {
+        $this->authorize('can-delete');
         Product::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

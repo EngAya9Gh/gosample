@@ -2262,7 +2262,7 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function destroy(Task $task)
     {
-        abort_if(Gate::denies('task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $task->delete();
 
@@ -2271,6 +2271,7 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function massDestroy(MassDestroyTaskRequest $request)
     {
+        $this->authorize('can-delete');
         Task::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

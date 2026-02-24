@@ -74,7 +74,7 @@ class ZonesController extends Controller
 
     public function destroy(Zone $zone)
     {
-        abort_if(Gate::denies('zone_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $zone->delete();
 
@@ -83,6 +83,7 @@ class ZonesController extends Controller
 
     public function massDestroy(MassDestroyZoneRequest $request)
     {
+        $this->authorize('can-delete');
         Zone::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

@@ -20,7 +20,7 @@
                                     <a href="{{ Auth::guard('web')->check() ? route('admin.roles.show', $role->id) : route('admin.client-roles.show', $role->id) }}"
                                         class="btn btn-sm btn-info">{{ trans('global.view') }}</a>
                                 @endcan
-                                @can('role_delete')
+                                @can('can-delete')
                                     <form
                                         action="{{ Auth::guard('web')->check() ? route('admin.roles.destroy', $role->id) : route('admin.client-roles.destroy', $role->id) }}"
                                         method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"

@@ -73,7 +73,7 @@ class ClientDriverController extends Controller
 
     public function destroy(ClientDriver $clientDriver)
     {
-        abort_if(Gate::denies('client_driver_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $clientDriver->delete();
 
@@ -82,6 +82,7 @@ class ClientDriverController extends Controller
 
     public function massDestroy(MassDestroyClientDriverRequest $request)
     {
+        $this->authorize('can-delete');
         ClientDriver::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

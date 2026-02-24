@@ -68,7 +68,7 @@ class AttendancesController extends Controller
 
     public function destroy(Attendance $attendance)
     {
-        abort_if(Gate::denies('attendance_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $attendance->delete();
 
@@ -77,6 +77,7 @@ class AttendancesController extends Controller
 
     public function massDestroy(MassDestroyAttendanceRequest $request)
     {
+        $this->authorize('can-delete');
         Attendance::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

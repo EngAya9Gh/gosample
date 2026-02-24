@@ -59,7 +59,7 @@ class CouponsController extends Controller
 
     public function destroy(Coupon $coupon)
     {
-        abort_if(Gate::denies('coupon_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $coupon->delete();
 
@@ -68,6 +68,7 @@ class CouponsController extends Controller
 
     public function massDestroy(MassDestroyCouponRequest $request)
     {
+        $this->authorize('can-delete');
         Coupon::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

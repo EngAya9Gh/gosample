@@ -191,7 +191,7 @@ class SwaprequestController extends Controller
 
     public function destroy(Swap $swaprequest)
     {
-        abort_if(Gate::denies('swaprequest_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $swaprequest->delete();
 
@@ -200,6 +200,7 @@ class SwaprequestController extends Controller
 
     public function massDestroy(MassDestroySwaprequestRequest $request)
     {
+        $this->authorize('can-delete');
         $swaprequests = Swap::find(request('ids'));
 
         foreach ($swaprequests as $swaprequest) {

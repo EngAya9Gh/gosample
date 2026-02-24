@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('content')
-    @can('scheduled_task_delete')
+    @can('can-delete')
         <div style="margin-bottom: 10px;" class="row">
             <div class="col-lg-12">
                 @if(empty($scheduledTask->parent_id))

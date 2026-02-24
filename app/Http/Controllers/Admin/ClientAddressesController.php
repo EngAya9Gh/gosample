@@ -68,7 +68,7 @@ class ClientAddressesController extends Controller
 
     public function destroy(ClientAddress $clientAddress)
     {
-        abort_if(Gate::denies('client_address_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $clientAddress->delete();
 
@@ -77,6 +77,7 @@ class ClientAddressesController extends Controller
 
     public function massDestroy(MassDestroyClientAddressRequest $request)
     {
+        $this->authorize('can-delete');
         ClientAddress::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

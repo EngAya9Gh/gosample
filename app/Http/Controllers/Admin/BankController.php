@@ -82,7 +82,7 @@ class BankController extends Controller
 
     public function destroy(Bank $bank)
     {
-        abort_if(Gate::denies('bank_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $bank->delete();
 
@@ -91,6 +91,7 @@ class BankController extends Controller
 
     public function massDestroy(MassDestroyBankRequest $request)
     {
+        $this->authorize('can-delete');
         Bank::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

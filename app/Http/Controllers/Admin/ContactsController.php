@@ -59,7 +59,7 @@ class ContactsController extends Controller
 
     public function destroy(Contact $contact)
     {
-        abort_if(Gate::denies('contact_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $contact->delete();
 
@@ -68,6 +68,7 @@ class ContactsController extends Controller
 
     public function massDestroy(MassDestroyContactRequest $request)
     {
+        $this->authorize('can-delete');
         Contact::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

@@ -73,7 +73,7 @@ class CarDriverController extends Controller
 
     public function destroy(CarDriver $carDriver)
     {
-        abort_if(Gate::denies('car_driver_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $carDriver->delete();
 
@@ -82,6 +82,7 @@ class CarDriverController extends Controller
 
     public function massDestroy(MassDestroyCarDriverRequest $request)
     {
+        $this->authorize('can-delete');
         CarDriver::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

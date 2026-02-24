@@ -138,7 +138,7 @@ class DriversController extends Controller
 
     public function destroy($id)
     {
-        abort_if(Gate::denies('driver_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $driver->delete();
@@ -148,6 +148,7 @@ class DriversController extends Controller
 
     public function massDestroy(MassDestroyDriverRequest $request)
     {
+        $this->authorize('can-delete');
         $drivers = Driver::find(request('ids'));
 
         foreach ($drivers as $driver) {

@@ -61,7 +61,7 @@ class CitiesController extends Controller
 
     public function destroy(City $city)
     {
-        abort_if(Gate::denies('city_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $city->delete();
 
@@ -70,6 +70,7 @@ class CitiesController extends Controller
 
     public function massDestroy(MassDestroyCityRequest $request)
     {
+        $this->authorize('can-delete');
         City::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

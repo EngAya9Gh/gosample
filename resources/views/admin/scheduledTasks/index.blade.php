@@ -247,7 +247,7 @@
             });
 
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('scheduled_task_delete')
+            @can('can-delete')
                 let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
                 let deleteButton = {
                     text: deleteButtonTrans,

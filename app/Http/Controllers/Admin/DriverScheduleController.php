@@ -79,7 +79,7 @@ class DriverScheduleController extends Controller
 
     public function destroy(DriverSchedule $driverSchedule)
     {
-        abort_if(Gate::denies('driver_schedule_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $driverSchedule->delete();
 
@@ -88,6 +88,7 @@ class DriverScheduleController extends Controller
 
     public function massDestroy(MassDestroyDriverScheduleRequest $request)
     {
+        $this->authorize('can-delete');
         DriverSchedule::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

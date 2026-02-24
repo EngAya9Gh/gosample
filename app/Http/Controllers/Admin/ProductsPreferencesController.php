@@ -68,7 +68,7 @@ class ProductsPreferencesController extends Controller
 
     public function destroy(ProductsPreference $productsPreference)
     {
-        abort_if(Gate::denies('products_preference_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $productsPreference->delete();
 
@@ -77,6 +77,7 @@ class ProductsPreferencesController extends Controller
 
     public function massDestroy(MassDestroyProductsPreferenceRequest $request)
     {
+        $this->authorize('can-delete');
         ProductsPreference::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

@@ -387,7 +387,7 @@ class ScheduledTaskController extends Controller
 
     public function destroy(ScheduledTask $scheduledTask)
     {
-        abort_if(Gate::denies('scheduled_task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
         $schedule = null;
         $parent_id = $scheduledTask->parent_id;
         if (empty($scheduledTask->parent_id)){
@@ -416,7 +416,7 @@ class ScheduledTaskController extends Controller
 
     public function deleteBasedOnParent(ScheduledTask $scheduledTask)
     {
-        abort_if(Gate::denies('scheduled_task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
         if (empty($scheduledTask->parent_id)) {
             ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
 
@@ -427,6 +427,7 @@ class ScheduledTaskController extends Controller
 
     public function massDestroy(MassDestroyScheduledTaskRequest $request)
     {
+        $this->authorize('can-delete');
         $scheduledTasks = ScheduledTask::find(request('ids'));
 
         foreach ($scheduledTasks as $scheduledTask) {

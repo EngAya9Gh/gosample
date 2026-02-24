@@ -75,7 +75,7 @@
                                     </a>
                                 @endcan
 
-                                @can('task_delete')
+                                @can('can-delete')
                                     <form action="{{ route('admin.tasks.destroy', $task->id) }}" method="POST"
                                         onsubmit="return confirm('{{ trans('translation.areYouSure') }}');"
                                         style="display: inline-block;">
@@ -101,7 +101,7 @@
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('task_delete')
+            @can('can-delete')
                 let deleteButtonTrans = '{{ trans('translation.datatables.delete') }}'
                 let deleteButton = {
                     text: deleteButtonTrans,

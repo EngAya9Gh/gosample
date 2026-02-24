@@ -68,7 +68,7 @@ class ClientAccountsController extends Controller
 
     public function destroy(ClientAccount $clientAccount)
     {
-        abort_if(Gate::denies('client_account_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $clientAccount->delete();
 
@@ -77,6 +77,7 @@ class ClientAccountsController extends Controller
 
     public function massDestroy(MassDestroyClientAccountRequest $request)
     {
+        $this->authorize('can-delete');
         ClientAccount::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

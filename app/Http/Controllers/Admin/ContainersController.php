@@ -68,7 +68,7 @@ class ContainersController extends Controller
 
     public function destroy(Container $container)
     {
-        abort_if(Gate::denies('container_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $container->delete();
 
@@ -77,6 +77,7 @@ class ContainersController extends Controller
 
     public function massDestroy(MassDestroyContainerRequest $request)
     {
+        $this->authorize('can-delete');
         Container::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

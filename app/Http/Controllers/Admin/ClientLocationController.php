@@ -73,7 +73,7 @@ class ClientLocationController extends Controller
 
     public function destroy(ClientLocation $clientLocation)
     {
-        abort_if(Gate::denies('client_location_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $clientLocation->delete();
 
@@ -82,6 +82,7 @@ class ClientLocationController extends Controller
 
     public function massDestroy(MassDestroyClientLocationRequest $request)
     {
+        $this->authorize('can-delete');
         ClientLocation::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

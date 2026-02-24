@@ -72,7 +72,7 @@ class UsersController extends Controller
 
     public function destroy(User $user)
     {
-        abort_if(Gate::denies('user_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $user->delete();
 
@@ -81,6 +81,7 @@ class UsersController extends Controller
 
     public function massDestroy(MassDestroyUserRequest $request)
     {
+        $this->authorize('can-delete');
         User::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

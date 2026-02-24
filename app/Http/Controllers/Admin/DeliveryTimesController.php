@@ -68,7 +68,7 @@ class DeliveryTimesController extends Controller
 
     public function destroy(DeliveryTime $deliveryTime)
     {
-        abort_if(Gate::denies('delivery_time_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $deliveryTime->delete();
 
@@ -77,6 +77,7 @@ class DeliveryTimesController extends Controller
 
     public function massDestroy(MassDestroyDeliveryTimeRequest $request)
     {
+        $this->authorize('can-delete');
         DeliveryTime::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

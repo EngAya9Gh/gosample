@@ -187,7 +187,7 @@ class LocationsController extends Controller
 
     public function destroy($id)
     {
-        abort_if(Gate::denies('location_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->delete();
@@ -197,6 +197,7 @@ class LocationsController extends Controller
 
     public function massDestroy(MassDestroyLocationRequest $request)
     {
+        $this->authorize('can-delete');
         $locations = Location::find(request('ids'));
 
         foreach ($locations as $location) {

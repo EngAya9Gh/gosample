@@ -79,7 +79,7 @@ class ClientsController extends Controller
 
     public function destroy(Client $client)
     {
-        abort_if(Gate::denies('client_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $client->delete();
 
@@ -88,6 +88,7 @@ class ClientsController extends Controller
 
     public function massDestroy(MassDestroyClientRequest $request)
     {
+        $this->authorize('can-delete');
         Client::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

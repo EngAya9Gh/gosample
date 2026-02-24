@@ -154,7 +154,7 @@ class MoneyTransferController extends Controller
 
     public function destroy(MoneyTransfer $moneyTransfer)
     {
-        abort_if(Gate::denies('money_transfer_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $moneyTransfer->delete();
 
@@ -163,6 +163,7 @@ class MoneyTransferController extends Controller
 
     public function massDestroy(MassDestroyMoneyTransferRequest $request)
     {
+        $this->authorize('can-delete');
         $moneyTransfers = MoneyTransfer::find(request('ids'));
 
         foreach ($moneyTransfers as $moneyTransfer) {

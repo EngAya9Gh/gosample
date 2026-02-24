@@ -74,7 +74,7 @@ class RolesController extends Controller
 
     public function destroy(Role $role)
     {
-        abort_if(Gate::denies('role_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $role->delete();
 
@@ -83,6 +83,7 @@ class RolesController extends Controller
 
     public function massDestroy(MassDestroyRoleRequest $request)
     {
+        $this->authorize('can-delete');
         Role::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

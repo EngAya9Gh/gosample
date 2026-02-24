@@ -59,7 +59,7 @@ class TermsController extends Controller
 
     public function destroy(Term $term)
     {
-        abort_if(Gate::denies('term_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $term->delete();
 
@@ -68,6 +68,7 @@ class TermsController extends Controller
 
     public function massDestroy(MassDestroyTermRequest $request)
     {
+        $this->authorize('can-delete');
         Term::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);

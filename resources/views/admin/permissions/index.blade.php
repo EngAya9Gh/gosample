@@ -87,7 +87,7 @@
                                         @endif
                                     @endcan
 
-                                    @can('permission_delete')
+                                    @can('can-delete')
                                         @if (Auth::guard('web')->check())
                                             <form action="{{ route('admin.permissions.destroy', $permission->id) }}"
                                                 method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
@@ -124,7 +124,7 @@
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('permission_delete')
+            @can('can-delete')
                 let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
                 let deleteButton = {
                     text: deleteButtonTrans,

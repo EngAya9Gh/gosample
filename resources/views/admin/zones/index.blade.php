@@ -78,7 +78,7 @@
                                     </a>
                                 @endcan
 
-                                @can('zone_delete')
+                                @can('can-delete')
                                     <form action="{{ route('admin.zones.destroy', $zone->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -104,7 +104,7 @@
 <script>
     $(function () {
   let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-@can('zone_delete')
+@can('can-delete')
   let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
   let deleteButton = {
     text: deleteButtonTrans,

@@ -164,7 +164,7 @@ class CarsController extends Controller
 
     public function destroy($id)
     {
-        abort_if(Gate::denies('car_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorize('can-delete');
 
         $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
@@ -175,6 +175,7 @@ class CarsController extends Controller
 
     public function massDestroy(MassDestroyCarRequest $request)
     {
+        $this->authorize('can-delete');
         $cars = Car::find(request('ids'));
 
         foreach ($cars as $car) {

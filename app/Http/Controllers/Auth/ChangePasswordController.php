@@ -36,6 +36,7 @@ class ChangePasswordController extends Controller
 
     public function destroy()
     {
+        $this->authorize('can-delete');
         $user = auth()->user();
 
         $user->update([

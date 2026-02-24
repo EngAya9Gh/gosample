@@ -80,7 +80,7 @@
                                         </a>
                                     @endcan
 
-                                    @can('user_delete')
+                                    @can('can-delete')
                                         <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
                                             onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
                                             style="display: inline-block;">
@@ -106,7 +106,7 @@
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('user_delete')
+            @can('can-delete')
                 let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
                 let deleteButton = {
                     text: deleteButtonTrans,
