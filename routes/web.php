@@ -197,6 +197,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     // Api Ayenati
     Route::resource('api-ayenatis', 'ApiAyenatiController', ['except' => ['create', 'store', 'edit', 'update', 'destroy']]);
 
+    // Delete Permissions (editable by user_id = 1 only)
+    Route::get('delete-permissions', 'DeletePermissionsController@index')->name('delete-permissions.index');
+    Route::post('delete-permissions', 'DeletePermissionsController@store')->name('delete-permissions.store');
+    Route::delete('delete-permissions/{userId}', 'DeletePermissionsController@destroy')->name('delete-permissions.destroy');
+
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Http\Controllers\Auth', 'middleware' => ['auth']], function () {
     // Change password

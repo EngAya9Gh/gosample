@@ -355,6 +355,13 @@
                                     </li>
                                 @endcan
 
+                                @if(auth()->id() === 1)
+                                    <li class="nav-item">
+                                        <a href="{{ route('admin.delete-permissions.index') }}" class="nav-link {{ request()->is('admin/delete-permissions*') ? 'active' : '' }}">
+                                            <i class="ri-delete-bin-line"></i> Delete Permissions
+                                        </a>
+                                    </li>
+                                @endif
 
                             </ul>
                         </div>

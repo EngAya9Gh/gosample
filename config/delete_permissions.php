@@ -6,8 +6,8 @@ return [
     | Allowed User IDs for Delete Actions
     |--------------------------------------------------------------------------
     |
-    | Users listed here are allowed to see delete buttons and perform delete
-    | actions across the application. Add or remove user IDs as needed.
+    | Default/fallback list. User ID 1 can manage this via Admin > Settings >
+    | Delete Permissions in the UI. Data is stored in storage/app/delete_permissions.json.
     |
     */
     'allowed_user_ids' => [1],
