@@ -59,6 +59,7 @@ class ClientsController extends Controller
 
     public function update(UpdateClientRequest $request, Client $client)
     {
+        dd($request->all());
         $client->update($request->all());
         $client->locations()->sync($request->input('locations', []));
         $client->drivers()->sync($request->input('drivers', []));
