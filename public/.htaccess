@@ -1,3 +1,8 @@
+# If you use Apache with mod_php, uncomment so large forms (e.g. many locations[]) are not truncated.
+# <IfModule mod_php.c>
+#     php_value max_input_vars 10000
+# </IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
