@@ -129,21 +129,17 @@
                     </div>
                 </div>
 
-                @php
-                    $statusValue = old('status', $client->status);
-                @endphp
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
                             <label class="required">{{ trans('translation.client.fields.status') }}</label>
                             <select class="form-control {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status"
                                 id="statuss" required>
-                                <option value="" disabled
-                                    {{ $statusValue === null || $statusValue === '' ? 'selected' : '' }}>
+                                <option value disabled {{ old('status', null) === null ? 'selected' : '' }}>
                                     {{ trans('translation.pleaseSelect') }}</option>
                                 @foreach (App\Models\Client::STATUS_SELECT as $key => $label)
                                     <option value="{{ $key }}"
-                                        {{ (string) $statusValue === (string) $key ? 'selected' : '' }}>
+                                        {{ old('status', $client->status) === (string) $key ? 'selected' : '' }}>
                                         {{ $label }}</option>
                                 @endforeach
                             </select>
