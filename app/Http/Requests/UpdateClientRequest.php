@@ -18,7 +18,7 @@ class UpdateClientRequest extends FormRequest
     {
         return [
             'status' => [
-                'nullable',
+                'required',
             ],
             'arabic_name' => [
                 'string',
