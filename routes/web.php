@@ -177,6 +177,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
 
       // Scheduled Task
     Route::delete('scheduled-tasks/destroy', 'ScheduledTaskController@massDestroy')->name('scheduled-tasks.massDestroy');
+    Route::delete('scheduled-tasks/{scheduledTask}/children/destroy', 'ScheduledTaskController@massDestroyChildren')->name('scheduled-tasks.childrenMassDestroy');
     Route::resource('scheduled-tasks', 'ScheduledTaskController');
 
     Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');

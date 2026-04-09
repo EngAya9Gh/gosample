@@ -90,9 +90,41 @@
     @parent
     <script>
         $(function() {
+            let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
+            @can('can-delete')
+                let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
+                let deleteButton = {
+                    text: deleteButtonTrans,
+                    url: "{{ route('admin.scheduled-tasks.childrenMassDestroy', [$scheduledTask]) }}",
+                    className: 'btn-danger',
+                    action: function(e, dt, node, config) {
+                        var ids = $.map(dt.rows({ selected: true }).data(), function(entry) {
+                            return entry.id
+                        });
 
+                        if (ids.length === 0) {
+                            alert('{{ trans('global.datatables.zero_selected') }}')
+                            return
+                        }
+
+                        if (confirm('{{ trans('global.areYouSure') }}')) {
+                            $.ajax({
+                                    headers: { 'x-csrf-token': _token },
+                                    method: 'POST',
+                                    url: config.url,
+                                    data: { ids: ids, _method: 'DELETE' }
+                                })
+                                .done(function() {
+                                    $('#scheduled-tasks-children-datatable').DataTable().ajax.reload()
+                                })
+                        }
+                    }
+                }
+                dtButtons.push(deleteButton)
+            @endcan
 
             $('#scheduled-tasks-children-datatable').DataTable({
+                buttons: dtButtons,
                 processing: true,
                 serverSide: true,
                 searching: false,
