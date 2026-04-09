@@ -135,6 +135,21 @@
                 }
 
             );
+
+            // Enable search explicitly for these two fields
+            $('#driver_a').select2({
+                width: '100%',
+                minimumResultsForSearch: 0,
+                placeholder: "Select a record",
+                allowClear: true
+            });
+
+            $('#task_id').select2({
+                width: '100%',
+                minimumResultsForSearch: 0,
+                placeholder: "Select a record",
+                allowClear: true
+            });
         });
     </script>
 
@@ -169,6 +184,8 @@
                                     'alert-success').html('No tasks found.').show();
                             }
                         }
+                        // refresh select2 after new options
+                        $('#task_id').trigger('change.select2');
                     },
                     error: function(xhr, status, error) {
                         console.error("Error: " + status + " " + error);
