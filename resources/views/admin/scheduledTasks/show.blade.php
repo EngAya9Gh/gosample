@@ -6,6 +6,7 @@
         #scheduled-tasks-children-datatable td.select-checkbox {
             position: relative;
             cursor: pointer;
+            vertical-align: middle;
         }
 
         #scheduled-tasks-children-datatable td.select-checkbox::before {
@@ -13,27 +14,31 @@
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid #6c757d;
+            border: 2px solid #6c757d !important;
             border-radius: 3px;
-            background: #fff;
+            background: #fff !important;
             box-sizing: border-box;
         }
 
-        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::before {
-            background: #0d6efd;
-            border-color: #0d6efd;
+        /* DataTables Select marks selection on the row (`tr.selected`), but some themes mark cells too. */
+        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::before,
+        #scheduled-tasks-children-datatable td.select-checkbox.selected::before {
+            background: #0d6efd !important;
+            border-color: #0d6efd !important;
         }
 
-        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::after {
+        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::after,
+        #scheduled-tasks-children-datatable td.select-checkbox.selected::after {
             content: '';
             position: absolute;
-            left: 6px;
-            top: 6px;
+            left: 7px;
+            top: 50%;
             width: 6px;
             height: 10px;
             border: solid #fff;
             border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
+            transform: translateY(-60%) rotate(45deg);
+            pointer-events: none;
         }
     </style>
 @endsection
