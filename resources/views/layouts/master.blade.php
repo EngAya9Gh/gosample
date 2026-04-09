@@ -223,6 +223,17 @@
 @include('layouts.customizer')
 
 <!-- JAVASCRIPT -->
+<script>
+    // Some vendor theme scripts expect a global `removeItem` helper.
+    // Define it safely to avoid breaking page initialization.
+    window.removeItem = window.removeItem || function (key) {
+        try {
+            window.localStorage && window.localStorage.removeItem(key);
+        } catch (e) {
+            // ignore
+        }
+    };
+</script>
 @include('layouts.vendor-scripts')
     <script>
         const AUTH_CLIENT_ID = {{ auth()->check() ? (auth()->user()->client_id ?? 'null') : 'null' }};
