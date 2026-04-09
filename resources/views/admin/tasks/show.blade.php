@@ -124,7 +124,11 @@
                                             </div>
                                             <div class="col-4 textContent">
                                                 <h5>Bag QTY</h5>
+                                                @if(isset($task->box_count))
+                                                <p>{{ $task->box_count }}</p>
+                                                @else
                                                 <p>{{ $bag_count }}</p>
+                                                @endif
                                             </div>
                                             <div class="col-4 textContent">
                                                 <h5>Receiving Date</h5>
@@ -140,7 +144,11 @@
                                             </div>
                                             <div class="col-4 textContent">
                                                 <h5>Sample QTY</h5>
+                                                @if(isset($task->sample_count))
+                                                <p>{{ $task->sample_count }}</p>
+                                                @else
                                                 <p>{{ $sample_count }}</p>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
