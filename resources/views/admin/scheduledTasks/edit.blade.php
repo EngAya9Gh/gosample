@@ -241,7 +241,11 @@
     </div>
     <script>
         $(document).ready(function() {
-            $('.select2').select2();
+            // Ensure search is available for these specific selects
+            $('#from_location_id, #to_location_id, #client_id, #driver_id').select2({
+                width: '100%',
+                minimumResultsForSearch: 0
+            });
         });
     </script>
 @endsection
