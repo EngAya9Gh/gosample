@@ -449,7 +449,8 @@ class ScheduledTaskController extends Controller
             'ids.*' => ['integer', 'exists:scheduled_tasks,id'],
         ]);
 
-        $ids = $validated['ids'];
+        // Checkbox values arrive as strings; normalize to integers for strict comparisons.
+        $ids = array_map('intval', $validated['ids']);
 
         // If user selected the parent row itself, treat it as "delete whole schedule":
         // delete parent + all its children, without warning.
