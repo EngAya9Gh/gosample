@@ -139,6 +139,17 @@
                                     $('#scheduled-task-children-select-all').prop('checked', false)
                                     dt.ajax.reload(null, false)
                                 })
+                                .fail(function(xhr) {
+                                    let msg = '{{ trans('global.areYouSure') }}'
+                                    if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                                        msg = xhr.responseJSON.message
+                                    } else if (xhr && xhr.responseText) {
+                                        msg = xhr.responseText
+                                    } else {
+                                        msg = 'Request failed.'
+                                    }
+                                    alert(msg)
+                                })
                         }
                     }
                 }
