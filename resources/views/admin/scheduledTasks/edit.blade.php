@@ -239,8 +239,12 @@
             </form>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    @parent
     <script>
-        $(document).ready(function() {
+        $(function() {
             // Ensure search is available for these specific selects
             $('#from_location_id, #to_location_id, #client_id, #driver_id').select2({
                 width: '100%',
