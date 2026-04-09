@@ -1,4 +1,43 @@
 @extends('layouts.master')
+
+@section('css')
+    <style>
+        /* Scope checkbox styling to this table only */
+        #scheduled-tasks-children-datatable td.select-checkbox {
+            position: relative;
+            cursor: pointer;
+        }
+
+        #scheduled-tasks-children-datatable td.select-checkbox::before {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #6c757d;
+            border-radius: 3px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::before {
+            background: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            width: 6px;
+            height: 10px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    </style>
+@endsection
+
 @section('content')
     @can('can-delete')
         <div style="margin-bottom: 10px;" class="row">
