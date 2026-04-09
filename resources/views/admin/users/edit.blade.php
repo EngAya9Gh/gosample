@@ -33,6 +33,24 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.user.fields.email_helper') }}</span>
                         </div>
+                        <div class="form-group">
+                            <label for="client_id">{{ trans('translation.task.fields.billing_client') }}</label>
+                            <select class="form-control select2 {{ $errors->has('client_id') ? 'is-invalid' : '' }}"
+                                name="client_id" id="client_id">
+                                <option value="">Select Client</option>
+                                @foreach ($clients as $id => $entry)
+                                    <option value="{{ $entry->id }}"
+                                        {{ (string) $entry->id === (string) old('client_id', $user->client_id) ? 'selected' : '' }}>
+                                        {{ $entry->english_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if ($errors->has('client_id'))
+                                <div class="invalid-feedback">
+                                    {{ $errors->first('client_id') }}
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
