@@ -323,6 +323,9 @@ class ScheduledTaskController extends Controller
             });
             $table = Datatables::of($query);
 
+            $table->addColumn('row_select', function ($row) {
+                return '<input type="checkbox" class="scheduled-task-child-select" value="' . $row->id . '">';
+            });
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
 
@@ -377,7 +380,7 @@ class ScheduledTaskController extends Controller
                 static $index = 0;
                 return ++$index;
             });
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'client','driver']);
+            $table->rawColumns(['row_select', 'actions', 'placeholder', 'from_location', 'to_location', 'client','driver']);
 
             return $table->make(true);
         }

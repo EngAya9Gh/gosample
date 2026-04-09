@@ -165,8 +165,8 @@
                 },
 
                 columns: [{
-                    data: 'select',
-                    name: 'select',
+                    data: 'row_select',
+                    name: 'row_select',
                     orderable: false,
                     searchable: false,
                     className: 'child-select-col'
