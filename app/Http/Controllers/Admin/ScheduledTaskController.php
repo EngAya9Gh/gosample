@@ -451,6 +451,15 @@ class ScheduledTaskController extends Controller
 
         $ids = $validated['ids'];
 
+        // If user selected the parent row itself, treat it as "delete whole schedule":
+        // delete parent + all its children, without warning.
+        if (in_array($scheduledTask->id, $ids, true)) {
+            ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
+            $scheduledTask->delete();
+
+            return response(null, Response::HTTP_NO_CONTENT);
+        }
+
         $allowedIds = ScheduledTask::query()
             ->where('parent_id', $scheduledTask->id)
             ->whereIn('id', $ids)
