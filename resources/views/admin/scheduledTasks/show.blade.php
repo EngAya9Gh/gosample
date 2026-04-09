@@ -2,43 +2,20 @@
 
 @section('css')
     <style>
-        /* Scope checkbox styling to this table only */
-        #scheduled-tasks-children-datatable td.select-checkbox {
-            position: relative;
-            cursor: pointer;
+        /* Scoped checkbox column styling for this table only */
+        #scheduled-tasks-children-datatable th.child-select-col,
+        #scheduled-tasks-children-datatable td.child-select-col {
+            width: 36px;
+            min-width: 36px;
+            text-align: center;
             vertical-align: middle;
         }
 
-        #scheduled-tasks-children-datatable td.select-checkbox::before {
-            content: '';
-            display: inline-block;
+        #scheduled-tasks-children-datatable input.scheduled-task-child-select,
+        #scheduled-tasks-children-datatable input#scheduled-task-children-select-all {
             width: 16px;
             height: 16px;
-            border: 2px solid #6c757d !important;
-            border-radius: 3px;
-            background: #fff !important;
-            box-sizing: border-box;
-        }
-
-        /* DataTables Select marks selection on the row (`tr.selected`), but some themes mark cells too. */
-        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::before,
-        #scheduled-tasks-children-datatable td.select-checkbox.selected::before {
-            background: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-
-        #scheduled-tasks-children-datatable tr.selected td.select-checkbox::after,
-        #scheduled-tasks-children-datatable td.select-checkbox.selected::after {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 50%;
-            width: 6px;
-            height: 10px;
-            border: solid #fff;
-            border-width: 0 2px 2px 0;
-            transform: translateY(-60%) rotate(45deg);
-            pointer-events: none;
+            cursor: pointer;
         }
     </style>
 @endsection
@@ -70,8 +47,8 @@
                     class=" table table-bordered table-striped table-hover ajaxTable datatable w-100" id="scheduled-tasks-children-datatable">
                     <thead>
                     <tr>
-                        <th width="10">
-
+                        <th class="child-select-col">
+                            <input type="checkbox" id="scheduled-task-children-select-all">
                         </th>
                         <th>
                             {{ trans('translation.task.fields.sequence') }}
@@ -142,9 +119,9 @@
                     url: "{{ route('admin.scheduled-tasks.childrenMassDestroy', [$scheduledTask]) }}",
                     className: 'btn-danger',
                     action: function(e, dt, node, config) {
-                        var ids = $.map(dt.rows({ selected: true }).data(), function(entry) {
-                            return entry.id
-                        });
+                        var ids = $('#scheduled-tasks-children-datatable tbody input.scheduled-task-child-select:checked')
+                            .map(function() { return $(this).val(); })
+                            .get();
 
                         if (ids.length === 0) {
                             alert('{{ trans('global.datatables.zero_selected') }}')
@@ -159,7 +136,8 @@
                                     data: { ids: ids, _method: 'DELETE' }
                                 })
                                 .done(function() {
-                                    $('#scheduled-tasks-children-datatable').DataTable().ajax.reload()
+                                    $('#scheduled-task-children-select-all').prop('checked', false)
+                                    dt.ajax.reload(null, false)
                                 })
                         }
                     }
@@ -167,7 +145,7 @@
                 dtButtons.push(deleteButton)
             @endcan
 
-            $('#scheduled-tasks-children-datatable').DataTable({
+            let table = $('#scheduled-tasks-children-datatable').DataTable({
                 buttons: dtButtons,
                 processing: true,
                 serverSide: true,
@@ -187,8 +165,11 @@
                 },
 
                 columns: [{
-                    data: 'placeholder',
-                    name: 'placeholder'
+                    data: 'select',
+                    name: 'select',
+                    orderable: false,
+                    searchable: false,
+                    className: 'child-select-col'
                 },
                     {
                         data: 'sequence',
@@ -258,6 +239,18 @@
                 ],
                 pageLength: 100,
             });
+
+            // Header "select all" checkbox (current page only)
+            $('#scheduled-task-children-select-all').on('change', function() {
+                var checked = $(this).is(':checked')
+                $('#scheduled-tasks-children-datatable tbody input.scheduled-task-child-select')
+                    .prop('checked', checked)
+            })
+
+            // When table redraws (pagination/filter), uncheck header if not all checked
+            table.on('draw', function() {
+                $('#scheduled-task-children-select-all').prop('checked', false)
+            })
 
         });
     </script>
