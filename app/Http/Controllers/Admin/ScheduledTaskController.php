@@ -442,28 +442,28 @@ class ScheduledTaskController extends Controller
 
     public function massDestroyChildren(Request $request, ScheduledTask $scheduledTask)
     {
-        $this->authorize('can-delete');
+        // $this->authorize('can-delete');
 
-        $validated = $request->validate([
-            'ids'   => ['required', 'array'],
-            'ids.*' => ['integer', 'exists:scheduled_tasks,id'],
-        ]);
+        // $validated = $request->validate([
+        //     'ids'   => ['required', 'array'],
+        //     'ids.*' => ['integer', 'exists:scheduled_tasks,id'],
+        // ]);
 
-        $ids = $validated['ids'];
+        // $ids = $validated['ids'];
 
-        $allowedIds = ScheduledTask::query()
-            ->where('parent_id', $scheduledTask->id)
-            ->whereIn('id', $ids)
-            ->pluck('id')
-            ->all();
+        // $allowedIds = ScheduledTask::query()
+        //     ->where('parent_id', $scheduledTask->id)
+        //     ->whereIn('id', $ids)
+        //     ->pluck('id')
+        //     ->all();
 
-        if (count($allowedIds) !== count($ids)) {
-            return response()->json([
-                'message' => 'One or more selected rows are not children of this schedule.',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
+        // if (count($allowedIds) !== count($ids)) {
+        //     return response()->json([
+        //         'message' => 'One or more selected rows are not children of this schedule.',
+        //     ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        // }
 
-        ScheduledTask::whereIn('id', $allowedIds)->delete();
+        // ScheduledTask::whereIn('id', $allowedIds)->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
     }
