@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\Sample;
 use App\Models\Swap;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class HeaderDataServiceProvider extends ServiceProvider
 {
@@ -30,65 +31,49 @@ class HeaderDataServiceProvider extends ServiceProvider
     {
         View::composer('layouts.topbar', function ($view) {
             $user = auth()->user();
-            $user_client_id = null;
-            if (isset($user->id) && $user->client_id != null) {
-                $user_client_id = $user->id;
-            }
-            $newTasksCount = 10;
-            // $newTasksCount = Task::where('status', 'NEW')->limit(10);
-            // $newSwapTasksCount = Swap::where('status', 'NEW')->limit(10);
-            // if ($user_client_id){
-            //     $newTasksCount = $newTasksCount->where('billing_client',$user_client_id)->count();
-            //     $newSwapTasksCount = $newSwapTasksCount->count();
-            // }else{
-            //     $newTasksCount = $newTasksCount->count();
-            //     $newSwapTasksCount = $newSwapTasksCount->count();
-            // }
-            $newSwapTasksCount = 10;
+            if (!$user) return;
 
+            $user_client_id = $user->client_id;
+            $cacheKey = 'header_data_' . ($user->id ?? 'guest');
 
+            $data = Cache::remember($cacheKey, 600, function () use ($user_client_id, $user) {
+                $newTasksCount = 10; // Fixed for now or optimize later
+                $newSwapTasksCount = 10;
+                $r = new Task();
+                $fourDaysAgo = Carbon::now()->subDays(4);
+                
+                $pickup_delayedTasks = $r->pickup_delayedTasks($user_client_id);
+                $drop_off_delayedTasks = $r->drop_off_delayedTasks($user_client_id);
+                $delayed_tasks_in_freezer = $r->delayed_tasks_in_freezer($user_client_id);
+                $delayed_tasks_delivered = $r->delayed_tasks_delivered($user_client_id);
 
+                $lost_samples = Sample::where('samples.confirmed_by_client', 'LOST');
+                if ($user_client_id) {
+                    $lost_samples = $lost_samples->leftjoin('tasks', 'tasks.id', '=', 'samples.task_id')
+                        ->where('tasks.billing_client', $user_client_id);
+                }
+                $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
 
-            $r = new Task();
-            $clients = 0;
-            $fourDaysAgo = Carbon::now()->subDays(4);
-            // $pickup_delayedTasks =  $r->pickup_delayedTasks($user_client_id);
-            // $drop_off_delayedTasks =  $r->drop_off_delayedTasks($user_client_id);
-            $pickup_delayedTasks =  [];
-            $drop_off_delayedTasks =  [];
-            $cars = 0;
+                $systemNotifications = $user->unreadNotifications()->limit(10)->get();
 
-            // $delayed_tasks_in_freezer =  $r->delayed_tasks_in_freezer($user_client_id);
-            // $delayed_tasks_delivered =  $r->delayed_tasks_delivered($user_client_id);
-            $delayed_tasks_in_freezer =  [];
-            $delayed_tasks_delivered =  [];
-            $play_sound = 0;
+                $delayed_count = count($pickup_delayedTasks) + count($drop_off_delayedTasks) +
+                               count($delayed_tasks_in_freezer) + count($delayed_tasks_delivered) + 
+                               count($lost_samples) + $systemNotifications->count();
 
+                return [
+                    'newTasksCount' => $newTasksCount,
+                    'newSwapTasksCount' => $newSwapTasksCount,
+                    'delayed_count' => $delayed_count,
+                    'lost_samples' => $lost_samples,
+                    'pickup_delayedTasks' => $pickup_delayedTasks,
+                    'drop_off_delayedTasks' => $drop_off_delayedTasks,
+                    'delayed_tasks_in_freezer' => $delayed_tasks_in_freezer,
+                    'delayed_tasks_delivered' => $delayed_tasks_delivered,
+                    'systemNotifications' => $systemNotifications
+                ];
+            });
 
-            // $lost_samples = Sample::where('samples.confirmed_by_client','LOST');
-            // if ($user_client_id){
-            //     $lost_samples = $lost_samples->leftjoin('tasks','tasks.id','=','samples.task_id')->where('tasks.billing_client',$user_client_id);
-            // }
-            // $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
-            $lost_samples = [];
-
-            // $delayed_count = Task::where('status', '=', 'CLOSED')
-            // ->where('created_at', '>=', $fourDaysAgo)
-            // ->count();
-
-            $delayed_count = 100;
-
-            // $result=  count($pickup_delayedTasks)+ count($drop_off_delayedTasks)+
-            // count($delayed_tasks_in_freezer)+ count($delayed_tasks_delivered)+ count($lost_samples);
-            $result = 0;
-            $view->with('newTasksCount',$newTasksCount);
-            $view->with('newSwapTasksCount',$newSwapTasksCount);
-            $view->with('delayed_count',$result);
-            $view->with('lost_samples', $lost_samples);
-            $view->with('pickup_delayedTasks', $pickup_delayedTasks);
-            $view->with('drop_off_delayedTasks', $drop_off_delayedTasks);
-            $view->with('delayed_tasks_in_freezer', $delayed_tasks_in_freezer);
-            $view->with('delayed_tasks_delivered', $delayed_tasks_delivered);
+            $view->with($data);
         });
     }
 }
