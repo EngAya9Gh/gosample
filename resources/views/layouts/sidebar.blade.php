@@ -81,6 +81,25 @@
                     </li>
                 @endcan
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ request()->is('admin/reports*') ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarReports">
+                        <i class="ri-pie-chart-line"></i> <span>Reports & Analytics</span>
+                    </a>
+                    <div class="collapse menu-dropdown {{ request()->is('admin/reports*') ? 'show' : '' }}" id="sidebarReports">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.reports.index') }}" class="nav-link">Reporting Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.reports.performance') }}" class="nav-link">KPI Performance Analysis</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.reports.monthly') }}" class="nav-link">Monthly Evaluation Report</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
                 @can('task_access')
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarTasks" data-bs-toggle="collapse" role="button"
@@ -223,6 +242,10 @@
                                     <li class="nav-item">
                                         <a href="{{ url('admin/attendances') }}" class="nav-link"><i
                                                 class="ri-file-user-line"></i> @lang('translation.attendances')</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ url('admin/shift-templates') }}" class="nav-link"><i
+                                                class="ri-time-line"></i> Shift Templates</a>
                                     </li>
                                 </ul>
                             @endcan
