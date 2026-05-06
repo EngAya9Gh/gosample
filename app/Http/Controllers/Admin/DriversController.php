@@ -12,6 +12,7 @@ use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\ShiftTemplate;
 
 class DriversController extends Controller
 {
@@ -39,18 +40,15 @@ class DriversController extends Controller
             $table->addColumn('actions', '&nbsp;');
 
             $table->editColumn('actions', function ($row) {
-                $viewGate      = 'driver_show';
-                $editGate      = 'driver_edit';
-                $deleteGate    = 'driver_delete';
-                $crudRoutePart = 'drivers';
-
-                return view('partials.datatablesActions', compact(
-                    'viewGate',
-                    'editGate',
-                    'deleteGate',
-                    'crudRoutePart',
-                    'row'
-                ));
+                $editUrl = route('admin.drivers.edit', $row->id);
+                
+                $buttons = "";
+                
+                if (Gate::allows('driver_edit')) {
+                    $buttons .= '<a class="btn btn-xs btn-info shadow-sm mr-1" href="' . $editUrl . '" title="Edit"><i class="ri-edit-line text-white"></i> Edit</a>';
+                }
+                
+                return '<div class="text-nowrap">' . $buttons . '</div>';
             });
 
             $table->editColumn('id', function ($row) {
@@ -97,12 +95,14 @@ class DriversController extends Controller
         abort_if(Gate::denies('driver_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $zones = Zone::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-        return view('admin.drivers.create', compact('zones'));
+        $shiftTemplates = ShiftTemplate::all();
+        return view('admin.drivers.create', compact('zones', 'shiftTemplates'));
     }
 
     public function store(StoreDriverRequest $request)
     {
         $driver = Driver::create($request->all());
+        $this->syncDriverShifts($driver, $request);
 
         return redirect()->route('admin.drivers.index');
     }
@@ -114,16 +114,78 @@ class DriversController extends Controller
         // $zones = Zone::all();
         $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
         $zones = Zone::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $shiftTemplates = ShiftTemplate::all();
 
-        return view('admin.drivers.edit', compact('driver','zones'));
+        return view('admin.drivers.edit', compact('driver','zones', 'shiftTemplates'));
     }
 
     public function update(UpdateDriverRequest $request, $id)
     {
         $driver = Driver::withoutGlobalScope('enabled')->findOrFail($id);
+        
+        \Log::info('Driver Update Payload for Driver ID ' . $id . ':', $request->all());
+        \Log::info('Driver current attributes before update:', $driver->toArray());
+
         $driver->update($request->all());
+        
+        \Log::info('Driver attributes after update:', $driver->fresh()->toArray());
+        
+        $this->syncDriverShifts($driver, $request);
 
         return redirect()->route('admin.drivers.index');
+    }
+
+    private function syncDriverShifts(Driver $driver, Request $request)
+    {
+        // 1. Deactivate all previous active shifts for this driver
+        \App\Models\DriverShift::where('driver_id', $driver->id)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'valid_to' => now()->toDateString()
+            ]);
+
+        $days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        $shiftCount = $request->input('shift_count', 1);
+
+        // 2. Create Shift 1 (Always exists if start/end filled)
+        if ($request->filled('working_hours_start') && $request->filled('working_hours_end')) {
+            \App\Models\DriverShift::create([
+                'driver_id' => $driver->id,
+                'shift_number' => 1,
+                'start_time' => $request->working_hours_start,
+                'end_time' => $request->working_hours_end,
+                'days' => $days,
+                'valid_from' => now()->toDateString(),
+                'is_active' => true,
+            ]);
+        }
+
+        // 3. Create Shift 2 if count is 2 or more
+        if ($shiftCount >= 2 && $request->filled('second_shift_working_hours_start') && $request->filled('second_shift_working_hours_end')) {
+            \App\Models\DriverShift::create([
+                'driver_id' => $driver->id,
+                'shift_number' => 2,
+                'start_time' => $request->second_shift_working_hours_start,
+                'end_time' => $request->second_shift_working_hours_end,
+                'days' => $days,
+                'valid_from' => now()->toDateString(),
+                'is_active' => true,
+            ]);
+        }
+        
+        // 4. Create Shift 3 if count is 3
+        if ($shiftCount >= 3 && $request->filled('third_shift_working_hours_start') && $request->filled('third_shift_working_hours_end')) {
+            \App\Models\DriverShift::create([
+                'driver_id' => $driver->id,
+                'shift_number' => 3,
+                'start_time' => $request->third_shift_working_hours_start,
+                'end_time' => $request->third_shift_working_hours_end,
+                'days' => $days,
+                'valid_from' => now()->toDateString(),
+                'is_active' => true,
+            ]);
+        }
     }
 
     public function show($id)
@@ -156,5 +218,12 @@ class DriversController extends Controller
         }
 
         return response(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function getShifts($id)
+    {
+        $driver = Driver::with('shifts')->findOrFail($id);
+        $shifts = $driver->shifts()->where('is_active', true)->get();
+        return response()->json($shifts);
     }
 }

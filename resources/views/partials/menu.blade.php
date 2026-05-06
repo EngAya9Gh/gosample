@@ -90,10 +90,26 @@
         @can('attendance_access')
             <li class="c-sidebar-nav-item">
                 <a href="{{ route("admin.attendances.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/attendances") || request()->is("admin/attendances/*") ? "c-active" : "" }}">
-                    <i class="fa-fw fas fa-cogs c-sidebar-nav-icon">
+                    <i class="fa-fw fas fa-calendar-check c-sidebar-nav-icon">
 
                     </i>
                     {{ trans('cruds.attendance.title') }}
+                </a>
+            </li>
+            <li class="c-sidebar-nav-item">
+                <a href="{{ route("admin.shift-templates.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/shift-templates") || request()->is("admin/shift-templates/*") ? "c-active" : "" }}">
+                    <i class="fa-fw fas fa-clock c-sidebar-nav-icon">
+
+                    </i>
+                    نماذج الورديات
+                </a>
+            </li>
+            <li class="c-sidebar-nav-item">
+                <a href="{{ route("admin.reports.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/reports*") ? "c-active" : "" }}">
+                    <i class="fa-fw fas fa-chart-bar c-sidebar-nav-icon">
+
+                    </i>
+                    التقارير والتحليلات
                 </a>
             </li>
         @endcan

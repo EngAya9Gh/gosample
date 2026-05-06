@@ -34,8 +34,6 @@ class UpdateDriverRequest extends FormRequest
             'working_hours_end' => [
                 'required',
                 // 'date_format:H:i',
-                'after:working_hours_start',
-
             ],
             'username' => [
                 'string',
@@ -50,10 +48,27 @@ class UpdateDriverRequest extends FormRequest
             ],
             'email' => [
                 'string',
-                'required',
+                'nullable',
                 // 'unique:drivers,email,' . request()->route('driver')->id,
             ],
-           
+            'shift_count' => [
+                'integer',
+                'nullable',
+            ],
+            'employment_type' => [
+                'string',
+                'nullable',
+            ],
+            'total_working_hours' => [
+                'integer',
+                'nullable',
+            ],
+            'second_shift_working_hours_start' => [
+                'nullable',
+            ],
+            'second_shift_working_hours_end' => [
+                'nullable',
+            ],
         ];
     }
 }

@@ -58,6 +58,8 @@ Route::post('driver/notifications','App\Http\Controllers\DriverController@notifi
 Route::post('car/release','App\Http\Controllers\DriverController@releaseCar');
 Route::post('driver/client/tasks','App\Http\Controllers\DriverController@clientTask');
 Route::post('driver/location','App\Http\Controllers\DriverController@updateDriverLocation');
+Route::post('driver/checkin','App\Http\Controllers\DriverController@checkin');
+Route::post('driver/checkout','App\Http\Controllers\DriverController@checkout');
 Route::post('driver/notification/new','App\Http\Controllers\DriverController@sendNotificationToDriver');
 Route::post('task/sample/check','App\Http\Controllers\SampleController@checkSample');
 Route::post('task/samples/check','App\Http\Controllers\SampleController@checkSamples');
