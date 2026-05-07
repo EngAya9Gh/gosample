@@ -55,6 +55,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
 
     // Drivers
     Route::delete('drivers/destroy', 'DriversController@massDestroy')->name('drivers.massDestroy');
+    Route::get('drivers/{id}/get-shifts', 'DriversController@getShifts')->name('drivers.getShifts');
     Route::resource('drivers', 'DriversController');
 
     // Cars
@@ -64,6 +65,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     // Attendances
     Route::delete('attendances/destroy', 'AttendancesController@massDestroy')->name('attendances.massDestroy');
     Route::resource('attendances', 'AttendancesController');
+
+    // Shift Templates
+    Route::delete('shift-templates/destroy', 'ShiftTemplatesController@massDestroy')->name('shift-templates.massDestroy');
+    Route::resource('shift-templates', 'ShiftTemplatesController');
 
     // Barcodes
     Route::get('barcodes/generate', 'BarcodesController@generate')->name('barcodes.generate');
@@ -170,6 +175,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
 
      Route::resource('shipments', 'ShipmentsController', ['except' => ['edit', 'update', 'destroy']]);
 
+     // Reports
+     Route::get('reports', 'ReportsController@index')->name('reports.index');
+     Route::get('reports/daily', 'ReportsController@daily')->name('reports.daily');
+     Route::get('reports/weekly', 'ReportsController@weekly')->name('reports.weekly');
+     Route::get('reports/monthly', 'ReportsController@monthly')->name('reports.monthly');
+     Route::get('reports/monthly/export', 'ReportsController@exportMonthly')->name('reports.exportMonthly');
+     Route::get('reports/performance', 'ReportsController@performance')->name('reports.performance');
 
      Route::get('system-calendar', 'SystemCalendarController@index')->name('systemCalendar');
 

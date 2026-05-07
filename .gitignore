@@ -23,3 +23,6 @@ app/Http/Controllers/.DS_Store
 
 .DS_Store
 resources/.DS_Store
+
+docker-compose.yml
+/storage/

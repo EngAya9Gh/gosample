@@ -40,6 +40,9 @@
                         <th>
                             {{ trans('translation.task.fields.status') }}
                         </th>
+                        <th>
+                            Delayed Reason
+                        </th>
                         
                         <th>
                             &nbsp;
@@ -70,6 +73,13 @@
                            
                             <td>
                                 {{ App\Models\Task::STATUS_SELECT[$task->status] ?? '' }}
+                            </td>
+                            <td>
+                                @if($task->delayed_reason)
+                                    <span class="badge badge-soft-danger">{{ $task->delayed_reason_labels }}</span>
+                                @else
+                                    <span class="text-muted small">No Delay</span>
+                                @endif
                             </td>
                             
                             <td>

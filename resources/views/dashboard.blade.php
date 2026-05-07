@@ -426,9 +426,9 @@
                                             <a href="{{ url('admin/tasks') }}"
                                                 class="link-warning text-decoration-underline">Task:{{ $record->task_id }}</a>
                                             <p class="text-muted mb-1" style="word-break: break-all">
-                                                {{ $record->fromLocation->name }} </p>
+                                                {{ $record->fromLocation?->name }} </p>
                                             <p class="text-muted mb-1" style="word-break: break-all">
-                                                {{ $record->toLocation->name }} </p>
+                                                {{ $record->toLocation?->name }} </p>
                                             <p class="text-muted mb-1" style="word-break: break-all">
                                                 <span class="text-danger">Driver:
                                                     {{ $record->driver ? $record->driver->name : '' }}</span>

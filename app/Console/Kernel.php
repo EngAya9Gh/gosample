@@ -36,6 +36,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('afaqi:cron')->hourly();
         // $schedule->command('task:cron') ->everyTwoMinutes();
         $schedule->command('daily-schedule:cron') ->everyTwoMinutes();
+        $schedule->command('attendance:check-late')->everyMinute();
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); // Schedule the job to run daily at 8:00 PM
 
 

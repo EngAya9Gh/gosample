@@ -49,6 +49,7 @@ class Driver extends Authenticatable  implements JWTSubject
         'working_hours_end',
         'second_shift_working_hours_start',
         'second_shift_working_hours_end',
+        'shift_count',
         'name',
         'password',
         'status',
@@ -60,6 +61,9 @@ class Driver extends Authenticatable  implements JWTSubject
         'lat',
         'lng',
         'acceptedTerms',
+        'employment_type',
+        'shift_count',
+        'total_working_hours',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -211,5 +215,44 @@ class Driver extends Authenticatable  implements JWTSubject
     public function clientDrivers()
     {
         return $this->hasMany(ClientDriver::class);
+    }
+
+    public function shifts()
+    {
+        return $this->hasMany(DriverShift::class, 'driver_id');
+    }
+
+    public function activeShifts()
+    {
+        return $this->shifts()
+            ->where('is_active', true)
+            ->whereNull('valid_to');
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, 'driver_id');
+    }
+
+    public function getPunctualityScoreAttribute()
+    {
+        $total = $this->attendances()->whereNotNull('checkin_time')->count();
+        if ($total == 0) return 0;
+        
+        $onTime = $this->attendances()->whereNotNull('checkin_time')
+            ->where(function($q) {
+                $q->where('is_late', false)->orWhere('delay_minutes', 0);
+            })->count();
+            
+        return round(($onTime / $total) * 100);
+    }
+
+    public function getShiftCompletionScoreAttribute()
+    {
+        $attendances = $this->attendances()->whereNotNull('checkin_time')->whereNotNull('checkout_time')->get();
+        if ($attendances->isEmpty()) return 0;
+        
+        $completed = $attendances->where('early_leave_minutes', '<=', 0)->count();
+        return round(($completed / $attendances->count()) * 100);
     }
 }

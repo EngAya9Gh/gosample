@@ -22,8 +22,18 @@ class Attendance extends Model
 
     protected $fillable = [
         'driver_id',
+        'shift_id',
         'checkin_time',
         'checkout_time',
+        'expected_start',
+        'expected_end',
+        'delay_minutes',
+        'is_late',
+        'early_leave_minutes',
+        'overtime_minutes',
+        'total_worked_minutes',
+        'alert_sent',
+        'source',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -32,6 +42,11 @@ class Attendance extends Model
     public function driver()
     {
         return $this->belongsTo(Driver::class, 'driver_id');
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(DriverShift::class, 'shift_id');
     }
 
     protected function serializeDate(DateTimeInterface $date)

@@ -130,3 +130,94 @@ table.dataTable thead .sorting_desc {
 .custom-select.form-control-sm {
     padding: 0.25rem 1.5rem;
 }
+
+/* Modern Soft Badges */
+.badge-soft-success {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+    color: #28a745 !important;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+.badge-soft-danger {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+.badge-soft-primary {
+    background-color: rgba(0, 123, 255, 0.1) !important;
+    color: #007bff !important;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+/* Pulse Animation for Status Dots */
+.bg-success.rounded-circle {
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+/* Fix Select2 inside Input Groups */
+.input-group > .select2-container--default {
+    flex: 1 1 auto !important;
+    width: auto !important;
+}
+
+.input-group > .select2-container--default .select2-selection--single {
+    height: 100% !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.input-group-prepend + .select2-container--default .select2-selection--single {
+    border-left: 0 !important;
+}
+
+/* Force Input Group Items to stay on one line */
+.input-group {
+    flex-wrap: nowrap !important;
+}
+
+.input-group-prepend {
+    display: flex !important;
+}
+
+.input-group-text {
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+}
+
+/* Ensure Select2 container doesn't break the line */
+.input-group .select2-container {
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    min-width: 0 !important;
+}
+
+/* Tight iconic selects */
+.tight-icon-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+}
+
+.tight-icon-group .input-group-prepend {
+    margin-right: -1px !important; /* Overlap borders */
+    z-index: 5;
+}
+
+.tight-icon-group .select2-container {
+    flex-grow: 1 !important;
+    min-width: 0 !important;
+}
+
+.tight-icon-group .select2-selection {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-left: 0 !important;
+}

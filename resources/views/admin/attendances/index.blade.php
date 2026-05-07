@@ -3,6 +3,20 @@
     @lang('translation.attendances')
 @endsection
 @section('content')
+    <style>
+        /* Clickable rows */
+        .datatable-Attendance tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .datatable-Attendance tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05) !important;
+        }
+        .badge {
+            font-weight: 600;
+            padding: 5px 10px;
+        }
+    </style>
     @component('components.breadcrumb')
         @slot('li_1')
         @lang('translation.appname')
@@ -27,7 +41,7 @@
 
     <div class="card-body">
         <div class="table-responsive">
-            <table class=" table table-bordered table-striped table-hover datatable datatable-Attendance">
+            <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-Attendance">
                 <thead>
                     <tr>
                         <th width="10">
@@ -48,64 +62,19 @@
                         <th>
                             {{ trans('translation.attendance.fields.checkout_time') }}
                         </th>
+                        <th>Status</th>
+                        <th>Delay (Min)</th>
+                        <th>Overtime (Min)</th>
+                        <th>Source</th>
                         <th>
                             &nbsp;
                         </th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($attendances as $key => $attendance)
-                        <tr data-entry-id="{{ $attendance->id }}">
-                            <td>
-
-                            </td>
-                            <td>
-                                {{ $attendance->id ?? '' }}
-                            </td>
-                            <td>
-                                {{ $attendance->driver->name ?? '' }}
-                            </td>
-                            <td>
-                                {{ $attendance->driver->mobile ?? '' }}
-                            </td>
-                            <td>
-                                {{ $attendance->checkin_time ?? '' }}
-                            </td>
-                            <td>
-                                {{ $attendance->checkout_time ?? '' }}
-                            </td>
-                            <td>
-                                @can('attendance_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.attendances.show', $attendance->id) }}">
-                                        {{ trans('translation.view') }}
-                                    </a>
-                                @endcan
-
-                                @can('attendance_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.attendances.edit', $attendance->id) }}">
-                                        {{ trans('translation.edit') }}
-                                    </a>
-                                @endcan
-
-                                @can('can-delete')
-                                    <form action="{{ route('admin.attendances.destroy', $attendance->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('translation.delete') }}">
-                                    </form>
-                                @endcan
-
-                            </td>
-
-                        </tr>
-                    @endforeach
-                </tbody>
             </table>
         </div>
     </div>
 </div>
-
-
 
 @endsection
 @section('scripts')
@@ -120,8 +89,8 @@
     url: "{{ route('admin.attendances.massDestroy') }}",
     className: 'btn-danger',
     action: function (e, dt, node, config) {
-      var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
-          return $(entry).data('entry-id')
+      var ids = $.map(dt.rows({ selected: true }).data(), function (entry) {
+          return entry.id
       });
 
       if (ids.length === 0) {
@@ -143,18 +112,48 @@
   dtButtons.push(deleteButton)
 @endcan
 
-  $.extend(true, $.fn.dataTable.defaults, {
+  let dtOverrideGlobals = {
+    buttons: dtButtons,
+    processing: true,
+    serverSide: true,
+    retrieve: true,
+    aaSorting: [[ 1, 'desc' ]],
+    ajax: "{{ route('admin.attendances.index') }}",
+    columns: [
+      { data: 'placeholder', name: 'placeholder' },
+      { data: 'id', name: 'id' },
+      { data: 'driver_name', name: 'driver.name' },
+      { data: 'driver_mobile', name: 'driver.mobile' },
+      { data: 'checkin_time', name: 'checkin_time' },
+      { data: 'checkout_time', name: 'checkout_time' },
+      { data: 'is_late', name: 'is_late' },
+      { data: 'delay_minutes', name: 'delay_minutes' },
+      { data: 'overtime_minutes', name: 'overtime_minutes' },
+      { data: 'source', name: 'source' },
+      { data: 'actions', name: '{{ trans('translation.actions') }}' }
+    ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
     pageLength: 100,
-  });
-  let table = $('.datatable-Attendance:not(.ajaxTable)').DataTable({ buttons: dtButtons })
+  };
+  let table = $('.datatable-Attendance').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){
       $($.fn.dataTable.tables(true)).DataTable()
           .columns.adjust();
   });
   
-})
+  // Clickable row logic for Attendances
+  $('.datatable-Attendance tbody').on('click', 'tr', function (e) {
+      if ($(e.target).closest('.text-nowrap, .select-checkbox, button, a').length) {
+          return;
+      }
+      
+      let data = table.row(this).data();
+      if (data && data.id) {
+          window.location.href = `/admin/attendances/${data.id}`;
+      }
+  });
+});
 
 </script>
 @endsection

@@ -25,6 +25,15 @@
             border-radius: 5px;
             margin-bottom: 6px;
         }
+
+        /* Clickable rows */
+        .datatable-Driver tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .datatable-Driver tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05) !important;
+        }
     </style>
     @can('driver_create')
         <div style="margin-bottom: 10px;" class="row">
@@ -99,45 +108,15 @@
             <table class=" table table-bordered table-striped table-hover ajaxTable datatable datatable-Driver w-100">
                 <thead>
                     <tr>
-                        <th width="10">
-
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.id') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.name') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.status') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.username') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.mobile') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.email') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.language') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.lat') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.lng') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.driver.fields.accepted_terms') }}
-                        </th>
-                        <th>
-                            &nbsp;
-                        </th>
-                        <th>
-                            &nbsp;
-                        </th>
+                        <th width="10"></th>
+                        <th>{{ trans('cruds.driver.fields.id') }}</th>
+                        <th>{{ trans('cruds.driver.fields.name') }}</th>
+                        <th>{{ trans('cruds.driver.fields.status') }}</th>
+                        <th>{{ trans('cruds.driver.fields.username') }}</th>
+                        <th>{{ trans('cruds.driver.fields.mobile') }}</th>
+                        <th>{{ trans('cruds.driver.fields.email') }}</th>
+                        <th>Tasks</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
             </table>
@@ -194,7 +173,7 @@
                 processing: true,
                 serverSide: true,
                 retrieve: true,
-                aaSorting: [],
+                aaSorting: [[1, 'desc']],
                 ajax: {
                     url: "{{ route('admin.drivers.index') }}",
                     data: function(d) {
@@ -206,68 +185,49 @@
                     }
                 },
 
-                columns: [{
-                        data: 'placeholder',
-                        name: 'placeholder'
+                columns: [
+                    { data: 'placeholder', name: 'placeholder' },
+                    { data: 'id', name: 'id' },
+                    { data: 'name', name: 'name' },
+                    { 
+                        data: 'status', 
+                        name: 'status',
+                        render: function(data, type, row) {
+                            if (data === 'Enabled') {
+                                return `
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-soft-success d-flex align-items-center rounded-pill px-3 py-1">
+                                            <span class="bg-success rounded-circle mr-2" style="width: 8px; height: 8px; display: inline-block; box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);"></span>
+                                            <span class="fw-bold" style="font-size: 0.85rem;">Enabled</span>
+                                        </span>
+                                    </div>
+                                `;
+                            } else if (data === 'Disabled') {
+                                return `
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-soft-danger d-flex align-items-center rounded-pill px-3 py-1">
+                                            <span class="bg-danger rounded-circle mr-2" style="width: 8px; height: 8px; display: inline-block;"></span>
+                                            <span class="fw-bold" style="font-size: 0.85rem;">Disabled</span>
+                                        </span>
+                                    </div>
+                                `;
+                            }
+                            return data;
+                        }
                     },
+                    { data: 'username', name: 'username' },
+                    { data: 'mobile', name: 'mobile' },
+                    { data: 'email', name: 'email' },
                     {
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'username',
-                        name: 'username'
-                    },
-                    {
-                        data: 'mobile',
-                        name: 'mobile'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'language',
-                        name: 'language'
-                    },
-                    {
-                        data: 'lat',
-                        name: 'lat'
-                    },
-                    {
-                        data: 'lng',
-                        name: 'lng'
-                    },
-                    {
-                        data: 'accepted_terms',
-                        name: 'accepted_terms'
-                    },{
                         data: 'view_tasks',
-                        name: '{{ trans('global.actions') }}',
+                        name: 'Tasks',
                         render: function (data, type, row) {
-                            return `
-                                <a href="/admin/drivers/${row.id}/tasks" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-tasks"></i> Tasks
-                                </a>
-                            `;
+                            return `<a href="/admin/drivers/${row.id}/tasks" class="btn btn-xs btn-primary shadow-sm"><i class="fas fa-tasks"></i> Tasks</a>`;
                         },
                         orderable: false,
                         searchable: false
-                },
-                    {
-                        data: 'actions',
-                        name: '{{ trans('global.actions') }}',
-                        orderable: false,
-                        searchable: false
-                    }
+                    },
+                    { data: 'actions', name: '{{ trans('global.actions') }}', orderable: false, searchable: false }
                 ],
                 orderCellsTop: true,
                 order: [
@@ -283,6 +243,19 @@
             $("#search").click(function() {
                 // alert("button");
                 table.draw();
+            });
+
+            // Clickable row logic
+            $('.datatable-Driver tbody').on('click', 'tr', function (e) {
+                // Don't trigger if clicking on actions, checkboxes, or buttons
+                if ($(e.target).closest('.text-nowrap, .select-checkbox, button, a').length) {
+                    return;
+                }
+                
+                let data = table.row(this).data();
+                if (data && data.id) {
+                    window.location.href = `/admin/drivers/${data.id}`;
+                }
             });
 
         });

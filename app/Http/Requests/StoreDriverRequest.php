@@ -34,8 +34,6 @@ class StoreDriverRequest extends FormRequest
             'working_hours_end' => [
                 'required',
                 // 'date_format:H:i',
-                'after:working_hours_start',
-
             ],
             'status' => [
                 'required',
@@ -55,7 +53,24 @@ class StoreDriverRequest extends FormRequest
                 'required',
                 'unique:drivers',
             ],
-           
+            'shift_count' => [
+                'integer',
+                'nullable',
+            ],
+            'employment_type' => [
+                'string',
+                'nullable',
+            ],
+            'total_working_hours' => [
+                'integer',
+                'nullable',
+            ],
+            'second_shift_working_hours_start' => [
+                'nullable',
+            ],
+            'second_shift_working_hours_end' => [
+                'nullable',
+            ],
         ];
     }
 }

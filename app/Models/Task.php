@@ -143,7 +143,7 @@ class Task extends Model
     {
         $fourDaysAgo = Carbon::now()->subDays(4);
         $data =  $this
-        ->whereRaw('TIMESTAMPDIFF(MINUTE,  collection_date,NOW() ) > 10')
+        ->whereRaw('TIMESTAMPDIFF(MINUTE,  collection_date,NOW() ) > 15')
         ->where('status','COLLECTED')
         ->where('created_at', '>=', $fourDaysAgo);
 	//if ($client_id){
@@ -156,7 +156,7 @@ class Task extends Model
     { 
         $fourDaysAgo = Carbon::now()->subDays(4);
         $data =  $this
-        ->whereRaw('TIMESTAMPDIFF(MINUTE,  freezer_out_date,NOW() ) > 5')
+        ->whereRaw('TIMESTAMPDIFF(MINUTE,  freezer_out_date,NOW() ) > 15')
         ->where('status','OUT_FREEZER')
         ->where('created_at', '>=', $fourDaysAgo);
 	if ($client_id){
@@ -350,5 +350,34 @@ class Task extends Model
         }
 
         return null;
+    }
+
+    public function getDelayedReasonLabelsAttribute()
+    {
+        if (!$this->delayed_reason) return '';
+        
+        $reasons = explode(',', $this->delayed_reason);
+        $labels = [];
+        
+        foreach ($reasons as $reason) {
+            switch (trim($reason)) {
+                case 'pickup_delayed':
+                    $labels[] = 'Pickup Delay';
+                    break;
+                case 'dropoff_delayed':
+                    $labels[] = 'Drop-off Delay';
+                    break;
+                case 'placement_delayed':
+                    $labels[] = 'Placement Delay';
+                    break;
+                case 'delivery_step_delayed':
+                    $labels[] = 'Delivery Delay';
+                    break;
+                default:
+                    $labels[] = $reason;
+            }
+        }
+        
+        return implode(', ', $labels);
     }
 }

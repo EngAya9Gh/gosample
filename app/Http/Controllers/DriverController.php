@@ -1071,4 +1071,164 @@ class DriverController extends Controller
         return (int) ceil($totalSeconds / 60);
     }
 
+    public function checkin(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'driver_id' => 'required|exists:drivers,id',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->response(false, $this->validationHandle($validator->messages()));
+            }
+
+            $driver = Driver::find($request->driver_id);
+            $now = Carbon::now();
+            $todayName = strtolower($now->format('l'));
+
+            // Find current active shift
+            $currentShift = null;
+            foreach ($driver->activeShifts as $shift) {
+                if (in_array($todayName, $shift->days ?? [])) {
+                    $shiftStart = Carbon::createFromFormat('H:i:s', $shift->start_time)->setDate($now->year, $now->month, $now->day);
+                    $shiftEnd = Carbon::createFromFormat('H:i:s', $shift->end_time)->setDate($now->year, $now->month, $now->day);
+                    if ($shiftEnd->lessThan($shiftStart)) { $shiftEnd->addDay(); }
+                    
+                    // We consider it the current shift if we are within 2 hours before start, or anytime before end
+                    if ($now->greaterThanOrEqualTo($shiftStart->copy()->subHours(2)) && $now->lessThanOrEqualTo($shiftEnd)) {
+                        $currentShift = $shift;
+                        break;
+                    }
+                }
+            }
+
+            $expectedStart = $currentShift ? $currentShift->start_time : ($driver->working_hours_start ?? null);
+            $expectedEnd = $currentShift ? $currentShift->end_time : ($driver->working_hours_end ?? null);
+            
+            // Check if already checked in today
+            $existingAttendance = \App\Models\Attendance::where('driver_id', $driver->id)
+                ->whereDate('created_at', $now->toDateString())
+                ->whereNotNull('checkin_time')
+                ->first();
+
+            if ($existingAttendance) {
+                return $this->response(false, 'Already checked in today.');
+            }
+
+            // Calculate delay
+            $delayMinutes = 0;
+            $isLate = false;
+            
+            if ($expectedStart) {
+                $expectedStartCarbon = Carbon::createFromFormat('H:i:s', $expectedStart)->setDate($now->year, $now->month, $now->day);
+                if ($now->greaterThan($expectedStartCarbon)) {
+                    $delayMinutes = $now->diffInMinutes($expectedStartCarbon);
+                    if ($delayMinutes > 15) {
+                        $isLate = true;
+                    }
+                }
+            }
+
+            // check if an auto record exists
+            $attendance = \App\Models\Attendance::where('driver_id', $driver->id)
+                ->whereDate('created_at', $now->toDateString())
+                ->where('source', 'auto')
+                ->first();
+
+            if ($attendance) {
+                $attendance->update([
+                    'checkin_time' => $now->toTimeString(),
+                    'delay_minutes' => $delayMinutes,
+                    'is_late' => $isLate,
+                    'source' => 'app',
+                ]);
+            } else {
+                $attendance = \App\Models\Attendance::create([
+                    'driver_id' => $driver->id,
+                    'shift_id' => $currentShift ? $currentShift->id : null,
+                    'checkin_time' => $now->toTimeString(),
+                    'expected_start' => $expectedStart,
+                    'expected_end' => $expectedEnd,
+                    'delay_minutes' => $delayMinutes,
+                    'is_late' => $isLate,
+                    'source' => 'app'
+                ]);
+            }
+
+            // Send notification to admins if late
+            if ($isLate) {
+                $admins = \App\Models\User::whereHas('roles', function($q) {
+                    $q->where('id', 1); // Admin role
+                })->get();
+                
+                \Notification::send($admins, new \App\Notifications\AttendanceDelayNotification($driver, $delayMinutes));
+            }
+
+            return $this->response(true, 'Checked in successfully', $attendance);
+
+        } catch (Exception $e) {
+            \Log::error($e);
+            return $this->response(false, 'System error');
+        }
+    }
+
+    public function checkout(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'driver_id' => 'required|exists:drivers,id',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->response(false, $this->validationHandle($validator->messages()));
+            }
+
+            $driver = Driver::find($request->driver_id);
+            $now = Carbon::now();
+
+            $attendance = \App\Models\Attendance::where('driver_id', $driver->id)
+                ->whereDate('created_at', $now->toDateString())
+                ->whereNotNull('checkin_time')
+                ->whereNull('checkout_time')
+                ->first();
+
+            if (!$attendance) {
+                return $this->response(false, 'No active check-in found for today.');
+            }
+
+            $checkinTime = Carbon::parse($attendance->created_at->format('Y-m-d') . ' ' . $attendance->checkin_time);
+            $totalWorkedMinutes = $now->diffInMinutes($checkinTime);
+            
+            $overtimeMinutes = 0;
+            $earlyLeaveMinutes = 0;
+
+            if ($attendance->expected_start && $attendance->expected_end) {
+                $expectedStart = Carbon::parse($attendance->created_at->format('Y-m-d') . ' ' . $attendance->expected_start);
+                $expectedEnd = Carbon::parse($attendance->created_at->format('Y-m-d') . ' ' . $attendance->expected_end);
+                if ($expectedEnd->lessThan($expectedStart)) { $expectedEnd->addDay(); }
+                
+                $expectedMinutes = $expectedEnd->diffInMinutes($expectedStart);
+                
+                if ($totalWorkedMinutes > $expectedMinutes) {
+                    $overtimeMinutes = $totalWorkedMinutes - $expectedMinutes;
+                } else if ($totalWorkedMinutes < $expectedMinutes) {
+                    $earlyLeaveMinutes = $expectedMinutes - $totalWorkedMinutes;
+                }
+            }
+
+            $attendance->update([
+                'checkout_time' => $now->toTimeString(),
+                'total_worked_minutes' => $totalWorkedMinutes,
+                'overtime_minutes' => $overtimeMinutes,
+                'early_leave_minutes' => $earlyLeaveMinutes,
+            ]);
+
+            return $this->response(true, 'Checked out successfully', $attendance);
+
+        } catch (Exception $e) {
+            \Log::error($e);
+            return $this->response(false, 'System error');
+        }
+    }
+
 }
