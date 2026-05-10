@@ -34,7 +34,7 @@
 <div class="tab-content" id="notificationItemsTabContent">
     <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
         <div data-simplebar style="max-height: 300px;" class="pe-2">
-            @foreach ($lost_samples as $sample)
+            @forelse ($lost_samples as $sample)
                 <div class="text-reset notification-item d-block dropdown-item position-relative">
                     <div class="d-flex">
                         <div class="flex-1">
@@ -47,18 +47,60 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="text-center pb-5 mt-2">
+                    <div class="w-25 pt-3 mx-auto">
+                        <img src="{{ URL::asset('assets/images/svg/bell.svg') }}" class="img-fluid" alt="user-pic">
+                    </div>
+                    <h6 class="fs-16 fw-semibold lh-base mt-4">No lost samples!</h6>
+                </div>
+            @endforelse
         </div>
     </div>
 
     <div class="tab-pane fade py-2 ps-2" id="messages-tab" role="tabpanel">
         <div data-simplebar style="max-height: 300px;" class="pe-2">
+            @php $hasTasks = false; @endphp
+            
+            @foreach ($newTasks as $record)
+                @php $hasTasks = true; @endphp
+                <div class="text-reset notification-item d-block dropdown-item position-relative">
+                    <div class="d-flex">
+                        <div class="flex-1">
+                            <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
+                                <p class="mt-0 mb-2 lh-base"><b>New Task #{{ $record->id }}</b> has been created.</p>
+                            </a>
+                            <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+
+            @foreach ($newSwapTasks as $record)
+                @php $hasTasks = true; @endphp
+                <div class="text-reset notification-item d-block dropdown-item position-relative">
+                    <div class="d-flex">
+                        <div class="flex-1">
+                            <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
+                                <p class="mt-0 mb-2 lh-base"><b>New Swap Request</b> for Task #{{ $record->task_id ?? $record->id }}</p>
+                            </a>
+                            <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+
             @foreach ($pickup_delayedTasks as $record)
+                @php $hasTasks = true; @endphp
                 <div class="text-reset notification-item d-block dropdown-item position-relative">
                     <div class="d-flex">
                         <div class="flex-1">
                             <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
-                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed!, please check</p>
+                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed (Pickup)!, please check</p>
                             </a>
                             <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                 <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
@@ -67,12 +109,14 @@
                     </div>
                 </div>
             @endforeach
+            
             @foreach ($drop_off_delayedTasks as $record)
+                @php $hasTasks = true; @endphp
                 <div class="text-reset notification-item d-block dropdown-item position-relative">
                     <div class="d-flex">
                         <div class="flex-1">
                             <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
-                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed!, please check</p>
+                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed (Drop-off)!, please check</p>
                             </a>
                             <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                 <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
@@ -81,12 +125,14 @@
                     </div>
                 </div>
             @endforeach
+            
             @foreach ($delayed_tasks_in_freezer as $record)
+                @php $hasTasks = true; @endphp
                 <div class="text-reset notification-item d-block dropdown-item position-relative">
                     <div class="d-flex">
                         <div class="flex-1">
                             <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
-                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed!, please check</p>
+                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed in Freezer!, please check</p>
                             </a>
                             <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                 <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
@@ -95,12 +141,14 @@
                     </div>
                 </div>
             @endforeach
+            
             @foreach ($delayed_tasks_delivered as $record)
+                @php $hasTasks = true; @endphp
                 <div class="text-reset notification-item d-block dropdown-item position-relative">
                     <div class="d-flex">
                         <div class="flex-1">
                             <a href="{{ url('admin/tasks/' . $record->id) }}" class="stretched-link">
-                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed!, please check</p>
+                                <p class="mt-0 mb-2 lh-base">The <b>Task {{ $record->id }}</b> is delayed (Delivery)!, please check</p>
                             </a>
                             <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                 <span><i class="mdi mdi-clock-outline"></i> {{ $record->created_at }}</span>
@@ -109,6 +157,15 @@
                     </div>
                 </div>
             @endforeach
+
+            @if (!$hasTasks)
+                <div class="text-center pb-5 mt-2">
+                    <div class="w-25 pt-3 mx-auto">
+                        <img src="{{ URL::asset('assets/images/svg/bell.svg') }}" class="img-fluid" alt="user-pic">
+                    </div>
+                    <h6 class="fs-16 fw-semibold lh-base mt-4">No delayed tasks!</h6>
+                </div>
+            @endif
         </div>
     </div>
 

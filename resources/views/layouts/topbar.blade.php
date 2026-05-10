@@ -121,10 +121,9 @@
                 </div>
 
 
-                <div class="dropdown topbar-head-dropdown ms-1 header-item">
+                <div class="topbar-head-dropdown ms-1 header-item" style="position:relative;">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
-                        id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false">
+                        id="page-header-notifications-dropdown">
                         <i class='bx bx-bell fs-22'></i>
                         <span id="topbar-notification-badge"
                             class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger d-none">
@@ -132,8 +131,8 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
                         id="topbar-notification-dropdown-container"
-                        aria-labelledby="page-header-notifications-dropdown">
-                        <div class="text-center py-4">
+                        style="display:none; position:absolute; right:0; top:100%; z-index:9999;">
+                        <div class="text-center py-4" id="notification-spinner">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
@@ -191,47 +190,114 @@
     </div>
 </header>
 
-@section('script')
-    <script src="{{ URL::asset('/assets/js/app.min.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            function loadNotifications() {
-                // 1. Load HTML Content for Dropdown
-                $.ajax({
-                    url: "{{ route('admin.header.notifications') }}",
-                    type: 'GET',
-                    data: { html: 1 },
-                    success: function(response) {
-                        $('#topbar-notification-dropdown-container').html(response);
-                    }
-                });
+{{-- سكريبت الإشعارات: مضمّن مباشرة ليعمل في كل الصفحات --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var notificationLoaded = false;
+    var dropdownOpen = false;
+    var bellBtn = document.getElementById('page-header-notifications-dropdown');
+    var container = document.getElementById('topbar-notification-dropdown-container');
 
-                // 2. Load JSON Data for Badges
-                $.getJSON("{{ route('admin.header.notifications') }}", function(data) {
-                    if (data.delayed_count > 0) {
-                        $('#topbar-notification-badge').text(data.delayed_count).removeClass('d-none');
-                    } else {
-                        $('#topbar-notification-badge').addClass('d-none');
-                    }
-                    
-                    if (data.lost_samples && data.lost_samples.length > 0) {
-                        $('#lost-samples-badge').text(data.lost_samples.length).removeClass('d-none');
-                    } else {
-                        $('#lost-samples-badge').addClass('d-none');
-                    }
-                    
-                    if (data.newTasksCount > 0) {
-                        $('#new-tasks-badge').text(data.newTasksCount).removeClass('d-none');
-                    }
-                    if (data.newSwapTasksCount > 0) {
-                        $('#new-swaps-badge').text(data.newSwapTasksCount).removeClass('d-none');
-                    }
-                });
+    if (!bellBtn || !container) return;
+
+    // فتح/إغلاق القائمة يدوياً
+    bellBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (dropdownOpen) {
+            container.style.display = 'none';
+            dropdownOpen = false;
+        } else {
+            container.style.display = 'block';
+            dropdownOpen = true;
+            if (!notificationLoaded) {
+                fetchNotifications();
+            }
+        }
+    });
+
+    // إغلاق عند النقر خارج القائمة
+    document.addEventListener('click', function(e) {
+        if (dropdownOpen && !container.contains(e.target) && !bellBtn.contains(e.target)) {
+            container.style.display = 'none';
+            dropdownOpen = false;
+        }
+    });
+
+    // منع الإغلاق عند النقر داخل القائمة
+    container.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // جلب بيانات الإشعارات
+    function fetchNotifications() {
+        fetch('{{ route("admin.header.notifications") }}', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            notificationLoaded = true;
+
+            // تحديث HTML القائمة
+            if (data.html) {
+                container.innerHTML = data.html;
+
+                // إعادة تشغيل SimpleBar للمحتوى الجديد
+                if (window.SimpleBar) {
+                    container.querySelectorAll('[data-simplebar]').forEach(function(el) {
+                        new SimpleBar(el);
+                    });
+                }
+
+                initTabs();
             }
 
-            loadNotifications();
-            // Refresh every 5 minutes
-            setInterval(loadNotifications, 300000);
+            // تحديث الأرقام
+            setBadge('topbar-notification-badge', data.delayed_count);
+            setBadge('lost-samples-badge', data.lost_samples_count);
+            setBadge('new-tasks-badge', data.newTasksCount);
+            setBadge('new-swaps-badge', data.newSwapTasksCount);
+        })
+        .catch(function(err) {
+            console.error('Notifications error:', err);
+            container.innerHTML = '<div class="text-center py-4 text-muted"><p>Failed to load notifications</p></div>';
         });
-    </script>
+    }
+
+    function setBadge(id, count) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (count > 0) {
+            el.textContent = count;
+            el.classList.remove('d-none');
+        } else {
+            el.classList.add('d-none');
+        }
+    }
+
+    function initTabs() {
+        container.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var targetId = link.getAttribute('href');
+                container.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+                link.classList.add('active');
+                container.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('show', 'active'); });
+                var target = container.querySelector(targetId);
+                if (target) target.classList.add('show', 'active');
+            });
+        });
+    }
+
+    // تحميل في الخلفية عند فتح الصفحة
+    fetchNotifications();
+
+    // تحديث دوري كل 3 دقائق
+    setInterval(fetchNotifications, 180000);
+});
+</script>
+
+@section('script')
 @endsection
+
