@@ -182,6 +182,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
      Route::get('reports/monthly', 'ReportsController@monthly')->name('reports.monthly');
      Route::get('reports/monthly/export', 'ReportsController@exportMonthly')->name('reports.exportMonthly');
      Route::get('reports/performance', 'ReportsController@performance')->name('reports.performance');
+     Route::get('header/notifications-data', 'ReportsController@getHeaderNotifications')->name('header.notifications');
 
      Route::get('system-calendar', 'SystemCalendarController@index')->name('systemCalendar');
 

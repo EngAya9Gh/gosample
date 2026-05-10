@@ -1,0 +1,135 @@
+{
+	"info": {
+		"_postman_id": "8c5a2b9d-5c24-4893-b5a0-c7dd14998681",
+		"name": "Logistics App API",
+		"description": "Complete collection for Driver and Sample Management APIs.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "username", "value": "driver_username", "type": "text" },
+								{ "key": "password", "value": "password", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/driver/login", "host": ["{{base_url}}"], "path": ["api", "driver", "login"] }
+					}
+				},
+				{
+					"name": "Login with Mobile",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "mobile", "value": "966500000000", "type": "text" },
+								{ "key": "password", "value": "password", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/driver/loginWithMobile", "host": ["{{base_url}}"], "path": ["api", "driver", "loginWithMobile"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "driver_id", "value": "1", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/driver/tasks", "host": ["{{base_url}}"], "path": ["api", "driver", "tasks"] }
+					}
+				},
+				{
+					"name": "Start Task",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "708114", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/driver/task/start", "host": ["{{base_url}}"], "path": ["api", "driver", "task", "start"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Samples (Optimized)",
+			"item": [
+				{
+					"name": "Add Samples (150+ Test)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"task_id\": 708114,\n    \"location_id\": 1358,\n    \"temperature_type\": \"ROOM\",\n    \"sample_type\": \"BLOOD\",\n    \"bag_code\": \"BAG_BATCH_001\",\n    \"barcode_ids\": [\"SAMP_001\", \"SAMP_002\", \"... (add up to 150)\"]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/api/samples/add", "host": ["{{base_url}}"], "path": ["api", "samples", "add"] }
+					}
+				},
+				{
+					"name": "List Samples",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "708114", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/samples/list", "host": ["{{base_url}}"], "path": ["api", "samples", "list"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Swapping",
+			"item": [
+				{
+					"name": "Create Swap",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "driver_id", "value": "1", "type": "text" },
+								{ "key": "task_id", "value": "708114", "type": "text" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/api/swap/create", "host": ["{{base_url}}"], "path": ["api", "swap", "create"] }
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost", "type": "string" }
+	]
+}
