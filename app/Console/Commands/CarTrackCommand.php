@@ -77,7 +77,7 @@ public function handle()
                 try {
                     $response = Http::withoutVerifying()
                         ->retry(2, 1000)
-                        ->timeout(10)
+                        ->timeout(30)
                         ->post($url, [
                             'data' => [
                                 'simplify' => 1,
@@ -202,7 +202,7 @@ public function handle()
             ],
         ];
 
-        $response = Http::timeout(10)->post($url, $payload);
+        $response = Http::timeout(30)->post($url, $payload);
 
         if ($response->status() == 200) {
             $data = $response->json();
