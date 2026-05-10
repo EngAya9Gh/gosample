@@ -316,6 +316,12 @@
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
+                createdRow: function(row, data, dataIndex) {
+                    $(row).css('cursor', 'pointer');
+                    $(row).on('click', 'td:not(:first-child):not(:last-child)', function() {
+                        window.location.href = "{{ route('admin.tasks.show', '') }}/" + data.id;
+                    });
+                },
                 columns: [{
                         data: 'placeholder',
                         name: 'placeholder'
