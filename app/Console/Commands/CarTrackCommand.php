@@ -74,33 +74,39 @@ public function handle()
                 //     ]
                 // ]);
                 $url = 'https://api.afaqy.sa/units/lists?token=' . $token;
-                $response = Http::withoutVerifying()
-                    // ->retry(3, 1000)
-                    // ->timeout(30)
-                    ->post($url, [
-                        'data' => [
-                            'simplify' => 1,
-                            'filters' => [
-                                'imei' => [
-                                    'value' => $car_imei,
+                try {
+                    $response = Http::withoutVerifying()
+                        ->retry(2, 1000)
+                        ->timeout(10)
+                        ->post($url, [
+                            'data' => [
+                                'simplify' => 1,
+                                'filters' => [
+                                    'imei' => [
+                                        'value' => $car_imei,
+                                    ],
                                 ],
-                            ],
-                            'projection' => [
-                                'basic',
-                                'last_update',
-                                'sensors_last_val',
-                                'counters',
-                                'sensors'
-                            ],
-                            'offset' => 0,
-                            'limit' => 100000,
-                            'simplify' => 1
-                        ]
-                    ]);
-                if ($response->status() == 200) {
-                    $sensors = $response->json();
-                } 
-                
+                                'projection' => [
+                                    'basic',
+                                    'last_update',
+                                    'sensors_last_val',
+                                    'counters',
+                                    'sensors'
+                                ],
+                                'offset' => 0,
+                                'limit' => 100000,
+                                'simplify' => 1
+                            ]
+                        ]);
+                    if ($response->status() == 200) {
+                        $sensors = $response->json();
+                    } else {
+                        continue;
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Afaqy API error for car $car_id: " . $e->getMessage());
+                    continue;
+                }
                 // \Log::info("sensors");
                 // \Log::info($car_imei);
                 // \Log::info($sensors);
@@ -196,7 +202,7 @@ public function handle()
             ],
         ];
 
-        $response = Http::post($url, $payload);
+        $response = Http::timeout(10)->post($url, $payload);
 
         if ($response->status() == 200) {
             $data = $response->json();
