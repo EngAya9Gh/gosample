@@ -137,6 +137,6 @@ class LogService
 
     public function baseUrl(string $url)
     {
-        return env('LOG_HOSTS','http://log.local') . $url;
+        return config('services.blazma.LOG_HOSTS', 'http://158.101.243.250') . $url;
     }
 }
