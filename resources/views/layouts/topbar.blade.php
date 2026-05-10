@@ -63,16 +63,12 @@
                         </a>
                         <a class="dropdown-item" href="{{ route('admin.tasks.index') }}">
                             <i class="bx bx-list-check me-2"></i>List Tasks (New Tasks)
-                            @if ($newTasksCount > 0)
-                                <span class="badge bg-danger">{{ $newTasksCount }}</span>
-                            @endif
+                            <span id="new-tasks-badge" class="badge bg-danger d-none">0</span>
                         </a>
 
                         <a class="dropdown-item" href="{{ route('admin.swaprequests.index') }}">
                             <i class="bx bx-transfer me-2"></i>Swap Request
-                            @if ($newSwapTasksCount > 0)
-                                <span class="badge bg-danger">{{ $newSwapTasksCount }}</span>
-                            @endif
+                            <span id="new-swaps-badge" class="badge bg-danger d-none">0</span>
                         </a>
                         <a class="dropdown-item" href="{{ route('admin.swaprequests.create') }}">
                             <i class="bx bx-transfer me-2"></i>New Swap Request
@@ -117,9 +113,9 @@
                     <a href="{{ route('admin.samples.lost') }}"
                         class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode">
                         <i class="ri-flask-line fs-22"></i>
-                        <span
-                            class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
-                            {{ count($lost_samples) }}</span>
+                        <span id="lost-samples-badge"
+                            class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger d-none">
+                            0</span>
                         </button>
                     </a>
                 </div>
@@ -130,225 +126,16 @@
                         id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true"
                         aria-expanded="false">
                         <i class='bx bx-bell fs-22'></i>
-                        <span
-                            class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
-                            {{ $delayed_count }}<span class="visually-hidden">unread messages</span></span>
+                        <span id="topbar-notification-badge"
+                            class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger d-none">
+                            0<span class="visually-hidden">unread messages</span></span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
+                        id="topbar-notification-dropdown-container"
                         aria-labelledby="page-header-notifications-dropdown">
-
-                        <div class="dropdown-head bg-primary bg-pattern rounded-top">
-                            <div class="p-3">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
-                                    </div>
-                                    <div class="col-auto dropdown-tabs">
-                                        <span class="badge badge-soft-light fs-13"> {{$delayed_count}} New</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="px-2 pt-2">
-                                <ul class="nav nav-tabs dropdown-tabs nav-tabs-custom" data-dropdown-tabs="true"
-                                    id="notificationItemsTab" role="tablist">
-                                    <li class="nav-item waves-effect waves-light">
-                                        <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab"
-                                            role="tab" aria-selected="true">
-                                            Lost Samples ({{ count($lost_samples) }})
-                                        </a>
-                                    </li>
-                                    <li class="nav-item waves-effect waves-light">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#messages-tab" role="tab"
-                                            aria-selected="false">
-                                            Tasks ({{ $delayed_count - count($lost_samples) - $systemNotifications->count() }})
-                                        </a>
-                                    </li>
-                                    <li class="nav-item waves-effect waves-light">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#alerts-tab" role="tab"
-                                            aria-selected="false">
-                                            Alerts ({{ $systemNotifications->count() }})
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-
-                        <div class="tab-content" id="notificationItemsTabContent">
-                            <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
-                                <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                    @foreach ($lost_samples as $sample)
-                                        <div
-                                            class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-
-                                                <div class="flex-1">
-                                                    <a href="{{ url('admin/samples/' . $sample->id) }}"
-                                                        class="stretched-link">
-                                                        <h6 class="mt-0 mb-2 lh-base">The <b>Sample
-                                                            </b>is lost!, please
-                                                            check
-                                                        </h6>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i>
-                                                            {{ $sample->barcode_id }}</span>
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    @endforeach
-
-                                    {{-- <div class="my-3 text-center">
-                                        <a href="{{ url('admin/swaprequests') }}" class="btn btn-soft-success">
-                                            <i class="ri-arrow-right-line align-middle"></i>View All Notifications</a>
-
-                                        <!-- <button type="button" class="btn btn-soft-success waves-effect waves-light">View
-                                            All Notifications <i class="ri-arrow-right-line align-middle"></i></button> -->
-                                    </div> --}}
-                                </div>
-
-                            </div>
-
-                            <div class="tab-pane fade py-2 ps-2" id="messages-tab" role="tabpanel"
-                                aria-labelledby="messages-tab">
-                                <div data-simplebar style="max-height: 300px;" class="pe-2">
-
-                                    @foreach ($pickup_delayedTasks as $record)
-                                        <div
-                                            class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-
-                                                <div class="flex-1">
-                                                    <a href="{{ url('admin/tasks/' . $record->id) }}"
-                                                        class="stretched-link">
-                                                        <p class="mt-0 mb-2 lh-base">The <b>Task
-                                                                {{ $record->id }}</b> is delayed!, please check
-                                                        </p>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i>
-                                                            {{ $record->created_at }}</span>
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    @endforeach
-
-
-                                    @foreach ($drop_off_delayedTasks as $record)
-                                        <div
-                                            class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-
-                                                <div class="flex-1">
-                                                    <a href="{{ url('admin/tasks/' . $record->id) }}"
-                                                        class="stretched-link">
-                                                        <p class="mt-0 mb-2 lh-base">The <b>Task
-                                                                {{ $record->id }}</b> is delayed!, please check
-                                                        </p>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i>
-                                                            {{ $record->created_at }}</span>
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    @endforeach
-
-
-                                    @foreach ($delayed_tasks_in_freezer as $record)
-                                        <div
-                                            class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-
-                                                <div class="flex-1">
-                                                    <a href="{{ url('admin/tasks/' . $record->id) }}"
-                                                        class="stretched-link">
-                                                        <p class="mt-0 mb-2 lh-base">The <b>Task
-                                                                {{ $record->id }}</b>is delayed!, please check
-                                                        </p>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i>
-                                                            {{ $record->created_at }}</span>
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                    @foreach ($delayed_tasks_delivered as $record)
-                                        <div
-                                            class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-
-                                                <div class="flex-1">
-                                                    <a href="{{ url('admin/tasks/' . $record->id) }}"
-                                                        class="stretched-link">
-                                                        <p class="mt-0 mb-2 lh-base">The <b>Task
-                                                                {{ $record->id }}</b> is delayed!, please check
-                                                        </p>
-                                                    </a>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i>
-                                                            {{ $record->created_at }}</span>
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    @endforeach
-
-
-                                    <div class="my-3 text-center">
-
-                                        <a href="{{ url('admin/tasks') }}" class="btn btn-soft-success">
-                                            <i class="ri-arrow-right-line align-middle"></i>View All Tasks</a>
-                                        <!-- <button type="button" class="btn btn-soft-success waves-effect waves-light">View
-                                            All Messages <i class="ri-arrow-right-line align-middle"></i></button> -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="tab-pane fade py-2 ps-2" id="alerts-tab" role="tabpanel"
-                                aria-labelledby="alerts-tab">
-                                <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                    @forelse($systemNotifications as $notification)
-                                        <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                            <div class="d-flex">
-                                                <div class="avatar-xs me-3">
-                                                    <span class="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
-                                                        <i class="ri-alarm-warning-line"></i>
-                                                    </span>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <a href="javascript:void(0);" class="stretched-link">
-                                                        <h6 class="mt-0 mb-1 fs-13 fw-semibold">{{ $notification->data['title'] ?? 'System Alert' }}</h6>
-                                                    </a>
-                                                    <div class="fs-13 text-muted">
-                                                        <p class="mb-1">{{ $notification->data['message'] ?? '' }}</p>
-                                                    </div>
-                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                        <span><i class="mdi mdi-clock-outline"></i> {{ $notification->created_at->diffForHumans() }}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @empty
-                                        <div class="text-center pb-5 mt-2">
-                                            <div class="w-25 pt-3 mx-auto">
-                                                <img src="{{ URL::asset('assets/images/svg/bell.svg') }}" class="img-fluid" alt="user-pic">
-                                            </div>
-                                            <h6 class="fs-16 fw-semibold lh-base mt-4">No new system alerts!</h6>
-                                        </div>
-                                    @endforelse
-                                </div>
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
                     </div>
@@ -406,4 +193,45 @@
 
 @section('script')
     <script src="{{ URL::asset('/assets/js/app.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            function loadNotifications() {
+                // 1. Load HTML Content for Dropdown
+                $.ajax({
+                    url: "{{ route('admin.header.notifications') }}",
+                    type: 'GET',
+                    data: { html: 1 },
+                    success: function(response) {
+                        $('#topbar-notification-dropdown-container').html(response);
+                    }
+                });
+
+                // 2. Load JSON Data for Badges
+                $.getJSON("{{ route('admin.header.notifications') }}", function(data) {
+                    if (data.delayed_count > 0) {
+                        $('#topbar-notification-badge').text(data.delayed_count).removeClass('d-none');
+                    } else {
+                        $('#topbar-notification-badge').addClass('d-none');
+                    }
+                    
+                    if (data.lost_samples && data.lost_samples.length > 0) {
+                        $('#lost-samples-badge').text(data.lost_samples.length).removeClass('d-none');
+                    } else {
+                        $('#lost-samples-badge').addClass('d-none');
+                    }
+                    
+                    if (data.newTasksCount > 0) {
+                        $('#new-tasks-badge').text(data.newTasksCount).removeClass('d-none');
+                    }
+                    if (data.newSwapTasksCount > 0) {
+                        $('#new-swaps-badge').text(data.newSwapTasksCount).removeClass('d-none');
+                    }
+                });
+            }
+
+            loadNotifications();
+            // Refresh every 5 minutes
+            setInterval(loadNotifications, 300000);
+        });
+    </script>
 @endsection

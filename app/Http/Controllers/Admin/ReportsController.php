@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Driver;
 use App\Models\Task;
+use App\Models\Sample;
+use App\Models\Swap;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -156,5 +158,69 @@ class ReportsController extends Controller
         });
 
         return view('admin.reports.performance', compact('drivers'));
+    }
+
+    public function getHeaderNotifications()
+    {
+        $user = auth()->user();
+        if (!$user) return response()->json([]);
+
+        $user_client_id = $user->client_id;
+        $fourDaysAgo = Carbon::now()->subDays(4);
+        $r = new Task();
+
+        $newTasksCount = Task::where('status', 'NEW')->whereNull('driver_id');
+        $newSwapTasksCount = Swap::where('status', 'NEW');
+
+        if ($user_client_id) {
+            $newTasksCount = $newTasksCount->where('billing_client', $user_client_id);
+            $newSwapTasksCount = $newSwapTasksCount->leftjoin('tasks', 'tasks.id', '=', 'swaps.task_id')
+                ->where('tasks.billing_client', $user_client_id);
+        }
+
+        $newTasksCount = $newTasksCount->count();
+        $newSwapTasksCount = $newSwapTasksCount->count();
+
+        $pickup_delayedTasks = $r->pickup_delayedTasks($user_client_id);
+        $drop_off_delayedTasks = $r->drop_off_delayedTasks($user_client_id);
+        $delayed_tasks_in_freezer = $r->delayed_tasks_in_freezer($user_client_id);
+        $delayed_tasks_delivered = $r->delayed_tasks_delivered($user_client_id);
+
+        $lost_samples = Sample::where('samples.confirmed_by_client', 'LOST');
+        if ($user_client_id) {
+            $lost_samples = $lost_samples->leftjoin('tasks', 'tasks.id', '=', 'samples.task_id')
+                ->where('tasks.billing_client', $user_client_id);
+        }
+        $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
+
+        $systemNotifications = $user->unreadNotifications()->limit(10)->get();
+
+        $delayed_count = count($pickup_delayedTasks) + count($drop_off_delayedTasks) +
+                       count($delayed_tasks_in_freezer) + count($delayed_tasks_delivered) + 
+                       count($lost_samples) + $systemNotifications->count();
+
+        if (request()->has('html')) {
+            return view('layouts.partials.notifications_dropdown', [
+                'delayed_count' => $delayed_count,
+                'pickup_delayedTasks' => $pickup_delayedTasks,
+                'drop_off_delayedTasks' => $drop_off_delayedTasks,
+                'delayed_tasks_in_freezer' => $delayed_tasks_in_freezer,
+                'delayed_tasks_delivered' => $delayed_tasks_delivered,
+                'lost_samples' => $lost_samples,
+                'systemNotifications' => $systemNotifications
+            ])->render();
+        }
+
+        return response()->json([
+            'newTasksCount' => $newTasksCount,
+            'newSwapTasksCount' => $newSwapTasksCount,
+            'delayed_count' => $delayed_count,
+            'pickup_delayedTasks' => $pickup_delayedTasks,
+            'drop_off_delayedTasks' => $drop_off_delayedTasks,
+            'delayed_tasks_in_freezer' => $delayed_tasks_in_freezer,
+            'delayed_tasks_delivered' => $delayed_tasks_delivered,
+            'lost_samples' => $lost_samples,
+            'systemNotifications' => $systemNotifications
+        ]);
     }
 }

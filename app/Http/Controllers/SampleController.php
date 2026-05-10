@@ -743,10 +743,17 @@ class SampleController extends Controller
                     return $this->response(false,'bag already added to task');
                 }
                 DB::beginTransaction();
+                $blazmaSamples = collect();
                 if ($is_blazma_integration) {
                     SampleTracking::whereIn('sample_id', $request->barcode_ids)->where('collection_hospital_id',$location->integration_branch_id)->whereNull('task_id')->update(['is_collected' => true,'task_id'=>$task->id]);
                     $task->is_blazma = true;
                     $task->save();
+
+                    // Eager load blazma samples to avoid N+1 in loop
+                    $blazmaSamples = SampleTracking::where('task_id', $task->id)
+                        ->whereIn('sample_id', $request->barcode_ids)
+                        ->get()
+                        ->keyBy('sample_id');
                 }
                 $data2 = array();
                 foreach ($request->barcode_ids as $barcode_id){
@@ -758,8 +765,8 @@ class SampleController extends Controller
                     $collection_hospital_id = null;
                     $collection_hospital_name = null;
                     if ($is_blazma_integration){
-                        $blazmaSample =  SampleTracking::where('task_id', $task->id)->where('sample_id',$barcode_id)->first();
-                        if (isset($blazmaSample->id)){
+                        $blazmaSample = $blazmaSamples->get($barcode_id);
+                        if ($blazmaSample){
                             $is_blazma = true;
                             $profile_id = $blazmaSample->profile_id;
                             $order_id = $blazmaSample->order_id;
@@ -783,6 +790,8 @@ class SampleController extends Controller
                         'hospital_name' =>$hospital_name,
                         'collection_hospital_id' =>$collection_hospital_id,
                         'collection_hospital_name' =>$collection_hospital_name,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     );
                 }
                 Sample::insert($data2);
@@ -992,6 +1001,11 @@ class SampleController extends Controller
                 }
                 $logService = new LogService();
                 $is_blazma_integration = false;
+                $location = Location::find($request->location_id);
+                if($location == null)
+                {
+                    return $this->response(false,'location is not found');
+                }
                 $with_blazma = $location->integration_branch_id ?? false;
                 if ($with_blazma && $logService->hasIntegration($task)) {
                     $is_blazma_integration = true;
@@ -1004,10 +1018,17 @@ class SampleController extends Controller
                     return $this->response(false,'bag already added to task');
                 }
                 DB::beginTransaction();
+                $blazmaSamples = collect();
                 if ($is_blazma_integration) {
                     SampleTracking::whereIn('sample_id', $request->barcode_ids)->where('collection_hospital_id',$location->integration_branch_id)->whereNull('task_id')->update(['is_collected' => true,'task_id'=>$task->id]);
                     $task->is_blazma = true;
                     $task->save();
+
+                    // Eager load blazma samples to avoid N+1 in loop
+                    $blazmaSamples = SampleTracking::where('task_id', $task->id)
+                        ->whereIn('sample_id', $request->barcode_ids)
+                        ->get()
+                        ->keyBy('sample_id');
                 }
                 $data2 = array();
                 foreach ($request->barcode_ids as $barcode_id){
@@ -1019,8 +1040,8 @@ class SampleController extends Controller
                     $collection_hospital_id = null;
                     $collection_hospital_name = null;
                     if ($is_blazma_integration){
-                        $blazmaSample =  SampleTracking::where('task_id', $task->id)->where('sample_id',$barcode_id)->first();
-                        if (isset($blazmaSample->id)){
+                        $blazmaSample = $blazmaSamples->get($barcode_id);
+                        if ($blazmaSample){
                             $is_blazma = true;
                             $profile_id = $blazmaSample->profile_id;
                             $order_id = $blazmaSample->order_id;
@@ -1046,6 +1067,8 @@ class SampleController extends Controller
                         'hospital_name' =>$hospital_name,
                         'collection_hospital_id' =>$collection_hospital_id,
                         'collection_hospital_name' =>$collection_hospital_name,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     );
                 }
                 Sample::insert($data2);
