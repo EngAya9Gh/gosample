@@ -170,7 +170,6 @@ class ReportsController extends Controller
 
         $data = \Cache::remember($cacheKey, 120, function () use ($user, $user_client_id) {
             $fourDaysAgo = Carbon::now()->subDays(4);
-            $r = new Task();
 
             $newTasksCount = Task::where('status', 'NEW')->whereNull('driver_id');
             $newSwapTasksCount = Swap::where('status', 'NEW');
@@ -184,34 +183,32 @@ class ReportsController extends Controller
             $newTasksCount = $newTasksCount->count();
             $newSwapTasksCount = $newSwapTasksCount->count();
 
-            $pickup_delayedTasks = $r->whereRaw('pickup_time < collection_date')
+            $pickup_delayedTasks = Task::query()
+                ->whereRaw('pickup_time < collection_date')
                 ->where('created_at', '>=', $fourDaysAgo)
-                ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
-                })
-                ->select('id', 'created_at', 'collection_date', 'pickup_time')
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
+                ->select('id', 'created_at', 'pickup_time', 'collection_date')
                 ->limit(5)->get();
 
-            $drop_off_delayedTasks = $r->whereRaw('dropoff_time < close_date')
+            $drop_off_delayedTasks = Task::query()
+                ->whereRaw('dropoff_time < close_date')
                 ->where('created_at', '>=', $fourDaysAgo)
-                ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
-                })
-                ->select('id', 'created_at', 'close_date', 'dropoff_time')
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
+                ->select('id', 'created_at', 'dropoff_time', 'close_date')
                 ->limit(5)->get();
 
-            $delayed_tasks_in_freezer = $r->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
+            $delayed_tasks_in_freezer = Task::query()
+                ->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
                 ->where('status', 'COLLECTED')
                 ->where('created_at', '>=', $fourDaysAgo)
                 ->select('id', 'created_at', 'collection_date')
                 ->limit(5)->get();
 
-            $delayed_tasks_delivered = $r->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
+            $delayed_tasks_delivered = Task::query()
+                ->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
                 ->where('status', 'OUT_FREEZER')
                 ->where('created_at', '>=', $fourDaysAgo)
-                ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
-                })
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
                 ->select('id', 'created_at', 'freezer_out_date')
                 ->limit(5)->get();
 
