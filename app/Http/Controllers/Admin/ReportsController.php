@@ -170,48 +170,49 @@ class ReportsController extends Controller
 
         $data = \Cache::remember($cacheKey, 120, function () use ($user, $user_client_id) {
             $fourDaysAgo = Carbon::now()->subDays(4);
-            $r = new Task();
 
-            $newTasksCount = Task::where('status', 'NEW')->whereNull('driver_id');
-            $newSwapTasksCount = Swap::where('status', 'NEW');
-
-            if ($user_client_id) {
-                $newTasksCount = $newTasksCount->where('billing_client', $user_client_id);
-                $newSwapTasksCount = $newSwapTasksCount->leftjoin('tasks', 'tasks.id', '=', 'swaps.task_id')
-                    ->where('tasks.billing_client', $user_client_id);
-            }
-
-            $newTasksCount = $newTasksCount->count();
-            $newSwapTasksCount = $newSwapTasksCount->count();
-
-            $pickup_delayedTasks = $r->whereRaw('pickup_time < collection_date')
-                ->where('created_at', '>=', $fourDaysAgo)
-                ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
-                })
-                ->select('id', 'created_at', 'collection_date', 'pickup_time')
+            // جلب المهام الجديدة (سجلات وليس مجرد عدد)
+            $newTasks = Task::where('status', 'NEW')
+                ->whereNull('driver_id')
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
+                ->select('id', 'created_at')
                 ->limit(5)->get();
 
-            $drop_off_delayedTasks = $r->whereRaw('dropoff_time < close_date')
-                ->where('created_at', '>=', $fourDaysAgo)
+            $newSwapTasks = Swap::query()
+                ->where('swap_requests.status', 'NEW')
                 ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
+                    return $q->leftjoin('tasks', 'tasks.id', '=', 'swap_requests.task_id')
+                        ->where('tasks.billing_client', $user_client_id);
                 })
-                ->select('id', 'created_at', 'close_date', 'dropoff_time')
+                ->select('swap_requests.id', 'swap_requests.created_at')
                 ->limit(5)->get();
 
-            $delayed_tasks_in_freezer = $r->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
+            $pickup_delayedTasks = Task::query()
+                ->whereRaw('pickup_time < collection_date')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
+                ->select('id', 'created_at', 'pickup_time', 'collection_date')
+                ->limit(5)->get();
+
+            $drop_off_delayedTasks = Task::query()
+                ->whereRaw('dropoff_time < close_date')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
+                ->select('id', 'created_at', 'dropoff_time', 'close_date')
+                ->limit(5)->get();
+
+            $delayed_tasks_in_freezer = Task::query()
+                ->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
                 ->where('status', 'COLLECTED')
                 ->where('created_at', '>=', $fourDaysAgo)
                 ->select('id', 'created_at', 'collection_date')
                 ->limit(5)->get();
 
-            $delayed_tasks_delivered = $r->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
+            $delayed_tasks_delivered = Task::query()
+                ->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
                 ->where('status', 'OUT_FREEZER')
                 ->where('created_at', '>=', $fourDaysAgo)
-                ->when($user_client_id, function($q) use ($user_client_id) {
-                    return $q->where('billing_client', $user_client_id);
-                })
+                ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
                 ->select('id', 'created_at', 'freezer_out_date')
                 ->limit(5)->get();
 
@@ -229,7 +230,7 @@ class ReportsController extends Controller
             $delayed_count = $pickup_delayedTasks->count() + $drop_off_delayedTasks->count() +
                            $delayed_tasks_in_freezer->count() + $delayed_tasks_delivered->count() + 
                            $lost_samples->count() + $systemNotifications->count() + 
-                           $newTasksCount + $newSwapTasksCount;
+                           $newTasks->count() + $newSwapTasks->count();
 
             $html = view('layouts.partials.notifications_dropdown', [
                 'delayed_count' => $delayed_count,
@@ -238,14 +239,16 @@ class ReportsController extends Controller
                 'delayed_tasks_in_freezer' => $delayed_tasks_in_freezer,
                 'delayed_tasks_delivered' => $delayed_tasks_delivered,
                 'lost_samples' => $lost_samples,
+                'newTasks' => $newTasks,
+                'newSwapTasks' => $newSwapTasks,
                 'systemNotifications' => $systemNotifications
             ])->render();
 
             return [
                 'html' => $html,
                 'delayed_count' => $delayed_count,
-                'newTasksCount' => $newTasksCount,
-                'newSwapTasksCount' => $newSwapTasksCount,
+                'newTasksCount' => $newTasks->count(),
+                'newSwapTasksCount' => $newSwapTasks->count(),
                 'lost_samples_count' => count($lost_samples)
             ];
         });
