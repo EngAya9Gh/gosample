@@ -1,3 +1,22 @@
+@if(isset($crudRoutePart) && $crudRoutePart == 'tasks')
+    <div class="d-flex gap-1 justify-content-center">
+        @can($editGate)
+            <a href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}" class="btn btn-soft-primary btn-sm" title="{{ trans('global.edit') }}">
+                <i class="ri-edit-2-fill"></i>
+            </a>
+        @endcan
+        @can('can-delete')
+            <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
+                onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('global.delete') }}">
+                    <i class="ri-delete-bin-fill"></i>
+                </button>
+            </form>
+        @endcan
+    </div>
+@else
     <div class="dropdown">
         <a href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="ri-more-2-fill"></i>
@@ -117,3 +136,4 @@
             @endif
         </ul>
     </div>
+@endif
