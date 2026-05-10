@@ -798,8 +798,13 @@ class SampleController extends Controller
                 DB::commit();
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error in addSamplesToTask: ' . $e->getMessage(), [
+                'task_id' => $request->task_id,
+                'barcode_ids_count' => count($request->barcode_ids ?? []),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false,'system error');
         }
     }
@@ -922,8 +927,12 @@ class SampleController extends Controller
 
             DB::commit();
             return $this->response(true, 'success');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error in addSamplesToTaskWithBagsArray: ' . $e->getMessage(), [
+                'data_array_count' => count($dataArray ?? []),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false, 'system error');
         }
     }
@@ -1075,8 +1084,13 @@ class SampleController extends Controller
                 DB::commit();
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error in addSamplesToPerBoxTask: ' . $e->getMessage(), [
+                'task_id' => $request->task_id,
+                'barcode_ids_count' => count($request->barcode_ids ?? []),
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false,'system error');
         }
     }
