@@ -204,7 +204,7 @@ class SampleController extends Controller
             } else {
 
                 // check task
-                $task = Task::find($request->task_id);
+                $task = Task::with(['driver', 'from'])->find($request->task_id);
                 if($task == null)
                 {
                     return $this->response(false,'task is not found');
@@ -235,11 +235,11 @@ class SampleController extends Controller
                     }
 
                     // get driver
-                    $driver = Driver::find($task->driver_id);
+                    $driver = $task->driver;
                     // save location of driver
                     $lat = $driver->lat;
                     $lng = $driver->lng;
-                    $from_location = Location::find($task->from_location);
+                    $from_location = $task->from;
                     $distance = parent::distance($lat, $lng, $from_location->lat, $from_location->lng, "K");
                     // if($driver->id != 54)
                     // {
@@ -306,7 +306,11 @@ class SampleController extends Controller
 
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            \Log::error('Error in collect API: ' . $e->getMessage(), [
+                'task_id' => $request->task_id,
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false,'system error');
         }
     }
@@ -592,7 +596,11 @@ class SampleController extends Controller
 
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            \Log::error('Error in close API: ' . $e->getMessage(), [
+                'task_id' => $request->task_id,
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false,'system error');
         }
     }
@@ -627,61 +635,56 @@ class SampleController extends Controller
                 //     // we have to compare here
                 //     $deliver_confirmationCode = $request->deliver_confirmationCode;
                 // }
-                // check task
-                $tasks = Task::whereIn('id',$tasksParam)->get();
-                if($tasks == null || count($tasks) == 0)
+                // check tasks
+                $tasks = Task::whereIn('id',$tasksParam)->with(['driver', 'from', 'to'])->get();
+                if($tasks->isEmpty())
                 {
                     return $this->response(false,'tasks are not found');
-                } else{
+                } else {
                     $ldate = date('Y-m-d H:i:s');
+                    $driver = $tasks->first()->driver;
+                    $lat = $driver->lat;
+                    $lng = $driver->lng;
+
+                    // Update attendance once for the driver
+                    $attendance = Attendance::where('driver_id', $driver->id)
+                        ->whereDate('created_at', Carbon::today())
+                        ->first();
+                    if($attendance != null)
+                    {
+                        $attendance->checkout_time = Carbon::now();
+                        $attendance->save();
+                    }
+
+                    $logService = new LogService();
+
                     foreach ($tasks as $task){
                         if($task->status != 'OUT_FREEZER')
                         {
-                            return $this->response(false,'task status is not valid');
+                            return $this->response(false,'task status is not valid for task ' . $task->id);
                         }
+                        
+                        $to_location = $task->to;
+                        $distance = parent::distance($lat, $lng, $to_location->lat, $to_location->lng, "K");
+                        if($distance > 0.2)
+                        {
+                            return $this->response(false,'you cannot close task in this location for task ' . $task->id);
+                        }
+
                         $task->status = 'CLOSED';
                         $task->close_date = $ldate;
                         $task->deliver_signature = $deliver_signature;
                         $task->deliver_confirmationCode = $deliver_confirmationCode;
-
-                        // get driver location and save location in task table
-                        $driver = Driver::find($task->driver_id);
-                        $lat = $driver->lat;
-                        $lng = $driver->lng;
-
-                        $to_location = Location::find($task->to_location);
-                        // calculate distance between driver location and to_location
-
-                        $distance = parent::distance($lat, $lng, $to_location->lat, $to_location->lng, "K");
-                        // if($driver->id != 54)
-                        // {
-                            if($distance > 0.2)
-                            {
-                                return $this->response(false,'you cannot close task in this location');
-                            }
-                        // }
-
-
-                        // save time to attendance of driver
-                        $attendance =  Attendance::where('driver_id',$driver->id)
-                            ->whereDate('created_at', Carbon::today())
-                            ->first();
-                        if($attendance != null)
-                        {
-                            $attendance->checkout_time = Carbon::now();
-                            $attendance->save();
-                        }
-
-
                         $task->close_lat = $lat;
                         $task->close_lng = $lng;
                         $task->save();
+
                         if($task->takasi == '$task' || $task->billing_client == 42 || $task->billing_client == 33)
                         {
                             event (new TaskClosedEvent($task));
                         }
-                        $logService = new LogService();
-                        $from_location = Location::find($task->from_location);
+
+                        $from_location = $task->from;
                         $with_blazma = $from_location->integration_branch_id ?? false;
                         if ($with_blazma && $logService->hasIntegration($task)) {
                             dispatch(new LogData($task, 'delivered', $ldate));
@@ -691,7 +694,11 @@ class SampleController extends Controller
 
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            \Log::error('Error in closeTasks API: ' . $e->getMessage(), [
+                'tasks' => $request->tasks,
+                'trace' => $e->getTraceAsString()
+            ]);
             return $this->response(false,'system error');
         }
     }
