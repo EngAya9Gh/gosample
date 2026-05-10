@@ -99,6 +99,7 @@ public function handle()
                             ]
                         ]);
                     if ($response->status() == 200) {
+                        \Log::info("Afaqy API success for car $car_id");
                         $sensors = $response->json();
                     } else {
                         continue;
