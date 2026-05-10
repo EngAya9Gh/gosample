@@ -166,41 +166,72 @@ class ReportsController extends Controller
         if (!$user) return response()->json([]);
 
         $user_client_id = $user->client_id;
-        $fourDaysAgo = Carbon::now()->subDays(4);
-        $r = new Task();
+        $cacheKey = 'header_notifications_' . $user->id;
 
-        $newTasksCount = Task::where('status', 'NEW')->whereNull('driver_id');
-        $newSwapTasksCount = Swap::where('status', 'NEW');
+        $data = \Cache::remember($cacheKey, 120, function () use ($user, $user_client_id) {
+            $fourDaysAgo = Carbon::now()->subDays(4);
+            $r = new Task();
 
-        if ($user_client_id) {
-            $newTasksCount = $newTasksCount->where('billing_client', $user_client_id);
-            $newSwapTasksCount = $newSwapTasksCount->leftjoin('tasks', 'tasks.id', '=', 'swaps.task_id')
-                ->where('tasks.billing_client', $user_client_id);
-        }
+            $newTasksCount = Task::where('status', 'NEW')->whereNull('driver_id');
+            $newSwapTasksCount = Swap::where('status', 'NEW');
 
-        $newTasksCount = $newTasksCount->count();
-        $newSwapTasksCount = $newSwapTasksCount->count();
+            if ($user_client_id) {
+                $newTasksCount = $newTasksCount->where('billing_client', $user_client_id);
+                $newSwapTasksCount = $newSwapTasksCount->leftjoin('tasks', 'tasks.id', '=', 'swaps.task_id')
+                    ->where('tasks.billing_client', $user_client_id);
+            }
 
-        $pickup_delayedTasks = $r->pickup_delayedTasks($user_client_id);
-        $drop_off_delayedTasks = $r->drop_off_delayedTasks($user_client_id);
-        $delayed_tasks_in_freezer = $r->delayed_tasks_in_freezer($user_client_id);
-        $delayed_tasks_delivered = $r->delayed_tasks_delivered($user_client_id);
+            $newTasksCount = $newTasksCount->count();
+            $newSwapTasksCount = $newSwapTasksCount->count();
 
-        $lost_samples = Sample::where('samples.confirmed_by_client', 'LOST');
-        if ($user_client_id) {
-            $lost_samples = $lost_samples->leftjoin('tasks', 'tasks.id', '=', 'samples.task_id')
-                ->where('tasks.billing_client', $user_client_id);
-        }
-        $lost_samples = $lost_samples->where('samples.created_at', '>=', $fourDaysAgo)->limit(10)->get();
+            $pickup_delayedTasks = $r->whereRaw('pickup_time < collection_date')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, function($q) use ($user_client_id) {
+                    return $q->where('billing_client', $user_client_id);
+                })
+                ->select('id', 'created_at', 'collection_date', 'pickup_time')
+                ->limit(5)->get();
 
-        $systemNotifications = $user->unreadNotifications()->limit(10)->get();
+            $drop_off_delayedTasks = $r->whereRaw('dropoff_time < close_date')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, function($q) use ($user_client_id) {
+                    return $q->where('billing_client', $user_client_id);
+                })
+                ->select('id', 'created_at', 'close_date', 'dropoff_time')
+                ->limit(5)->get();
 
-        $delayed_count = count($pickup_delayedTasks) + count($drop_off_delayedTasks) +
-                       count($delayed_tasks_in_freezer) + count($delayed_tasks_delivered) + 
-                       count($lost_samples) + $systemNotifications->count();
+            $delayed_tasks_in_freezer = $r->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
+                ->where('status', 'COLLECTED')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->select('id', 'created_at', 'collection_date')
+                ->limit(5)->get();
 
-        if (request()->has('html')) {
-            return view('layouts.partials.notifications_dropdown', [
+            $delayed_tasks_delivered = $r->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
+                ->where('status', 'OUT_FREEZER')
+                ->where('created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, function($q) use ($user_client_id) {
+                    return $q->where('billing_client', $user_client_id);
+                })
+                ->select('id', 'created_at', 'freezer_out_date')
+                ->limit(5)->get();
+
+            $lost_samples = Sample::where('samples.confirmed_by_client', 'LOST')
+                ->where('samples.created_at', '>=', $fourDaysAgo)
+                ->when($user_client_id, function($q) use ($user_client_id) {
+                    return $q->leftjoin('tasks', 'tasks.id', '=', 'samples.task_id')
+                             ->where('tasks.billing_client', $user_client_id);
+                })
+                ->select('samples.id', 'samples.barcode_id')
+                ->limit(5)->get();
+
+            $systemNotifications = $user->unreadNotifications()->limit(5)->get();
+
+            $delayed_count = $pickup_delayedTasks->count() + $drop_off_delayedTasks->count() +
+                           $delayed_tasks_in_freezer->count() + $delayed_tasks_delivered->count() + 
+                           $lost_samples->count() + $systemNotifications->count() + 
+                           $newTasksCount + $newSwapTasksCount;
+
+            $html = view('layouts.partials.notifications_dropdown', [
                 'delayed_count' => $delayed_count,
                 'pickup_delayedTasks' => $pickup_delayedTasks,
                 'drop_off_delayedTasks' => $drop_off_delayedTasks,
@@ -209,18 +240,16 @@ class ReportsController extends Controller
                 'lost_samples' => $lost_samples,
                 'systemNotifications' => $systemNotifications
             ])->render();
-        }
 
-        return response()->json([
-            'newTasksCount' => $newTasksCount,
-            'newSwapTasksCount' => $newSwapTasksCount,
-            'delayed_count' => $delayed_count,
-            'pickup_delayedTasks' => $pickup_delayedTasks,
-            'drop_off_delayedTasks' => $drop_off_delayedTasks,
-            'delayed_tasks_in_freezer' => $delayed_tasks_in_freezer,
-            'delayed_tasks_delivered' => $delayed_tasks_delivered,
-            'lost_samples' => $lost_samples,
-            'systemNotifications' => $systemNotifications
-        ]);
+            return [
+                'html' => $html,
+                'delayed_count' => $delayed_count,
+                'newTasksCount' => $newTasksCount,
+                'newSwapTasksCount' => $newSwapTasksCount,
+                'lost_samples_count' => count($lost_samples)
+            ];
+        });
+
+        return response()->json($data);
     }
 }

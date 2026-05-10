@@ -50,11 +50,12 @@ class LogService
         try {
             $response = Http::withHeaders([
                 'x-api-key' => $this->getSecretKey()
-            ])->post($this->baseUrl($url), ['samples'=>$payload]);
+            ])->timeout(6)->post($this->baseUrl($url), ['samples'=>$payload]);
             //$response =  Http::withHeaders($this->attachHeader())->{$method}($this->baseUrl($url), $payload);
             //$response =  $this->client->request("$method",$this->baseUrl($url), $payload);
             return $this->handleResponse($response);
-        }catch (\Exception $exception){
+        }
+        catch (\Exception $exception){
             return (object)(['success' => false, 'status' => 500, 'payload' => [], 'errors' => $exception->getMessage() ?? []]);
         }
     }
