@@ -306,7 +306,7 @@
                     },
                     {
                         data: 'billing_client_status',
-                        name: 'billing_client.name'
+                        name: 'client.english_name'
                     },
                     {
                         data: 'driver_name',
@@ -314,11 +314,11 @@
                     },
                     {
                         data: 'from_location_name',
-                        name: 'from_location.name'
+                        name: 'from.name'
                     },
                     {
                         data: 'to_location_name',
-                        name: 'to_location.name'
+                        name: 'to.name'
                     },
 
                     // { data: 'car_imei', name: 'car.imei' },
