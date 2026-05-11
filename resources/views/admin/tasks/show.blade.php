@@ -635,7 +635,7 @@
                                 width: 21px
                             }
                             @page { size: auto; margin: 20mm; }
-                            .print_btn { display: none; }
+                            .print_btn, .edit-times-btn { display: none !important; }
                             img { display: block; margin: 0 auto; }
                         </style>
                     </head>
