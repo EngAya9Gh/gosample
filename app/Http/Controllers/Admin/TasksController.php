@@ -467,6 +467,23 @@ class TasksController extends Controller
             'drivers' =>  $drivers
         ]);
     }
+    public function updateTimes(Request $request, Task $task)
+    {
+        abort_if(Gate::denies('task_edit_times'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'freezer_out_date' => 'nullable|date',
+            'close_date'       => 'nullable|date',
+        ]);
+
+        $task->update([
+            'freezer_out_date' => $request->freezer_out_date ? Carbon::parse($request->freezer_out_date)->toDateTimeString() : null,
+            'close_date'       => $request->close_date ? Carbon::parse($request->close_date)->toDateTimeString() : null,
+        ]);
+
+        return redirect()->back()->with('status', 'Task times updated successfully.');
+    }
+
     /*
     // public function index(Request $request)
     // {

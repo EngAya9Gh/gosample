@@ -20,33 +20,37 @@
         .headTitle {
             font-family: "Playfair Display", sans-serif !important;
             font-weight: 600;
-            font-size: 25px;
+            font-size: 22px;
             color: #fff;
-            width: 415px;
-            padding: 10px;
+            width: auto;
+            display: inline-block;
+            padding: 8px 20px 12px 20px;
             border-radius: 10px;
-            padding-left: 20px;
-            padding-bottom: 15px;
         }
         .textContent h5 {
             font-family: "Readex Pro", sans-serif !important;
-            font-weight: 500;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 12px;
             margin-top: 1rem;
+            color: #555;
+            line-height: 1.4;
         }
         .noMT {
             margin-top: unset !important;
         }
         .textContent p {
             font-family: "Readex Pro", sans-serif !important;
-            font-weight: 200;
-            font-size: 14px;
+            font-weight: 400;
+            font-size: 13px;
+            color: #222;
         }
         .bacGray {
-            background: #f2f2f2;
-            border-radius: 15px;
+            background: #f7f8fa;
+            border-radius: 12px;
             margin-right: 10px;
             margin-left: 10px;
+            padding: 10px 5px;
+            border: 1px solid #e9ecef;
         }
         .sameBlock {
             display: inline-block;
@@ -56,19 +60,99 @@
             left: 10px;
             margin-top: 46px;
         }
+        .task-id-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #007588, #0a576a);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-family: "Readex Pro", sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,117,136,0.25);
+        }
+        .section-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .edit-times-btn {
+            background: rgba(0,117,136,0.1);
+            color: #007588;
+            border: 1px solid rgba(0,117,136,0.3);
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .edit-times-btn:hover {
+            background: #007588;
+            color: white;
+        }
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e9ecef;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-family: "Readex Pro", sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            min-width: 200px;
+            padding-right: 10px;
+            line-height: 1.5;
+        }
+        .info-value {
+            font-family: "Readex Pro", sans-serif;
+            font-weight: 400;
+            font-size: 13px;
+            color: #222;
+        }
+        .duration-badge {
+            display: inline-block;
+            background: #e8f5f7;
+            color: #007588;
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-weight: 600;
+            font-size: 12px;
+        }
     </style>
     <div class="card">
-        <div class="card-header">
-            {{ trans('translation.show') }} {{ trans('translation.task.title_singular') }}
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span>{{ trans('translation.show') }} {{ trans('translation.task.title_singular') }}</span>
+            <span class="task-id-badge" style="margin-bottom:0">
+                <i class="ri-file-list-3-line"></i>
+                Task #{{ $task->id }}
+            </span>
         </div>
 
         <div class="card-body">
             <div class="container-fluid">
                 <div class="row justify-content-center pull-up px-5" id="print_area">
                     <div class="col-md-12">
-                        <div class="card">
-                            <button onclick="printReport()" class='print_btn float-right'>
-                                <i class="mdi mdi-printer " style="font-size: 20px;"></i> Print
+                        <div class="card border-0 d-flex flex-row align-items-center justify-content-between px-3 py-2" style="background:#f7f8fa">
+                            <span class="task-id-badge">
+                                <i class="ri-file-list-3-line"></i>
+                                Task #{{ $task->id }}
+                            </span>
+                            <button onclick="printReport()" class='print_btn btn btn-outline-secondary btn-sm'>
+                                <i class="mdi mdi-printer" style="font-size: 16px;"></i> Print
                             </button>
                         </div>
                         <div class="card mt-2">
@@ -175,36 +259,22 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="row">
-                                                <div class="col-4">
-                                                    <h5 class="sameBlock noMT">Arrival of Pick Up Location</h5>
-                                                </div>
-                                                <div class="col-8">
-                                                    <p class="sameBlock">{{ $task->from_location_arrival_time }}</p>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Arrival of Pick Up Location</span>
+                                                <span class="info-value">{{ $task->from_location_arrival_time ?? '—' }}</span>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="col-12">
-                                                <div class="row" style="margin-bottom: -15px;">
-                                                    <div class="col-5">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Departure of Pick Up Location</h5>
-                                                    </div>
-                                                    <div class="col-7">
-                                                        <p class="sameBlock">{{ $task->collection_date }}</p>
-                                                    </div>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Departure of Pick Up Location</span>
+                                                <span class="info-value">{{ $task->collection_date ?? '—' }}</span>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="row">
-                                                    <div class="col-5">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Duration of Pick Up</h5>
-                                                    </div>
-                                                    <div class="col-7">
-                                                        <p class="sameBlock">{{ round((strtotime($task->collection_date) - strtotime($task->from_location_arrival_time)) / 60) }} Minute(s)</p>
-                                                    </div>
-                                                </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Duration of Pick Up</span>
+                                                <span class="info-value">
+                                                    <span class="duration-badge">{{ round((strtotime($task->collection_date) - strtotime($task->from_location_arrival_time)) / 60) }} min</span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -222,43 +292,35 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="row">
-                                                <div class="col-3">
-                                                    <h5 class="sameBlock noMT">Sample Receiving</h5>
-                                                </div>
-                                                <div class="col-9">
-                                                    <p class="sameBlock">{{ $task->collection_date }}</p>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Sample Receiving</span>
+                                                <span class="info-value">{{ $task->collection_date ?? '—' }}</span>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="col-12">
-                                                <div class="row" style="margin-bottom: -15px;">
-                                                    <div class="col-3">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Sample In</h5>
-                                                    </div>
-                                                    <div class="col-9">
-                                                        <p class="sameBlock">{{ $task->freezer_date }}</p>
-                                                    </div>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Sample In</span>
+                                                <span class="info-value">{{ $task->freezer_date ?? '—' }}</span>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Duration</h5>
-                                                    </div>
-                                                    <div class="col-9">
-                                                        <p class="sameBlock">{{ round((strtotime($task->freezer_date) - strtotime($task->collection_date)) / 60) }} Minute(s)</p>
-                                                    </div>
-                                                </div>
-                                                
+                                            <div class="info-row">
+                                                <span class="info-label">Duration — Sample In</span>
+                                                <span class="info-value">
+                                                    <span class="duration-badge">{{ round((strtotime($task->freezer_date) - strtotime($task->collection_date)) / 60) }} min</span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row mt-2" style="padding-top:10px">
-                                        <div class="col-12" style="padding-bottom:25px">
-                                            <h5 class="headTitle" style="background-color: #BD6BA7;">Sample Delivery</h5>
+                                        <div class="col-12" style="padding-bottom:15px">
+                                            <div class="section-header-row">
+                                                <h5 class="headTitle mb-0" style="background-color: #BD6BA7;">Sample Delivery</h5>
+                                                @can('task_edit_times')
+                                                    <button type="button" class="edit-times-btn" data-bs-toggle="modal" data-bs-target="#editTimesModal">
+                                                        <i class="ri-edit-2-line"></i> Edit Times
+                                                    </button>
+                                                @endcan
+                                            </div>
                                         </div>
                                         <div class="col-12" style="padding-bottom:15px">
                                             <div style="width: 55%;">
@@ -270,37 +332,22 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="row">
-                                                <div class="col-2">
-                                                    <h5 class="sameBlock noMT">Sample Out</h5>
-                                                </div>
-                                                <div class="col-10">
-                                                    <p class="sameBlock">{{ $task->freezer_out_date }}</p>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Sample Out</span>
+                                                <span class="info-value">{{ $task->freezer_out_date ?? '—' }}</span>
                                             </div>
                                         </div>
-                                        <div class="col-6 textContent">
-                                            <div class="col-12">
-                                                <div class="row" style="margin-bottom: -15px;">
-                                                    <div class="col-4">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Sample Delivery</h5>
-                                                    </div>
-                                                    <div class="col-8">
-                                                        <p class="sameBlock">{{ $task->close_date }}</p>
-                                                    </div>
-                                                </div>
+                                        <div class="col-6">
+                                            <div class="info-row">
+                                                <span class="info-label">Sample Delivery</span>
+                                                <span class="info-value">{{ $task->close_date ?? '—' }}</span>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="row">
-                                                    <div class="col-4">
-                                                        <h5 class="sameBlock noMT" style="padding-right: 15px;">Duration</h5>
-                                                    </div>
-                                                    <div class="col-8">
-                                                        <p class="sameBlock">{{ round((strtotime($task->close_date) - strtotime($task->freezer_out_date)) / 60) }} Minute(s)</p>
-                                                    </div>
-                                                </div>
-                                                
+                                            <div class="info-row">
+                                                <span class="info-label">Duration — Sample Delivery</span>
+                                                <span class="info-value">
+                                                    <span class="duration-badge">{{ round((strtotime($task->close_date) - strtotime($task->freezer_out_date)) / 60) }} min</span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -416,6 +463,38 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal للتعديل -->
+    @can('task_edit_times')
+    <div class="modal fade" id="editTimesModal" tabindex="-1" aria-labelledby="editTimesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.tasks.updateTimes', $task->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editTimesModalLabel">Edit Delivery Times</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="freezer_out_date" class="form-label">Sample Out (Container Out)</label>
+                            <input type="datetime-local" class="form-control" name="freezer_out_date" value="{{ $task->freezer_out_date ? date('Y-m-d\TH:i', strtotime($task->freezer_out_date)) : '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="close_date" class="form-label">Sample Delivery (Close Date)</label>
+                            <input type="datetime-local" class="form-control" name="close_date" value="{{ $task->close_date ? date('Y-m-d\TH:i', strtotime($task->close_date)) : '' }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
 
 @endsection
 
