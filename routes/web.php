@@ -120,6 +120,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::get('tasks/missing', 'TasksController@missing')->name('tasks.missing');
     Route::delete('tasks/destroy', 'TasksController@massDestroy')->name('tasks.massDestroy');
     Route::get('tasks/newshow/{id}', 'TasksController@newShow');
+    Route::put('tasks/{task}/update-times', 'TasksController@updateTimes')->name('tasks.updateTimes');
     Route::resource('tasks', 'TasksController');
     Route::get('swap-tasks', 'TaskSwapController@index')->name('swapTask.index');
     Route::get('swap-tasks/{taks}', 'TaskSwapController@index')->name('swapTask.show');
