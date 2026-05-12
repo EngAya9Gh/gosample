@@ -1061,7 +1061,18 @@ class TasksController extends Controller
                 return $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'NEW'         => ['bg-primary',   'NEW'],
+                    'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                    'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                    'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                    'CLOSED'      => ['bg-success',   'CLOSED'],
+                    'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
             $table->editColumn('added_by', function ($row) {
                 return $row->added_by ? $row->added_by : '';
@@ -1089,7 +1100,7 @@ class TasksController extends Controller
                 return $row->to_takasi_number ? $row->to_takasi_number : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car', 'status']);
 
             return $table->make(true);
         } else{
@@ -1270,7 +1281,18 @@ class TasksController extends Controller
                 return $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'NEW'         => ['bg-primary',   'NEW'],
+                    'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                    'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                    'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                    'CLOSED'      => ['bg-success',   'CLOSED'],
+                    'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
             $table->editColumn('added_by', function ($row) {
                 return $row->added_by ? $row->added_by : '';
@@ -1298,7 +1320,7 @@ class TasksController extends Controller
                 return $row->to_takasi_number ? $row->to_takasi_number : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car', 'status']);
 
             return $table->make(true);
         } else{
@@ -1480,7 +1502,18 @@ class TasksController extends Controller
                 return $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'NEW'         => ['bg-primary',   'NEW'],
+                    'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                    'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                    'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                    'CLOSED'      => ['bg-success',   'CLOSED'],
+                    'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
             $table->editColumn('added_by', function ($row) {
                 return $row->added_by ? $row->added_by : '';
@@ -1508,7 +1541,7 @@ class TasksController extends Controller
                 return $row->to_takasi_number ? $row->to_takasi_number : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car', 'status']);
 
             return $table->make(true);
         } else{
@@ -1689,7 +1722,18 @@ class TasksController extends Controller
                 return $row->takasi ? Task::TAKASI_SELECT[$row->takasi] : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'NEW'         => ['bg-primary',   'NEW'],
+                    'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                    'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                    'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                    'CLOSED'      => ['bg-success',   'CLOSED'],
+                    'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
             $table->editColumn('added_by', function ($row) {
                 return $row->added_by ? $row->added_by : '';
@@ -1717,7 +1761,7 @@ class TasksController extends Controller
                 return $row->to_takasi_number ? $row->to_takasi_number : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car', 'status']);
 
             return $table->make(true);
         } else{
@@ -2399,10 +2443,21 @@ $temp3 = $temperatureReadings->pluck('temp7');
             });
 
             $table->editColumn('status', function ($row) {
-                return $row->status ? Task::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'NEW'         => ['bg-primary',   'NEW'],
+                    'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                    'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                    'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                    'CLOSED'      => ['bg-success',   'CLOSED'],
+                    'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car']);
+            $table->rawColumns(['actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 'driver', 'car', 'status']);
 
             return $table->make(true);
         } else{

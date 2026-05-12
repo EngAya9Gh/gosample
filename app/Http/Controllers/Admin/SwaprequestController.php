@@ -70,10 +70,18 @@ class SwaprequestController extends Controller
             });
 
             $table->editColumn('status', function ($row) {
-                return $row->status ? Swap::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'new'      => ['bg-primary', 'New'],
+                    'accepted' => ['bg-success', 'Accepted'],
+                    'rejected' => ['bg-danger',  'Rejected'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'task', 'driver']);
+            $table->rawColumns(['actions', 'placeholder', 'task', 'driver', 'status']);
 
             return $table->make(true);
         }

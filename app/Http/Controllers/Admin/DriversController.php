@@ -58,7 +58,13 @@ class DriversController extends Controller
                 return $row->name ? $row->name : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Driver::STATUS_SELECT[$row->status] : '';
+                if ($row->status == 1) {
+                    return '<span class="badge bg-success">Enabled</span>';
+                }
+                if ($row->status == 2) {
+                    return '<span class="badge bg-danger">Disabled</span>';
+                }
+                return '';
             });
             $table->editColumn('username', function ($row) {
                 return $row->username ? $row->username : '';
@@ -82,7 +88,7 @@ class DriversController extends Controller
                 return $row->accepted_terms ? $row->accepted_terms : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder']);
+            $table->rawColumns(['actions', 'placeholder', 'status']);
 
             return $table->make(true);
         }

@@ -63,7 +63,17 @@ class MoneyTransferController extends Controller
             });
 
             $table->editColumn('status', function ($row) {
-                return $row->status ? MoneyTransfer::STATUS_SELECT[$row->status] : '';
+                $map = [
+                    'new'             => ['bg-primary',   'New'],
+                    'confirmed'       => ['bg-info',      'Confirmed'],
+                    'amount_received' => ['bg-success',   'Amount Received'],
+                    'closed'          => ['bg-secondary', 'Closed'],
+                    'cancelled'       => ['bg-danger',    'Cancelled'],
+                ];
+                if (isset($map[$row->status])) {
+                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                }
+                return $row->status ?? '';
             });
             $table->editColumn('from_location_otp', function ($row) {
                 return $row->from_location_otp ? $row->from_location_otp : '';
@@ -72,7 +82,7 @@ class MoneyTransferController extends Controller
                 return $row->to_otp ? $row->to_otp : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'driver', 'client', 'from_location', 'to_location']);
+            $table->rawColumns(['actions', 'placeholder', 'driver', 'client', 'from_location', 'to_location', 'status']);
 
             return $table->make(true);
         }
