@@ -21,9 +21,8 @@ class UpdateCarRequest extends FormRequest
             'imei' => [
                 'string',
                 'required',
-                //'unique:cars,imei,' . request()->route('car')->id,
                 Rule::unique('cars', 'imei')
-                ->ignore(request()->route('car')->id)
+                ->ignore(request()->route('car'))
                 ->whereNull('deleted_at'),
             ],
             'plate_number' => [
@@ -47,8 +46,8 @@ class UpdateCarRequest extends FormRequest
                 'required',
             ],
             'status' => [
-                'boolean',
                 'required',
+                'in:1,2',
             ],
         ];
     }
