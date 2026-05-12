@@ -344,7 +344,7 @@
                     },
                     {
                         data: 'client_status',
-                        name: 'client.name'
+                        name: 'client.english_name'
                     },
                     {
                         data: 'selected_hour',

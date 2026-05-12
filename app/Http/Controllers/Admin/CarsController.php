@@ -133,19 +133,20 @@ class CarsController extends Controller
         return view('admin.cars.edit', compact('car', 'drivers'));
     }
 
-    public function update(UpdateCarRequest $request, Car $car)
+    public function update(UpdateCarRequest $request, $id)
     {
-    // Check if a soft-deleted record exists with the same IMEI
-    $existing = Car::withoutGlobalScope('enabled')->withTrashed()
-        ->where('imei', $request->imei)
-        ->where('id', '!=', $car->id) // Ignore the current record
-        ->first();
+        $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
-    if ($existing) {
-        // Modify the soft-deleted IMEI
-        $existing->imei = $existing->imei . '_delete';
-        $existing->save();
-    }
+        $existing = Car::withoutGlobalScope('enabled')->withTrashed()
+            ->where('imei', $request->imei)
+            ->where('id', '!=', $car->id)
+            ->first();
+
+        if ($existing) {
+            $existing->imei = $existing->imei . '_delete';
+            $existing->save();
+        }
+
         $car->update($request->all());
 
         return redirect()->route('admin.cars.index');

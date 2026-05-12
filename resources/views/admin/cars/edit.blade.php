@@ -133,7 +133,7 @@
                                 id="statusInput">
                                 <option value="1" {{ old('status', $car->status) == '1' ? 'selected' : '' }}>Enable
                                 </option>
-                                <option value="0" {{ old('status', $car->status) == '0' ? 'selected' : '' }}>Disable</option>
+                                <option value="2" {{ old('status', $car->status) == '2' ? 'selected' : '' }}>Disable</option>
                             </select>
                             @if ($errors->has('status'))
                                 <div class="invalid-feedback">
