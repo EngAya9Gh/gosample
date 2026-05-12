@@ -316,26 +316,14 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             });
         } else {
             $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
-                return DB::selectOne("
-                    SELECT 
-                        (SELECT COUNT(*) FROM cars) as cars,
-                        (SELECT COUNT(*) FROM tasks) as tasks,
-                        (SELECT COUNT(*) FROM samples) as samples,
-                        (SELECT COUNT(*) FROM drivers) as drivers,
-                        (SELECT COUNT(*) FROM users) as users,
-                        (SELECT COUNT(*) FROM locations) as locations,
-                        (SELECT COUNT(*) FROM clients) as clients
-                ");
-            });
-            $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
-                return [
-                    'cars' => DB::table('cars')->count(),
-                    'tasks' => DB::table('tasks')->count(),
-                    'samples' => DB::table('samples')->count(),
-                    'drivers' => DB::table('drivers')->count(),
-                    'users' => DB::table('users')->count(),
+                return (object) [
+                    'cars'      => DB::table('cars')->count(),
+                    'tasks'     => DB::table('tasks')->count(),
+                    'samples'   => DB::table('samples')->count(),
+                    'drivers'   => DB::table('drivers')->count(),
+                    'users'     => DB::table('users')->count(),
                     'locations' => DB::table('locations')->count(),
-                    'clients' => DB::table('clients')->count(),
+                    'clients'   => DB::table('clients')->count(),
                 ];
             });
         }
