@@ -432,9 +432,23 @@ class TasksController extends Controller
                     ? '<span class="confirmed">Confirmed</span>'
                     : ($row->driver_confirm_to_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
                 )
+                ->editColumn('status', function ($row) {
+                    $map = [
+                        'NEW'         => ['bg-primary',   'NEW'],
+                        'COLLECTED'   => ['bg-info',      'COLLECTED'],
+                        'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
+                        'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
+                        'CLOSED'      => ['bg-success',   'CLOSED'],
+                        'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
+                    ];
+                    if (isset($map[$row->status])) {
+                        return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
+                    }
+                    return $row->status ?? '';
+                })
                 ->rawColumns([
-                    'actions', 'placeholder', 'from_location', 'to_location', 'billing_client', 
-                    'driver', 'car', 'driver_confirm_from_location', 'driver_confirm_to_location', 'confirmed_received_by_driver'
+                    'actions', 'placeholder', 'from_location', 'to_location', 'billing_client',
+                    'driver', 'car', 'driver_confirm_from_location', 'driver_confirm_to_location', 'confirmed_received_by_driver', 'status'
                 ]);
 
             return $table->make(true);
