@@ -97,7 +97,10 @@ class LocationsController extends Controller
                 return $row->mobile ? $row->mobile : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? Location::STATUS_SELECT[$row->status] : 'Not Active';
+                if ($row->status == 1) {
+                    return '<span class="badge bg-success">Active</span>';
+                }
+                return '<span class="badge bg-danger">Not Active</span>';
             });
 
             $table->addColumn('coordinates', function ($row) {
@@ -127,7 +130,7 @@ class LocationsController extends Controller
             });
            
 
-            $table->rawColumns(['actions', 'placeholder','coordinates']);
+            $table->rawColumns(['actions', 'placeholder','coordinates', 'status']);
 
             return $table->make(true);
         }

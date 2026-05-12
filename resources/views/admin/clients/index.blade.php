@@ -70,7 +70,11 @@
                                     {{ $client->id ?? '' }}
                                 </td>
                                 <td>
-                                    {{ App\Models\Client::STATUS_SELECT[$client->status] ?? '' }}
+                                    @if ($client->status == 1)
+                                        <span class="badge bg-success">Enabled</span>
+                                    @elseif ($client->status == 2)
+                                        <span class="badge bg-danger">Disabled</span>
+                                    @endif
                                 </td>
 
                                 <td>

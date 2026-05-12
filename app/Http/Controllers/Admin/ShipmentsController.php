@@ -93,7 +93,16 @@ class ShipmentsController extends Controller
                 return $row->pickup_otp ? $row->pickup_otp : '';
             });
             $table->editColumn('status_code', function ($row) {
-                return $row->status_code ? $row->status_code : '';
+                $map = [
+                    'Assigned'   => ['bg-primary', 'Assigned'],
+                    'confirmed'  => ['bg-info',    'Confirmed'],
+                    'dispatched' => ['bg-warning', 'Dispatched'],
+                    'delivered'  => ['bg-success', 'Delivered'],
+                ];
+                if (isset($map[$row->status_code])) {
+                    return '<span class="badge ' . $map[$row->status_code][0] . '">' . $map[$row->status_code][1] . '</span>';
+                }
+                return $row->status_code ?? '';
             });
             $table->editColumn('batch', function ($row) {
                 return $row->batch ? $row->batch : '';
@@ -108,7 +117,7 @@ class ShipmentsController extends Controller
                 return $row->created_at ? $row->created_at : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'task']);
+            $table->rawColumns(['actions', 'placeholder', 'task', 'status_code']);
 
             return $table->make(true);
         }

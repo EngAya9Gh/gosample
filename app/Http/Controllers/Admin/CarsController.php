@@ -82,10 +82,16 @@ class CarsController extends Controller
                 return $row->description ? $row->description : '';
             });
             $table->editColumn('status', function ($row) {
-                return $row->status ? $row->status : '';
+                if ($row->status == 1) {
+                    return '<span class="badge bg-success">Enabled</span>';
+                }
+                if ($row->status == 2) {
+                    return '<span class="badge bg-danger">Disabled</span>';
+                }
+                return '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'driver']);
+            $table->rawColumns(['actions', 'placeholder', 'driver', 'status']);
 
             return $table->make(true);
         }

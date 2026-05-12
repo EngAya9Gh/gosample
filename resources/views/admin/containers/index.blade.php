@@ -87,7 +87,11 @@
                                     {{ $container->description ?? '' }}
                                 </td>
                                 <td>
-                                    {{ App\Models\Container::STATUS_SELECT[$container->status] ?? '' }}
+                                    @if ($container->status == 1)
+                                        <span class="badge bg-success">Enabled</span>
+                                    @elseif ($container->status == 2)
+                                        <span class="badge bg-danger">Disabled</span>
+                                    @endif
                                 </td>
                                 <td>
                                     @can('container_show')
