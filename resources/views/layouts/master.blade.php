@@ -224,6 +224,7 @@
 <script src="https://www.chatbase.co/embed.min.js" id="xDF49r8Xag2USDU1n8so6" defer></script> --}}
 @yield('scripts')
 
+@include('partials.modern-filters')
 @include('layouts.customizer')
 
 <!-- JAVASCRIPT -->

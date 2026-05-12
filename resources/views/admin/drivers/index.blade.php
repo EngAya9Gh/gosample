@@ -46,7 +46,7 @@
     @endcan
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card modern-filter-card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Filters</h4>
                 </div>
@@ -54,40 +54,36 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-3">
-                                <label class="required"
-                                    for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_from" id="date_from">
                             </div>
-                            <div class="col-lg-3">
-                                <label class="required"
-                                    for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
-                            <div class="col-lg-3">
+                            <div class="col-lg-3 mb-3">
                                 <label for="mobile">{{ trans('cruds.driver.fields.mobile') }}</label>
-                                <input class="form-control" type="text" name="mobile" id="mobile">
+                                <input class="form-control" type="text" name="mobile" id="mobile" placeholder="e.g. 05XXXXXXXX">
                             </div>
-                            <div class="col-lg-3">
+                            <div class="col-lg-3 mb-3">
                                 <label for="statusInput">{{ trans('translation.task.fields.status') }}</label>
-                                <select class="form-control" name="status" id="statusInput">
-                                    <option value="1">Enable</option>
-                                    <option value="2">Disable</option>
+                                <select class="form-control" name="status" id="statusInput" data-placeholder="All statuses">
+                                    <option value="1" data-color="#22c55e">Enabled</option>
+                                    <option value="2" data-color="#ef4444">Disabled</option>
                                 </select>
                             </div>
-
                         </div>
 
                         <div class="row">
-
-                            <div class="col-lg-12 d-flex justify-content-between mt-2">
-                                <button class="btn btn-danger" type="button" id="search">
-                                    {{ trans('translation.search') }}
+                            <div class="col-lg-12 d-flex justify-content-end mt-2">
+                                <button class="btn btn-reset mr-2" type="reset" id="reset-filters">
+                                    Reset
                                 </button>
-
+                                <button class="btn btn-search" type="button" id="search">
+                                    <i class="fas fa-search"></i> {{ trans('translation.search') }}
+                                </button>
                             </div>
-
-
                         </div>
                     </div>
                 </form>
