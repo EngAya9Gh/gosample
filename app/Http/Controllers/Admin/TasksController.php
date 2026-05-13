@@ -1811,6 +1811,10 @@ class TasksController extends Controller
 
     public function exportExcelDetails(Request $request)
     {
+        // Allow long-running export
+        @set_time_limit(600);
+        @ini_set('memory_limit', '1024M');
+
         $status = $request->input('status');
         $date_from = $request->input('date_from');
         $date_to = $request->input('date_to');
@@ -1819,7 +1823,12 @@ class TasksController extends Controller
         $toLocation = $request->input('to_location');
         $driverId = $request->input('driver_id');
 
-        // Log the request parameters (optional)
+        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
+        // their own client_id so they cannot extract other clients' data.
+        $loggedUser = auth()->user();
+        if ($loggedUser && $loggedUser->client_id) {
+            $billingClient = $loggedUser->client_id;
+        }
 
         // Create an instance of TaskTimeReportExport with the request parameters
         $export = new TaskTimeReportExport($status, $date_from, $date_to, $billingClient, $fromLocation, $toLocation, $driverId);
@@ -2508,6 +2517,12 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function export(Request $request)
     {
+        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
+        // their own client_id so they cannot extract other clients' data.
+        $loggedUser = auth()->user();
+        if ($loggedUser && $loggedUser->client_id) {
+            $request->merge(['billing_client' => $loggedUser->client_id]);
+        }
 
         if($request->report_type == 'excel')
         {
@@ -2862,11 +2877,16 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function exportExcel(Request $request)
     {
+        // SECURITY: scope to logged-in user's client_id so a client user cannot
+        // pull data for other clients.
+        $loggedUser = auth()->user();
+        if ($loggedUser && $loggedUser->client_id) {
+            $request->merge(['billing_client' => $loggedUser->client_id]);
+        }
 
-        // if ( $this->from == null || $this->to == null ) {
-        //     return session()->flash('error', 'Date from and date to needed to generate PDF');
-        //  }
-
+        // Allow long-running export
+        @set_time_limit(600);
+        @ini_set('memory_limit', '1024M');
 
         $from = $request->date_from;
         $to = $request->date_to;

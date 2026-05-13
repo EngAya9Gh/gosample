@@ -1494,7 +1494,9 @@
 
     function bindButtonLoading() {
         // Buttons that should show a loading spinner when clicked.
-        const buttonSelectors = '.modern-filter-card #export-excel-link, .modern-filter-card #export, .modern-filter-card #search, .modern-filter-card button[type="submit"].btn-search';
+        // NOTE: export buttons are intentionally EXCLUDED — they trigger file downloads
+        // which don't navigate away from the page, so the spinner would linger.
+        const buttonSelectors = '.modern-filter-card #search, .modern-filter-card button[type="submit"].btn-search:not(#export):not(#export-excel-link)';
         document.querySelectorAll(buttonSelectors).forEach(function (btn) {
             if (btn.dataset.mfLoadingBound) return;
             btn.dataset.mfLoadingBound = '1';
@@ -1506,8 +1508,8 @@
                     return;
                 }
                 btn.classList.add('is-loading');
-                // Safety auto-clear in case nothing else clears it (export downloads, etc.)
-                btn._mfLoadingTimer = setTimeout(function () { clearButtonLoading(btn); }, 15000);
+                // Short safety auto-clear (most actions finish well under this)
+                btn._mfLoadingTimer = setTimeout(function () { clearButtonLoading(btn); }, 10000);
             });
         });
 
