@@ -274,9 +274,21 @@ class TasksController extends Controller
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
                 ->select('tasks.*');
 
-            // فلتر حسب العميل إذا المستخدم مربوط بعميل
-            if ($logged_id_user->client_id) {
+            // SECURITY (fail-closed scoping):
+            //  - If the user is bound to a client (client_id set) → scope to that client.
+            //  - Else if the user holds an admin-level role → no scope (sees all).
+            //  - Else (e.g. a "client" user whose client_id was never set) → return nothing.
+            //    This prevents the data leak we just observed where a non-admin user with a
+            //    NULL client_id was effectively seeing every task in the system.
+            $isAdminUser = $logged_id_user && (
+                $logged_id_user->hasAnyRole(['Admin', 'Super Admin'])
+                || method_exists($logged_id_user, 'getIsAdminAttribute') && $logged_id_user->is_admin
+            );
+            if ($logged_id_user && $logged_id_user->client_id) {
                 $query->where('billing_client', $logged_id_user->client_id);
+            } elseif (!$isAdminUser) {
+                // Not bound to a client AND not a verified admin → show nothing.
+                $query->whereRaw('1 = 0');
             }
 
             // فلترة ذكية باستخدام when()
@@ -1822,11 +1834,18 @@ class TasksController extends Controller
             'driver_id'      => $request->input('driver_id'),
         ];
 
-        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
-        // their own client_id so they cannot extract other clients' data.
+        // SECURITY (fail-closed): scope the export to the user's own client OR refuse it
+        // entirely if the user is neither an admin nor bound to a client.
         $loggedUser = auth()->user();
+        $isAdminUser = $loggedUser && (
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
+        );
         if ($loggedUser && $loggedUser->client_id) {
             $filters['billing_client'] = $loggedUser->client_id;
+        } elseif (!$isAdminUser) {
+            // Not bound to a client AND not an admin — refuse to leak data.
+            abort(403, 'You are not allowed to export.');
         }
 
         // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.
@@ -2593,11 +2612,17 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function export(Request $request)
     {
-        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
-        // their own client_id so they cannot extract other clients' data.
+        // SECURITY (fail-closed): same scoping rules as the listing — must be either
+        // admin or client-bound, otherwise refuse the request.
         $loggedUser = auth()->user();
+        $isAdminUser = $loggedUser && (
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
+        );
         if ($loggedUser && $loggedUser->client_id) {
             $request->merge(['billing_client' => $loggedUser->client_id]);
+        } elseif (!$isAdminUser) {
+            abort(403, 'You are not allowed to export.');
         }
 
         // PERFORMANCE: force a date range to avoid scanning the entire tasks table on prod.
