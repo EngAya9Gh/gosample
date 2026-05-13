@@ -1812,16 +1812,16 @@ class TasksController extends Controller
     public function exportExcelDetails(Request $request)
     {
         // Allow long-running export
-        @set_time_limit(600);
+        @set_time_limit(0);
         @ini_set('memory_limit', '1024M');
 
-        $status = $request->input('status');
-        $date_from = $request->input('date_from');
-        $date_to = $request->input('date_to');
+        $status        = $request->input('status');
+        $date_from     = $request->input('date_from');
+        $date_to       = $request->input('date_to');
         $billingClient = $request->input('billing_client');
-        $fromLocation = $request->input('from_location');
-        $toLocation = $request->input('to_location');
-        $driverId = $request->input('driver_id');
+        $fromLocation  = $request->input('from_location');
+        $toLocation    = $request->input('to_location');
+        $driverId      = $request->input('driver_id');
 
         // SECURITY: if the logged-in user is bound to a client, force-scope the export to
         // their own client_id so they cannot extract other clients' data.
@@ -1830,11 +1830,75 @@ class TasksController extends Controller
             $billingClient = $loggedUser->client_id;
         }
 
-        // Create an instance of TaskTimeReportExport with the request parameters
-        $export = new TaskTimeReportExport($status, $date_from, $date_to, $billingClient, $fromLocation, $toLocation, $driverId);
+        // Build query (no execution yet)
+        $query = Task::query()->with(['driver:id,name', 'client:id,english_name', 'from:id,name', 'to:id,name']);
+        if ($date_from && $date_to) {
+            $query->whereBetween('collection_date', [$date_from, $date_to]);
+        } elseif ($date_from) {
+            $query->where('collection_date', '>=', $date_from);
+        } elseif ($date_to) {
+            $query->where('collection_date', '<=', $date_to);
+        }
+        if ($status)        { $query->where('status', $status); }
+        if ($billingClient) { $query->where('billing_client', $billingClient); }
+        if ($fromLocation)  { $query->where('from_location', $fromLocation); }
+        if ($toLocation)    { $query->where('to_location', $toLocation); }
+        if ($driverId)      { $query->where('driver_id', $driverId); }
 
-        // Return the Excel download
-        return Excel::download($export, 'task_time_report.xlsx');
+        // OpenSpout writes XLSX row-by-row to a temp file (constant memory). After all rows
+        // are written, we stream the finished file as the response. This avoids the
+        // Maatwebsite/PhpSpreadsheet "build whole sheet in memory" bottleneck that caused 504s.
+        $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
+        $tmpPath  = storage_path('app/exports/' . $filename);
+        if (!is_dir(dirname($tmpPath))) { @mkdir(dirname($tmpPath), 0775, true); }
+
+        $writer = new \OpenSpout\Writer\XLSX\Writer();
+        $writer->openToFile($tmpPath);
+
+        // Bold header style
+        $headerStyle = (new \OpenSpout\Common\Entity\Style\Style())
+            ->setFontBold()
+            ->setFontSize(11);
+
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+            'Task ID', 'Created Date', 'Reach Time', 'Started Time',
+            'Collected Date', 'Collected Time', 'Close Date', 'Close Time',
+            'Driver', 'Client', 'From Location', 'To Location',
+        ], $headerStyle));
+
+        $count = 0;
+        // chunkById = keyset pagination, constant memory, no offset slowdown
+        $query->orderBy('tasks.id')->chunkById(500, function ($tasks) use ($writer, &$count) {
+            foreach ($tasks as $t) {
+                $collected = $t->collection_date ? Carbon::parse($t->collection_date) : null;
+                $closed    = $t->close_date      ? Carbon::parse($t->close_date)      : null;
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                    (string) $t->id,
+                    (string) $t->created_at,
+                    (string) ($t->from_location_confirmation_timestamp ?? ''),
+                    (string) ($t->driver_start_date ?? ''),
+                    $collected ? $collected->format('Y-m-d') : '',
+                    $collected ? $collected->format('H:i:s') : '',
+                    $closed    ? $closed->format('Y-m-d')    : '',
+                    $closed    ? $closed->format('H:i:s')    : '',
+                    optional($t->driver)->name         ?: 'N/A',
+                    optional($t->client)->english_name ?: 'N/A',
+                    optional($t->from)->name           ?: 'N/A',
+                    optional($t->to)->name             ?: 'N/A',
+                ]));
+                $count++;
+            }
+        });
+
+        // Summary row
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['Number of tasks', $count]));
+        $writer->close();
+
+        // Send file as download then delete from disk
+        return response()->download($tmpPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
 
@@ -2522,6 +2586,15 @@ $temp3 = $temperatureReadings->pluck('temp7');
         $loggedUser = auth()->user();
         if ($loggedUser && $loggedUser->client_id) {
             $request->merge(['billing_client' => $loggedUser->client_id]);
+        }
+
+        // PERFORMANCE: force a date range to avoid scanning the entire tasks table on prod.
+        // Defaults to last 30 days when none is provided.
+        if (empty($request->date_from) && empty($request->date_to)) {
+            $request->merge([
+                'date_from' => Carbon::now()->subDays(30)->startOfDay()->toDateTimeString(),
+                'date_to'   => Carbon::now()->endOfDay()->toDateTimeString(),
+            ]);
         }
 
         if($request->report_type == 'excel')
