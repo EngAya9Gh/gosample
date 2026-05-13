@@ -163,7 +163,7 @@
                         </div>
                     </div>
                     <!--end col-->
-                    @role('Admin')
+                    @hasanyrole('Admin|Super Admin')
                         <div class="col-6">
                             <div class="mb-3">
                                 <label>{{ trans('translation.task.fields.takasi') }}</label>
@@ -183,7 +183,7 @@
                                 @endif
                             </div>
                         </div>
-                    @endrole
+                    @endhasanyrole
                     <div class="col-6">
                         <div class="mb-3">
                             <label>{{ trans('translation.task.fields.task_type') }}</label>
