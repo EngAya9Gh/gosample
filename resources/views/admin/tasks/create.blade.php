@@ -163,26 +163,24 @@
                         </div>
                     </div>
                     <!--end col-->
-                    @hasanyrole('Admin|Super Admin')
-                        <div class="col-6">
-                            <div class="mb-3">
-                                <label>{{ trans('translation.task.fields.takasi') }}</label>
-                                <select class="form-control {{ $errors->has('takasi') ? 'is-invalid' : '' }}" name="takasi"
-                                    id="takasi">
-                                    @foreach (App\Models\Task::TAKASI_SELECT as $key => $label)
-                                        <option value="{{ $key }}"
-                                            {{ old('takasi', 'NO') === (string) $key ? 'selected' : '' }}>{{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @if ($errors->has('takasi'))
-                                    <div class="invalid-feedback">
-                                        {{ $errors->first('takasi') }}
-                                    </div>
-                                @endif
-                            </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <label>{{ trans('translation.task.fields.takasi') }}</label>
+                            <select class="form-control {{ $errors->has('takasi') ? 'is-invalid' : '' }}" name="takasi"
+                                id="takasi">
+                                @foreach (App\Models\Task::TAKASI_SELECT as $key => $label)
+                                    <option value="{{ $key }}"
+                                        {{ old('takasi', 'NO') === (string) $key ? 'selected' : '' }}>{{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if ($errors->has('takasi'))
+                                <div class="invalid-feedback">
+                                    {{ $errors->first('takasi') }}
+                                </div>
+                            @endif
                         </div>
-                    @endhasanyrole
+                    </div>
                     <div class="col-6">
                         <div class="mb-3">
                             <label>{{ trans('translation.task.fields.task_type') }}</label>
