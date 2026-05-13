@@ -1,5 +1,10 @@
 @if(isset($crudRoutePart) && $crudRoutePart == 'tasks')
     <div class="d-flex gap-1 justify-content-center">
+        @can($viewGate)
+            <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="btn btn-soft-info btn-sm" title="{{ trans('global.view') }}">
+                <i class="ri-eye-fill"></i>
+            </a>
+        @endcan
         @can($editGate)
             <a href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}" class="btn btn-soft-primary btn-sm" title="{{ trans('global.edit') }}">
                 <i class="ri-edit-2-fill"></i>

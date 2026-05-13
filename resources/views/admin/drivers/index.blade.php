@@ -26,14 +26,6 @@
             margin-bottom: 6px;
         }
 
-        /* Clickable rows */
-        .datatable-Driver tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .datatable-Driver tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05) !important;
-        }
     </style>
     @can('driver_create')
         <div style="margin-bottom: 10px;" class="row">
@@ -239,19 +231,6 @@
             $("#search").click(function() {
                 // alert("button");
                 table.draw();
-            });
-
-            // Clickable row logic
-            $('.datatable-Driver tbody').on('click', 'tr', function (e) {
-                // Don't trigger if clicking on actions, checkboxes, or buttons
-                if ($(e.target).closest('.text-nowrap, .select-checkbox, button, a').length) {
-                    return;
-                }
-                
-                let data = table.row(this).data();
-                if (data && data.id) {
-                    window.location.href = `/admin/drivers/${data.id}`;
-                }
             });
 
         });
