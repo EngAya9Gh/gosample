@@ -4,14 +4,6 @@
 @endsection
 @section('content')
     <style>
-        /* Clickable rows */
-        .datatable-Attendance tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .datatable-Attendance tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05) !important;
-        }
         .badge {
             font-weight: 600;
             padding: 5px 10px;
@@ -142,17 +134,6 @@
           .columns.adjust();
   });
   
-  // Clickable row logic for Attendances
-  $('.datatable-Attendance tbody').on('click', 'tr', function (e) {
-      if ($(e.target).closest('.text-nowrap, .select-checkbox, button, a').length) {
-          return;
-      }
-      
-      let data = table.row(this).data();
-      if (data && data.id) {
-          window.location.href = `/admin/attendances/${data.id}`;
-      }
-  });
 });
 
 </script>
