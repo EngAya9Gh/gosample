@@ -20,9 +20,9 @@
 
 
 
-    <div class="card">
+    <div class="card modern-filter-card">
         <div class="card-header">
-            {{ trans('translation.create') }} {{ trans('translation.task.title_singular') }}
+            <h4 class="card-title mb-0">{{ trans('translation.create') }} {{ trans('translation.task.title_singular') }}</h4>
         </div>
 
         <div class="card-body">
@@ -108,11 +108,10 @@
                             <label>{{ trans('translation.task.fields.type') }}</label>
                             <select class="form-control {{ $errors->has('type') ? 'is-invalid' : '' }}" name="type"
                                 id="type">
-                                <option value disabled {{ old('type', null) === null ? 'selected' : '' }}>
-                                    {{ trans('translation.pleaseSelect') }}</option>
+                                <option value="">All</option>
                                 @foreach (App\Models\Task::TYPE_SELECT as $key => $label)
                                     <option value="{{ $key }}"
-                                        {{ old('type', 'one_time') === (string) $key ? 'selected' : '' }}>
+                                        {{ old('type') === (string) $key ? 'selected' : '' }}>
                                         {{ $label }}</option>
                                 @endforeach
                             </select>
@@ -171,11 +170,10 @@
                                 <label>{{ trans('translation.task.fields.takasi') }}</label>
                                 <select class="form-control {{ $errors->has('takasi') ? 'is-invalid' : '' }}" name="takasi"
                                     id="takasi">
-                                    <option value disabled {{ old('takasi', null) === null ? 'selected' : '' }}>
-                                        {{ trans('translation.pleaseSelect') }}</option>
+                                    <option value="">All</option>
                                     @foreach (App\Models\Task::TAKASI_SELECT as $key => $label)
                                         <option value="{{ $key }}"
-                                            {{ old('takasi', 'NO') === (string) $key ? 'selected' : '' }}>{{ $label }}
+                                            {{ old('takasi') === (string) $key ? 'selected' : '' }}>{{ $label }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -192,11 +190,10 @@
                             <label>{{ trans('translation.task.fields.task_type') }}</label>
                             <select class="form-control {{ $errors->has('task_type') ? 'is-invalid' : '' }}"
                                 name="task_type" id="task_type">
-                                <option value disabled {{ old('task_type', null) === null ? 'selected' : '' }}>
-                                    {{ trans('translation.pleaseSelect') }}</option>
+                                <option value="">All</option>
                                 @foreach (App\Models\Task::TASK_TYPE_SELECT as $key => $label)
                                     <option value="{{ $key }}"
-                                        {{ old('task_type', 'SAMPLE') === (string) $key ? 'selected' : '' }}>
+                                        {{ old('task_type') === (string) $key ? 'selected' : '' }}>
                                         {{ $label }}</option>
                                 @endforeach
                             </select>
@@ -236,11 +233,12 @@
                                                 </div>
                                             </div> -->
                     <div class="col-lg-12">
-                        <div class="text-start">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('translation.save') }}
-                            </button>
-                        </div>
+                        <a href="{{ route('admin.tasks.index') }}" class="btn btn-reset">
+                            Cancel
+                        </a>
+                        <button class="btn btn-search" type="submit">
+                            <i class="fas fa-save"></i> {{ trans('translation.save') }}
+                        </button>
                     </div>
                     <!--end col-->
                 </div>

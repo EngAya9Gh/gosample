@@ -15,7 +15,7 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card modern-filter-card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Filters</h4>
                 </div>
@@ -23,26 +23,24 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-4">
-                                <label class="required" for="keyword">{{ trans('translation.search') }}</label>
-                                <input class="form-control" type="text" name="keyword" id="keyword">
+                            <div class="col-lg-4 mb-3">
+                                <label for="keyword">{{ trans('translation.search') }}</label>
+                                <input class="form-control" type="text" name="keyword" id="keyword" placeholder="Task ID or keyword">
                             </div>
 
-                            <div class="col-lg-4">
-                                <label class="required" for="status">{{ trans('translation.task.fields.status') }}</label>
-                                <select class="form-control" name="status" id="statuss">
-                                    <option value="">Select Status</option>
-                                    <option value="NEW">NEW</option>
-                                    <option value="COLLECTED">COLLECTED</option>
-                                    <option value="IN_FREEZER">IN CONTAINER</option>
-                                    <option value="OUT_FREEZER">OUT CONTAINER</option>
-                                    <option value="CLOSED">CLOSED</option>
-                                    <option value="NO_SAMPLES">NO_SAMPLES</option>
+                            <div class="col-lg-4 mb-3">
+                                <label for="status">{{ trans('translation.task.fields.status') }}</label>
+                                <select class="form-control" name="status" id="statuss" data-placeholder="All statuses">
+                                    <option value="NEW"         data-color="#3b82f6">NEW</option>
+                                    <option value="COLLECTED"   data-color="#0ea5e9">COLLECTED</option>
+                                    <option value="IN_FREEZER"  data-color="#f59e0b">IN CONTAINER</option>
+                                    <option value="OUT_FREEZER" data-color="#f59e0b">OUT CONTAINER</option>
+                                    <option value="CLOSED"      data-color="#22c55e">CLOSED</option>
+                                    <option value="NO_SAMPLES"  data-color="#94a3b8">NO_SAMPLES</option>
                                 </select>
-
                             </div>
 
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="driver_id">{{ trans('translation.task.fields.driver') }}</label>
                                 <select class="form-control select2" name="driver_id" id="driver_id">
                                     <option value="">Select Driver</option>
@@ -53,17 +51,15 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-lg-4">
-                                <label class="required"
-                                    for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
+                            <div class="col-lg-4 mb-3">
+                                <label for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_from" id="date_from">
                             </div>
-                            <div class="col-lg-4">
-                                <label class="required"
-                                    for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
+                            <div class="col-lg-4 mb-3">
+                                <label for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="billing_client">{{ trans('translation.task.fields.billing_client') }}</label>
                                 <select class="form-control select2" name="billing_client" id="billing_client">
                                     <option value="">Select Client</option>
@@ -72,11 +68,10 @@
                                     @endforeach
                                 </select>
                             </div>
-
                         </div>
 
                         <div class="row">
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="from_location">{{ trans('translation.task.fields.from_location') }}</label>
                                 <select class="form-control select2" name="from_location" id="from_location">
                                     <option value="">Select Location</option>
@@ -85,7 +80,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="to_location">{{ trans('translation.task.fields.to_location') }}</label>
                                 <select class="form-control select2" name="to_location" id="to_location">
                                     <option value="">Select Location</option>
@@ -94,55 +89,51 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="search_date">{{ trans('translation.task.fields.search_date') }}</label>
                                 <select class="form-control" name="search_date" id="search_date">
-                                    {{-- <option value="">Select Date</option> --}}
-                                    <option value="collection_date">collection Date</option>
+                                    <option value="collection_date">Collection Date</option>
                                     <option value="created_at">Creation Date</option>
                                 </select>
                             </div>
 
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="report_type">{{ trans('translation.export') }}</label>
                                 <select class="form-control" name="report_type" id="report_type">
-                                    {{-- <option value="">Select Report Type </option> --}}
                                     <option value="pdf">PDF</option>
                                     <option value="excel">EXCEL</option>
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="sort_by">{{ trans('global.sort_by') }}</label>
                                 <select class="form-control" name="sort_by" id="sort_by">
                                     <option value="created_at">{{ trans('translation.task.fields.created_at') }}</option>
                                     <option value="updated_at">{{ trans('translation.task.fields.updated_at') }}</option>
-                                    <option value="collection_date">{{ trans('translation.task.fields.collection_date') }}
-                                    </option>
+                                    <option value="collection_date">{{ trans('translation.task.fields.collection_date') }}</option>
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="sort_order">{{ trans('global.sort_order') }}</label>
                                 <select class="form-control" name="sort_order" id="sort_order">
                                     <option value="desc">Desc</option>
                                     <option value="asc">Asc</option>
-                                    </option>
                                 </select>
                             </div>
 
-                            <div class="col-lg-12 d-flex justify-content-between mt-2">
-                                <button class="btn btn-danger" type="button" id="search">
-                                    {{ trans('translation.search') }}
+                            <div class="col-lg-12 d-flex justify-content-end mt-2 flex-wrap">
+                                <button class="btn btn-reset mr-2 mb-1" type="reset" id="reset-filters">
+                                    Reset
                                 </button>
-
-                                <a href="#" id="export-excel-link" class="btn btn-success">Export Excel Report</a>
-
-
-                                <button class="btn btn-danger" type="submit" id="export">
-                                    {{ trans('translation.export') }}
+                                <a href="#" id="export-excel-link" class="btn btn-search mr-2 mb-1" style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);box-shadow:0 4px 12px rgba(34,197,94,0.25);">
+                                    <i class="fas fa-file-excel"></i> Export Excel Report
+                                </a>
+                                <button class="btn btn-search mr-2 mb-1" type="submit" id="export" style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);box-shadow:0 4px 12px rgba(99,102,241,0.25);">
+                                    <i class="fas fa-download"></i> {{ trans('translation.export') }}
+                                </button>
+                                <button class="btn btn-search mb-1" type="button" id="search">
+                                    <i class="fas fa-search"></i> {{ trans('translation.search') }}
                                 </button>
                             </div>
-
-
                         </div>
                     </div>
                 </form>
