@@ -169,10 +169,9 @@
                                 <label>{{ trans('translation.task.fields.takasi') }}</label>
                                 <select class="form-control {{ $errors->has('takasi') ? 'is-invalid' : '' }}" name="takasi"
                                     id="takasi">
-                                    <option value="">All</option>
                                     @foreach (App\Models\Task::TAKASI_SELECT as $key => $label)
                                         <option value="{{ $key }}"
-                                            {{ old('takasi') === (string) $key ? 'selected' : '' }}>{{ $label }}
+                                            {{ old('takasi', 'NO') === (string) $key ? 'selected' : '' }}>{{ $label }}
                                         </option>
                                     @endforeach
                                 </select>
