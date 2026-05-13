@@ -108,10 +108,9 @@
                             <label>{{ trans('translation.task.fields.type') }}</label>
                             <select class="form-control {{ $errors->has('type') ? 'is-invalid' : '' }}" name="type"
                                 id="type">
-                                <option value="">All</option>
                                 @foreach (App\Models\Task::TYPE_SELECT as $key => $label)
                                     <option value="{{ $key }}"
-                                        {{ old('type') === (string) $key ? 'selected' : '' }}>
+                                        {{ old('type', 'one_time') === (string) $key ? 'selected' : '' }}>
                                         {{ $label }}</option>
                                 @endforeach
                             </select>
@@ -190,10 +189,9 @@
                             <label>{{ trans('translation.task.fields.task_type') }}</label>
                             <select class="form-control {{ $errors->has('task_type') ? 'is-invalid' : '' }}"
                                 name="task_type" id="task_type">
-                                <option value="">All</option>
                                 @foreach (App\Models\Task::TASK_TYPE_SELECT as $key => $label)
                                     <option value="{{ $key }}"
-                                        {{ old('task_type') === (string) $key ? 'selected' : '' }}>
+                                        {{ old('task_type', 'SAMPLE') === (string) $key ? 'selected' : '' }}>
                                         {{ $label }}</option>
                                 @endforeach
                             </select>

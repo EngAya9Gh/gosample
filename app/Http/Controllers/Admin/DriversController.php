@@ -40,15 +40,27 @@ class DriversController extends Controller
             $table->addColumn('actions', '&nbsp;');
 
             $table->editColumn('actions', function ($row) {
-                $editUrl = route('admin.drivers.edit', $row->id);
-                
                 $buttons = "";
-                
-                if (Gate::allows('driver_edit')) {
-                    $buttons .= '<a class="btn btn-xs btn-info shadow-sm mr-1" href="' . $editUrl . '" title="Edit"><i class="ri-edit-line text-white"></i> Edit</a>';
+
+                if (Gate::allows('driver_show')) {
+                    $showUrl = route('admin.drivers.show', $row->id);
+                    $buttons .= '<a class="btn btn-xs btn-soft-info shadow-sm mr-1" href="' . $showUrl . '" title="View"><i class="ri-eye-fill"></i></a>';
                 }
-                
-                return '<div class="text-nowrap">' . $buttons . '</div>';
+                if (Gate::allows('driver_edit')) {
+                    $editUrl = route('admin.drivers.edit', $row->id);
+                    $buttons .= '<a class="btn btn-xs btn-soft-primary shadow-sm mr-1" href="' . $editUrl . '" title="Edit"><i class="ri-edit-2-fill"></i></a>';
+                }
+                if (Gate::allows('can-delete')) {
+                    $destroyUrl = route('admin.drivers.destroy', $row->id);
+                    $csrf = csrf_token();
+                    $buttons .= '<form action="' . $destroyUrl . '" method="POST" onsubmit="return confirm(\'Are you sure?\');" style="display:inline-block">'
+                        . '<input type="hidden" name="_method" value="DELETE">'
+                        . '<input type="hidden" name="_token" value="' . $csrf . '">'
+                        . '<button type="submit" class="btn btn-xs btn-soft-danger shadow-sm" title="Delete"><i class="ri-delete-bin-fill"></i></button>'
+                        . '</form>';
+                }
+
+                return '<div class="text-nowrap d-flex gap-1 justify-content-center">' . $buttons . '</div>';
             });
 
             $table->editColumn('id', function ($row) {
