@@ -41,8 +41,245 @@
     }
     .modern-filter-card label.required::after { content: " *"; color: #ef4444; }
 
+    /* ===== Select2 — trigger (closed state) when inside .modern-filter-card ===== */
+    .modern-filter-card .select2-container--default .select2-selection--single {
+        height: 44px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
+        padding: 0 14px;
+        display: flex !important;
+        align-items: center;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single:hover {
+        border-color: #cbd5e1 !important;
+        background-color: #fff !important;
+    }
+    .modern-filter-card .select2-container--default.select2-container--open .select2-selection--single,
+    .modern-filter-card .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #0d9488 !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 44px !important;
+        padding: 0 !important;
+        color: #0f172a;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+    }
+    /* Treat empty-value selections (where the option is "Select Driver", "Select X" etc.)
+       as placeholder — gray italic-style text instead of black bold. */
+    .modern-filter-card .select2-container--default.mf-select2-empty .select2-selection--single .select2-selection__rendered {
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+
+    /* ===== Select2 — multi-select (used in create/edit forms) ===== */
+    .modern-filter-card .select2-container--default .select2-selection--multiple {
+        min-height: 44px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
+        padding: 4px 8px !important;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        cursor: text;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--multiple:hover {
+        border-color: #cbd5e1 !important;
+        background-color: #fff !important;
+    }
+    .modern-filter-card .select2-container--default.select2-container--focus .select2-selection--multiple,
+    .modern-filter-card .select2-container--default.select2-container--open .select2-selection--multiple {
+        border-color: #0d9488 !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
+    }
+    .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background: rgba(13, 148, 136, 0.10) !important;
+        border: 1px solid rgba(13, 148, 136, 0.20) !important;
+        border-radius: 6px !important;
+        color: #0d9488 !important;
+        padding: 2px 8px !important;
+        margin: 2px 0 !important;
+        font-size: 0.85rem;
+        font-weight: 500;
+        line-height: 1.4;
+        display: inline-flex;
+        align-items: center;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: #0d9488 !important;
+        margin-right: 6px !important;
+        font-size: 1.05em;
+        font-weight: bold;
+        transition: color .12s ease;
+        border: 0 !important;
+        background: none !important;
+        padding: 0 !important;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #ef4444 !important;
+        background: none !important;
+    }
+    .modern-filter-card .select2-container--default .select2-search--inline .select2-search__field {
+        margin-top: 4px !important;
+        color: #0f172a;
+        font-size: 0.9rem;
+        font-family: inherit;
+        min-height: 28px;
+    }
+    [dir="rtl"] .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        margin-right: 0 !important;
+        margin-left: 6px !important;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 44px !important;
+        right: 10px !important;
+        top: 0 !important;
+        width: 20px;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #64748b transparent transparent transparent !important;
+        border-width: 6px 5px 0 5px !important;
+        margin-left: -5px;
+        margin-top: -3px;
+    }
+    .modern-filter-card .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+        border-color: transparent transparent #64748b transparent !important;
+        border-width: 0 5px 6px 5px !important;
+    }
+    /* Clear (×) button — absolutely positioned to the right of the trigger,
+       just before the arrow. Default Select2 uses float:right which doesn't work
+       because our trigger is display:flex. */
+    .modern-filter-card .select2-container--default .select2-selection--single {
+        position: relative !important;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute !important;
+        right: 36px !important;            /* leave room for the chevron arrow */
+        top: 50% !important;
+        transform: translateY(-50%);
+        margin: 0 !important;
+        padding: 2px 6px !important;
+        color: #94a3b8 !important;
+        font-weight: bold;
+        font-size: 1.1rem;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 2;
+        border-radius: 6px;
+        background-color: transparent;
+        transition: color .12s ease, background-color .12s ease;
+    }
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__clear:hover {
+        color: #ef4444 !important;
+        background-color: rgba(239, 68, 68, 0.08);
+    }
+    /* When a value is selected, reserve space inside the rendered text for the clear button */
+    .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-right: 30px !important;
+    }
+    [dir="rtl"] .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__clear {
+        right: auto !important;
+        left: 36px !important;
+    }
+    [dir="rtl"] .modern-filter-card .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-right: 0 !important;
+        padding-left: 30px !important;
+    }
+
+    /* ===== Select2 — dropdown panel (lives on body, tagged via JS) ===== */
+    .select2-container--modern-filter.select2-container--open .select2-dropdown {
+        border: 1px solid rgba(15, 23, 42, 0.10) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 48px rgba(15, 23, 42, 0.20), 0 6px 12px rgba(15, 23, 42, 0.08) !important;
+        background: #fff !important;
+        overflow: hidden;
+        margin-top: 6px;
+        padding: 6px;
+    }
+    .select2-container--modern-filter.select2-container--open .select2-dropdown--above {
+        margin-top: -6px;
+        margin-bottom: 6px;
+    }
+    .select2-container--modern-filter .select2-search--dropdown {
+        padding: 4px 4px 8px !important;
+    }
+    .select2-container--modern-filter .select2-search--dropdown .select2-search__field {
+        height: 38px !important;
+        padding: 0 12px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        font-size: 0.9rem !important;
+        background: #f8fafc !important;
+        outline: none !important;
+        transition: border-color .12s ease, box-shadow .12s ease, background-color .12s ease;
+        color: #0f172a;
+    }
+    .select2-container--modern-filter .select2-search--dropdown .select2-search__field:focus {
+        border-color: #0d9488 !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+    }
+    /* Results list — capped height + scrollable so it never reaches the end of the page */
+    .select2-container--modern-filter .select2-results__options {
+        max-height: 280px !important;
+        overflow-y: auto;
+        padding: 2px;
+    }
+    .select2-container--modern-filter .select2-results__options::-webkit-scrollbar { width: 6px; }
+    .select2-container--modern-filter .select2-results__options::-webkit-scrollbar-thumb {
+        background: #cbd5e1; border-radius: 3px;
+    }
+    .select2-container--modern-filter .select2-results__options::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .select2-container--modern-filter .select2-results__option {
+        padding: 10px 12px !important;
+        margin: 1px 0;
+        border-radius: 8px !important;
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: #0f172a !important;
+        background: transparent !important;
+        cursor: pointer;
+        line-height: 1.4;
+        transition: background-color .12s ease, color .12s ease;
+    }
+    .select2-container--modern-filter .select2-results__option--highlighted[aria-selected],
+    .select2-container--modern-filter .select2-results__option--highlighted {
+        background: #f1f5f9 !important;
+        color: #0d9488 !important;
+    }
+    .select2-container--modern-filter .select2-results__option[aria-selected="true"],
+    .select2-container--modern-filter .select2-results__option--selected {
+        background: rgba(13, 148, 136, 0.10) !important;
+        color: #0d9488 !important;
+        font-weight: 600;
+    }
+    .select2-container--modern-filter .select2-results__option--disabled,
+    .select2-container--modern-filter .select2-results__message {
+        color: #94a3b8 !important;
+        background: transparent !important;
+        font-style: italic;
+        padding: 12px;
+        text-align: center;
+    }
+
     /* ===== Text/date inputs ===== */
-    .modern-filter-card .form-control:not(.select2-hidden-accessible) {
+    .modern-filter-card .form-control:not(.select2-hidden-accessible):not(textarea) {
         height: 44px;
         border: 1.5px solid #e2e8f0;
         border-radius: 10px;
@@ -53,12 +290,145 @@
         transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
         width: 100%;
     }
-    .modern-filter-card .form-control:not(.select2-hidden-accessible):hover { border-color: #cbd5e1; background-color: #fff; }
-    .modern-filter-card .form-control:not(.select2-hidden-accessible):focus {
+    .modern-filter-card .form-control:not(.select2-hidden-accessible):not(textarea):hover { border-color: #cbd5e1; background-color: #fff; }
+    .modern-filter-card .form-control:not(.select2-hidden-accessible):not(textarea):focus {
         border-color: #0d9488; background-color: #fff;
         box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12); outline: 0;
     }
     .modern-filter-card input[type="datetime-local"].form-control { padding-right: 8px; }
+
+    /* ===== Textareas ===== */
+    .modern-filter-card textarea.form-control {
+        min-height: 92px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        color: #0f172a;
+        line-height: 1.5;
+        resize: vertical;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        width: 100%;
+        font-family: inherit;
+    }
+    .modern-filter-card textarea.form-control:hover { border-color: #cbd5e1; background-color: #fff; }
+    .modern-filter-card textarea.form-control:focus {
+        border-color: #0d9488; background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12); outline: 0;
+    }
+
+    /* ===== Helper text under fields ===== */
+    .modern-filter-card .help-block {
+        display: block;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        margin-top: 6px;
+        line-height: 1.4;
+    }
+
+    /* ===== Input groups — handles both prepend (icon left) and append (suffix right) =====
+       Position-based rules: first child gets rounded LEFT, last child gets rounded RIGHT.
+       Borders between siblings are removed so they look like one continuous pill. */
+    .modern-filter-card .input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch;
+        width: 100%;
+        position: relative;
+    }
+    .modern-filter-card .input-group > * { border-radius: 0; }
+    .modern-filter-card .input-group > :first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+    .modern-filter-card .input-group > :last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    /* Form control inside an input-group: stretches, drops borders that meet a sibling */
+    .modern-filter-card .input-group > .form-control,
+    .modern-filter-card .input-group > input.form-control {
+        flex: 1 1 auto !important;
+        width: 1% !important;
+        min-width: 0;
+    }
+    .modern-filter-card .input-group > .form-control:not(:first-child) {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+    .modern-filter-card .input-group > .form-control:not(:last-child) {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    /* Icon/text addon */
+    .modern-filter-card .input-group > .input-group-text,
+    .modern-filter-card .input-group .input-group-text {
+        display: inline-flex;
+        align-items: center;
+        height: 44px;
+        padding: 0 14px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #f1f5f9;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        margin: 0;
+        white-space: nowrap;
+    }
+    .modern-filter-card .input-group > .input-group-text:not(:first-child) { border-left: 0; }
+    .modern-filter-card .input-group > .input-group-text:not(:last-child) { border-right: 0; }
+    .modern-filter-card .input-group > .input-group-text i { font-size: 1rem; line-height: 1; }
+
+    /* Bootstrap 4 wrapper variant (.input-group-prepend / .input-group-append) */
+    .modern-filter-card .input-group-prepend,
+    .modern-filter-card .input-group-append { display: flex; margin: 0; }
+    .modern-filter-card .input-group-prepend .input-group-text,
+    .modern-filter-card .input-group-append .input-group-text {
+        height: 44px;
+        padding: 0 14px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #f1f5f9;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+    .modern-filter-card .input-group-prepend .input-group-text {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        border-right: 0;
+    }
+    .modern-filter-card .input-group-append .input-group-text {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        border-left: 0;
+    }
+    .modern-filter-card .input-group-prepend + .form-control {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+    .modern-filter-card .form-control:has(+ .input-group-append) {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    /* Focus-within: highlight the whole group */
+    .modern-filter-card .input-group:focus-within > .input-group-text,
+    .modern-filter-card .input-group:focus-within .input-group-prepend .input-group-text,
+    .modern-filter-card .input-group:focus-within .input-group-append .input-group-text {
+        border-color: #0d9488;
+        background-color: rgba(13, 148, 136, 0.06);
+        color: #0d9488;
+    }
+    .modern-filter-card .input-group:focus-within > .form-control {
+        border-color: #0d9488 !important;
+    }
 
     /* ===== Date picker — flatpickr-enhanced inputs =====
        NOTE: !important on bg properties is intentional — prevents any other rule's
@@ -87,6 +457,42 @@
     [dir="rtl"] .modern-filter-card input.mf-datepicker.is-active,
     [dir="rtl"] .modern-filter-card input.mf-datepicker:focus {
         background-position: left 14px center !important;
+    }
+
+    /* ===== Time picker — clock icon on the input ===== */
+    .modern-filter-card input.mf-timepicker {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'><circle cx='8' cy='8' r='6.5' stroke='%2364748b' stroke-width='1.5'/><path d='M8 4.5V8L10.5 9.5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 14px center !important;
+        background-size: 14px 14px !important;
+        padding-right: 40px !important;
+        cursor: pointer;
+    }
+    .modern-filter-card input.mf-timepicker.is-active,
+    .modern-filter-card input.mf-timepicker:focus {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'><circle cx='8' cy='8' r='6.5' stroke='%230d9488' stroke-width='1.5'/><path d='M8 4.5V8L10.5 9.5' stroke='%230d9488' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+    }
+    [dir="rtl"] .modern-filter-card input.mf-timepicker {
+        background-position: left 14px center !important;
+        padding-right: 14px !important;
+        padding-left: 40px !important;
+    }
+
+    /* ===== Flatpickr time-only panel (no calendar above) ===== */
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only {
+        padding: 6px 8px 12px !important;
+        min-width: 280px;
+    }
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only .flatpickr-time {
+        border-top: 0 !important;
+        margin-top: 0;
+        padding: 30px 8px 8px !important;
+    }
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only .flatpickr-months,
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only .flatpickr-weekdays,
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only .flatpickr-days,
+    .flatpickr-calendar.mf-flatpickr.mf-flatpickr--time-only .flatpickr-innerContainer {
+        display: none !important;
     }
 
     /* ===== Flatpickr calendar panel — themed to match the dropdown ===== */
@@ -285,12 +691,12 @@
     /* ===== Time picker — clean spinner buttons, prominent inputs ===== */
     .flatpickr-calendar.mf-flatpickr .flatpickr-time {
         border-top: 1px solid rgba(15, 23, 42, 0.06);
-        padding: 14px 8px 12px !important;
+        padding: 30px 8px 12px !important;   /* room for top labels */
         margin-top: 8px;
         height: auto !important;
-        min-height: 72px !important;
+        min-height: 92px !important;
         display: flex !important;
-        align-items: center !important;
+        align-items: flex-end !important;
         justify-content: center !important;
         gap: 6px;
         overflow: visible !important;
@@ -301,9 +707,25 @@
         border-radius: 10px !important;
         height: 48px !important;
         width: 78px !important;
-        overflow: hidden !important;
+        overflow: visible !important;       /* labels need to show ABOVE */
         position: relative !important;
         transition: border-color .12s ease, background-color .12s ease;
+    }
+
+    /* "Hour" / "Minute" / "AM/PM" labels above the time controls */
+    .flatpickr-calendar.mf-flatpickr .flatpickr-time .mf-time-label {
+        position: absolute;
+        top: -22px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+        pointer-events: none;
+        line-height: 1;
     }
     .flatpickr-calendar.mf-flatpickr .flatpickr-time .numInputWrapper:hover {
         background-color: #fff !important;
@@ -405,6 +827,8 @@
         cursor: pointer;
         transition: background-color .12s ease, border-color .12s ease, color .12s ease;
         outline: none !important;
+        position: relative !important;       /* anchor for label */
+        overflow: visible !important;        /* let label show above */
     }
     .flatpickr-calendar.mf-flatpickr .flatpickr-time .flatpickr-am-pm:hover,
     .flatpickr-calendar.mf-flatpickr .flatpickr-time .flatpickr-am-pm:focus {
@@ -589,22 +1013,69 @@
         overflow: hidden;
     }
 
-    /* ===== Filter actions bar — separates buttons from filter fields visually ===== */
-    .modern-filter-card .modern-filter-actions {
-        border-top: 1px solid rgba(15, 23, 42, 0.06);
-        margin: 12px -1.25rem 0;
-        padding: 16px 1.25rem 4px;
-    }
-    .modern-filter-card .modern-filter-actions > [class*="col-"] {
+    /* ===== Filter actions — targets ONLY the buttons column (not its siblings) =====
+       On pages like /admin/tasks the buttons share a row with filter fields, so we cannot
+       style the whole row — that would push every label to the right. Instead we tag and
+       style ONLY the specific col that contains the buttons. */
+    .modern-filter-card .modern-filter-actions__col {
         display: flex !important;
         align-items: center;
         justify-content: flex-end;
         flex-wrap: wrap;
-        gap: 16px;          /* ← spacing that makes them feel like distinct actions, not a group */
+        gap: 16px;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
+        margin: 12px -1.25rem 0;
+        padding: 16px 1.25rem 4px;
+        flex-basis: 100%;
+        max-width: 100%;
     }
-    /* Push Search button to the far right, keep Reset near it but visually separated */
-    .modern-filter-card .modern-filter-actions .btn-reset { margin: 0 !important; }
-    .modern-filter-card .modern-filter-actions .btn-search { margin: 0 !important; }
+    .modern-filter-card .modern-filter-actions__col .btn-reset,
+    .modern-filter-card .modern-filter-actions__col .btn-search,
+    .modern-filter-card .modern-filter-actions__col > a.btn { margin: 0 !important; }
+
+    /* ===== Button loading state — spinner inside the button on click ===== */
+    .modern-filter-card .btn.is-loading {
+        position: relative;
+        color: transparent !important;
+        text-shadow: none !important;
+        pointer-events: none;
+        cursor: wait;
+    }
+    .modern-filter-card .btn.is-loading > * { opacity: 0 !important; }
+    .modern-filter-card .btn.is-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-top: -8px;
+        margin-left: -8px;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: mf-btn-spin 0.7s linear infinite;
+    }
+    /* For light buttons (Reset / Cancel), use a darker spinner */
+    .modern-filter-card .btn-reset.is-loading::after {
+        border: 2px solid rgba(15, 23, 42, 0.20);
+        border-top-color: #475569;
+    }
+    @keyframes mf-btn-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== Back-to-top button: get out of the way when action buttons are visible ===== */
+    #back-to-top {
+        transition: opacity .25s ease, transform .25s ease, visibility 0s linear .25s;
+    }
+    #back-to-top.mf-hide-back-to-top {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+        visibility: hidden;
+        transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+    }
 
     /* ===== PRIMARY action — Search button (filled, prominent) ===== */
     .modern-filter-card .btn-search {
@@ -689,6 +1160,13 @@
         const placeholder = select.dataset.placeholder || 'All';
         const realOptions = Array.from(select.options).filter(o => o.value !== '');
         const enableSearch = realOptions.length > 7;
+
+        // If the HTML didn't explicitly mark any option as selected, default to empty
+        // (so the placeholder shows). Browser auto-selects the first option otherwise.
+        const hasExplicitSelection = Array.from(select.options).some(o => o.defaultSelected);
+        if (!hasExplicitSelection) {
+            select.value = '';
+        }
 
         // ------- Build wrapper + trigger -------
         const wrapper = document.createElement('div');
@@ -873,39 +1351,56 @@
     window.addEventListener('scroll', repositionOpen, true);
     window.addEventListener('resize', repositionOpen);
 
-    function initDatePickers() {
+    function initTimePickers() {
         if (typeof flatpickr === 'undefined') return;
-        document.querySelectorAll('.modern-filter-card input[type="datetime-local"], .modern-filter-card input[data-mf-date]').forEach(function (input) {
-            if (input.dataset.mfDateInit === '1') return;
-            input.dataset.mfDateInit = '1';
+        document.querySelectorAll('.modern-filter-card input[type="time"], .modern-filter-card input[data-mf-time]').forEach(function (input) {
+            if (input.dataset.mfTimeInit === '1') return;
+            input.dataset.mfTimeInit = '1';
 
-            // Preserve current value when changing type
             const currentValue = input.value;
-            const isDateTime = (input.type === 'datetime-local') || (input.dataset.mfDate === 'datetime');
             input.setAttribute('type', 'text');
             if (currentValue) input.value = currentValue;
-            input.classList.add('mf-datepicker');
+            input.classList.add('mf-timepicker');
 
-            // altInput shows a user-friendly format (e.g. "May 22, 2025 · 12:00")
-            // dateFormat keeps the backend-compatible ISO format (e.g. "2025-05-22T12:00")
-            // on the original input that gets submitted.
             flatpickr(input, {
-                enableTime: isDateTime,
-                time_24hr: true,
-                dateFormat: isDateTime ? 'Y-m-d\\TH:i' : 'Y-m-d',
+                enableTime: true,
+                noCalendar: true,
+                time_24hr: false,
+                dateFormat: 'H:i',
                 altInput: true,
-                altFormat: isDateTime ? 'M j, Y · H:i' : 'M j, Y',
-                altInputClass: 'form-control mf-datepicker',
-                placeholder: isDateTime ? 'Select date & time' : 'Select date',
+                altFormat: 'h:i K',
+                altInputClass: 'form-control mf-timepicker',
+                placeholder: 'Select time',
                 allowInput: true,
                 disableMobile: true,
-                monthSelectorType: 'static',
                 onReady: function (selectedDates, dateStr, instance) {
-                    instance.calendarContainer.classList.add('mf-flatpickr');
+                    instance.calendarContainer.classList.add('mf-flatpickr', 'mf-flatpickr--time-only');
                     if (instance.altInput) {
-                        instance.altInput.setAttribute('placeholder', isDateTime ? 'Select date & time' : 'Select date');
+                        instance.altInput.setAttribute('placeholder', 'Select time');
                         instance.altInput.addEventListener('focus', function () { input.classList.add('is-active'); instance.altInput.classList.add('is-active'); });
                         instance.altInput.addEventListener('blur',  function () { input.classList.remove('is-active'); instance.altInput.classList.remove('is-active'); });
+                    }
+                    // Inject "Hour" / "Minute" / "AM/PM" labels
+                    if (instance.timeContainer) {
+                        const labelFor = function (selector, text) {
+                            const el = instance.timeContainer.querySelector(selector);
+                            if (!el) return;
+                            const wrapper = el.closest('.numInputWrapper') || el;
+                            if (wrapper.querySelector('.mf-time-label')) return;
+                            const label = document.createElement('span');
+                            label.className = 'mf-time-label';
+                            label.textContent = text;
+                            wrapper.appendChild(label);
+                        };
+                        labelFor('.flatpickr-hour', 'Hour');
+                        labelFor('.flatpickr-minute', 'Minute');
+                        const ampm = instance.timeContainer.querySelector('.flatpickr-am-pm');
+                        if (ampm && !ampm.querySelector('.mf-time-label')) {
+                            const label = document.createElement('span');
+                            label.className = 'mf-time-label';
+                            label.textContent = 'AM/PM';
+                            ampm.appendChild(label);
+                        }
                     }
                 },
                 onOpen: function (selectedDates, dateStr, instance) {
@@ -920,15 +1415,211 @@
         });
     }
 
+    function initDatePickers() {
+        if (typeof flatpickr === 'undefined') return;
+        document.querySelectorAll('.modern-filter-card input[type="datetime-local"], .modern-filter-card input[data-mf-date]').forEach(function (input) {
+            if (input.dataset.mfDateInit === '1') return;
+            input.dataset.mfDateInit = '1';
+
+            // Preserve current value when changing type
+            const currentValue = input.value;
+            const isDateTime = (input.type === 'datetime-local') || (input.dataset.mfDate === 'datetime');
+            input.setAttribute('type', 'text');
+            if (currentValue) input.value = currentValue;
+            input.classList.add('mf-datepicker');
+
+            // altInput shows a user-friendly format (e.g. "May 22, 2025 · 12:00 PM")
+            // dateFormat keeps the backend-compatible ISO format (e.g. "2025-05-22T12:00")
+            // on the original input that gets submitted.
+            flatpickr(input, {
+                enableTime: isDateTime,
+                time_24hr: false,
+                dateFormat: isDateTime ? 'Y-m-d\\TH:i' : 'Y-m-d',
+                altInput: true,
+                altFormat: isDateTime ? 'd/m/Y h:i K' : 'd/m/Y',
+                altInputClass: 'form-control mf-datepicker',
+                placeholder: isDateTime ? 'Select date & time' : 'Select date',
+                allowInput: true,
+                disableMobile: true,
+                monthSelectorType: 'static',
+                onReady: function (selectedDates, dateStr, instance) {
+                    instance.calendarContainer.classList.add('mf-flatpickr');
+                    if (instance.altInput) {
+                        instance.altInput.setAttribute('placeholder', isDateTime ? 'Select date & time' : 'Select date');
+                        instance.altInput.addEventListener('focus', function () { input.classList.add('is-active'); instance.altInput.classList.add('is-active'); });
+                        instance.altInput.addEventListener('blur',  function () { input.classList.remove('is-active'); instance.altInput.classList.remove('is-active'); });
+                    }
+                    // Inject "Hour" / "Minute" / "AM/PM" labels above each time control
+                    if (isDateTime && instance.timeContainer) {
+                        const labelFor = function (selector, text) {
+                            const el = instance.timeContainer.querySelector(selector);
+                            if (!el) return;
+                            const wrapper = el.closest('.numInputWrapper') || el;
+                            if (wrapper.querySelector('.mf-time-label')) return;
+                            const label = document.createElement('span');
+                            label.className = 'mf-time-label';
+                            label.textContent = text;
+                            wrapper.appendChild(label);
+                        };
+                        labelFor('.flatpickr-hour', 'Hour');
+                        labelFor('.flatpickr-minute', 'Minute');
+                        const ampm = instance.timeContainer.querySelector('.flatpickr-am-pm');
+                        if (ampm && !ampm.querySelector('.mf-time-label')) {
+                            const label = document.createElement('span');
+                            label.className = 'mf-time-label';
+                            label.textContent = 'AM/PM';
+                            ampm.appendChild(label);
+                        }
+                    }
+                },
+                onOpen: function (selectedDates, dateStr, instance) {
+                    input.classList.add('is-active');
+                    if (instance.altInput) instance.altInput.classList.add('is-active');
+                },
+                onClose: function (selectedDates, dateStr, instance) {
+                    input.classList.remove('is-active');
+                    if (instance.altInput) instance.altInput.classList.remove('is-active');
+                },
+            });
+        });
+    }
+
+    function clearButtonLoading(btn) {
+        btn.classList.remove('is-loading');
+        if (btn._mfLoadingTimer) {
+            clearTimeout(btn._mfLoadingTimer);
+            btn._mfLoadingTimer = null;
+        }
+    }
+
+    function bindButtonLoading() {
+        // Buttons that should show a loading spinner when clicked.
+        const buttonSelectors = '.modern-filter-card #export-excel-link, .modern-filter-card #export, .modern-filter-card #search, .modern-filter-card button[type="submit"].btn-search';
+        document.querySelectorAll(buttonSelectors).forEach(function (btn) {
+            if (btn.dataset.mfLoadingBound) return;
+            btn.dataset.mfLoadingBound = '1';
+
+            btn.addEventListener('click', function (e) {
+                if (btn.classList.contains('is-loading')) {
+                    // Already loading — prevent double-submit
+                    e.preventDefault();
+                    return;
+                }
+                btn.classList.add('is-loading');
+                // Safety auto-clear in case nothing else clears it (export downloads, etc.)
+                btn._mfLoadingTimer = setTimeout(function () { clearButtonLoading(btn); }, 15000);
+            });
+        });
+
+        // Clear Search button loading state as soon as DataTables AJAX completes.
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document).off('xhr.dt.mfLoading').on('xhr.dt.mfLoading', function () {
+                document.querySelectorAll('.modern-filter-card #search.is-loading').forEach(clearButtonLoading);
+            });
+            jQuery(document).off('draw.dt.mfLoading').on('draw.dt.mfLoading', function () {
+                document.querySelectorAll('.modern-filter-card #search.is-loading').forEach(clearButtonLoading);
+            });
+        }
+
+        // Clear any in-flight loading state on browser back/forward (bfcache restore)
+        window.addEventListener('pageshow', function () {
+            document.querySelectorAll('.modern-filter-card .btn.is-loading').forEach(clearButtonLoading);
+        });
+    }
+
+    function applySelect2EmptyState($sel) {
+        const instance = $sel.data('select2');
+        if (!instance || !instance.$container) return;
+        const v = $sel.val();
+        const isEmpty = v === '' || v === null || (Array.isArray(v) && v.length === 0);
+        instance.$container.toggleClass('mf-select2-empty', isEmpty);
+    }
+
+    function enhanceSelect2() {
+        if (typeof jQuery === 'undefined' || !jQuery.fn.select2) return;
+
+        // STEP 1: Initialize Select2 on any .select2 select that hasn't been initialized yet.
+        // Some pages tag selects with .select2 but never run the init script, so the browser
+        // falls back to the native dropdown. We bootstrap Select2 here so they all get the
+        // modern themed widget.
+        jQuery('.modern-filter-card select.select2').each(function () {
+            const $sel = jQuery(this);
+            if ($sel.hasClass('select2-hidden-accessible')) return; // already init'd
+            if (this.dataset.mfInit === '1') return;                // our custom dropdown owns it
+
+            const placeholder = $sel.attr('data-placeholder') || 'Select an option';
+            try {
+                $sel.select2({
+                    placeholder: placeholder,
+                    allowClear: true,
+                    width: '100%',
+                });
+            } catch (err) {
+                // Select2 might not be ready yet — next retry will catch it
+            }
+        });
+
+        // STEP 2: Theme every initialized Select2 instance (ours + page's own).
+        // The .select2-hidden-accessible class is added by Select2 AFTER init.
+        jQuery('.modern-filter-card select.select2-hidden-accessible').each(function () {
+            const $sel = jQuery(this);
+            const instance = $sel.data('select2');
+            if (!instance || !instance.$container) return;
+
+            // Always (re)apply the container theme class — cheap, idempotent
+            instance.$container.addClass('select2-container--modern-filter');
+            applySelect2EmptyState($sel);
+
+            // Bind the change handler ONCE per select
+            if (!$sel.data('mfSelect2Themed')) {
+                $sel.data('mfSelect2Themed', true);
+                $sel.on('change', function () { applySelect2EmptyState($sel); });
+                $sel.on('select2:opening select2:open', function () {
+                    instance.$container.addClass('select2-container--modern-filter');
+                    applySelect2EmptyState($sel);
+                    setTimeout(function () {
+                        document.querySelectorAll('.select2-container--open').forEach(function (el) {
+                            el.classList.add('select2-container--modern-filter');
+                        });
+                    }, 0);
+                });
+            }
+        });
+    }
+
     function initAll() {
         document.querySelectorAll('.modern-filter-card select').forEach(init);
         initDatePickers();
-        // Tag the buttons row so CSS can style it as an actions bar with a separator
-        document.querySelectorAll('.modern-filter-card .row').forEach(function (row) {
-            if (row.querySelector('.btn-search')) {
-                row.classList.add('modern-filter-actions');
-            }
+        initTimePickers();
+        enhanceSelect2();
+        // Tag ONLY the column that holds the action buttons, so CSS can style it as an
+        // actions bar without affecting sibling field columns in the same row.
+        document.querySelectorAll('.modern-filter-card .btn-search').forEach(function (btn) {
+            const col = btn.closest('[class*="col-"]');
+            if (col) col.classList.add('modern-filter-actions__col');
         });
+
+        // Wire up loading-spinner state for action buttons.
+        // The spinner shows on click and clears either when DataTables AJAX finishes
+        // (for Search/Reset), or after a safety timeout (for Export buttons that trigger
+        // server-side file generation / page navigation).
+        bindButtonLoading();
+
+        // When the form's action buttons scroll into view, hide the global back-to-top button
+        // (otherwise the back-to-top widget overlaps Save/Search and looks broken).
+        const backToTop = document.getElementById('back-to-top');
+        const actionCols = document.querySelectorAll('.modern-filter-card .modern-filter-actions__col');
+        if (backToTop && actionCols.length > 0 && 'IntersectionObserver' in window) {
+            const visibleCols = new Set();
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) visibleCols.add(entry.target);
+                    else visibleCols.delete(entry.target);
+                });
+                backToTop.classList.toggle('mf-hide-back-to-top', visibleCols.size > 0);
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+            actionCols.forEach(function (col) { observer.observe(col); });
+        }
     }
 
     function bindReset() {
@@ -946,8 +1637,8 @@
                     if (typeof jQuery !== 'undefined') {
                         jQuery(card).find('select.select2').val('').trigger('change');
                     }
-                    // Clear flatpickr date inputs
-                    card.querySelectorAll('input.mf-datepicker').forEach(function (input) {
+                    // Clear flatpickr date/time inputs
+                    card.querySelectorAll('input.mf-datepicker, input.mf-timepicker').forEach(function (input) {
                         if (input._flatpickr) input._flatpickr.clear();
                         else input.value = '';
                     });
@@ -958,7 +1649,17 @@
         });
     }
 
-    function boot() { initAll(); bindReset(); }
+    function boot() {
+        initAll();
+        bindReset();
+        // Page-specific scripts that init Select2 may run AFTER us.
+        // Re-scan a few times so we catch them whenever they finish initializing.
+        setTimeout(enhanceSelect2, 100);
+        setTimeout(enhanceSelect2, 300);
+        setTimeout(enhanceSelect2, 700);
+        setTimeout(enhanceSelect2, 1500);
+        setTimeout(enhanceSelect2, 3000);
+    }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot);

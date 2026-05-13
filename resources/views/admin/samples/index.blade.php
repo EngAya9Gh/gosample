@@ -1,51 +1,45 @@
 @extends('layouts.master')
 @section('content')
-    <div class="card mb-3">
+    <div class="card mb-3 modern-filter-card">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Filters</h4>
+        </div>
         <div class="card-body">
             <form method="GET" action="#">
                 <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_from">{{ trans('global.date_from') }}</label>
-                            <input class="form-control date-range-picker" data-provider="flatpickr" data-date-format="Y-m-d"
-                                type="text" name="date_from" id="date_from" autocomplete="off">
-                        </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="date_from">{{ trans('global.date_from') }}</label>
+                        <input class="form-control" type="text" name="date_from" id="date_from"
+                            data-mf-date="date" autocomplete="off">
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_to">{{ trans('global.date_to') }}</label>
-                            <input class="form-control date-range-picker" data-provider="flatpickr" data-date-format="Y-m-d"
-                                type="text" name="date_to" id="date_to" autocomplete="off">
-                        </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="date_to">{{ trans('global.date_to') }}</label>
+                        <input class="form-control" type="text" name="date_to" id="date_to"
+                            data-mf-date="date" autocomplete="off">
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="email">{{ trans('cruds.sample.fields.barcode') }}</label>
-                            <input class="form-control" type="text" name="barcode_id" id="barcode_id">
-                        </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="barcode_id">{{ trans('cruds.sample.fields.barcode') }}</label>
+                        <input class="form-control" type="text" name="barcode_id" id="barcode_id" placeholder="Enter barcode">
                     </div>
 
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="confirmed_by_client">{{ trans('cruds.sample.fields.status') }}</label>
-                            <select class="form-control select2" name="confirmed_by_client" id="confirmed_by_client">
-                                <option value="">{{ trans('global.pleaseSelect') }}</option>
-                                @foreach (App\Models\Sample::RECEIVING_STATUS_SELECT as $key => $label)
-                                    <option value="{{ $key }}"
-                                        {{ old('confirmed_by_client') == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="confirmed_by_client">{{ trans('cruds.sample.fields.status') }}</label>
+                        <select class="form-control select2" name="confirmed_by_client" id="confirmed_by_client" data-placeholder="All statuses">
+                            <option value=""></option>
+                            @foreach (App\Models\Sample::RECEIVING_STATUS_SELECT as $key => $label)
+                                <option value="{{ $key }}"
+                                    {{ old('confirmed_by_client') == $key ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="col-md-12 text-right mt-2">
-                        <button type="button" id="search" name="search"
-                            class="btn btn-primary">{{ trans('global.search') }}</button>
-
-                        <button type="reset" id="reset" name="reset"
-                            class="btn btn-secondary">{{ trans('global.reset') }}</button>
+                    <div class="col-md-12">
+                        <button class="btn btn-reset" type="reset" id="reset" name="reset">{{ trans('global.reset') }}</button>
+                        <button class="btn btn-search" type="button" id="search" name="search">
+                            <i class="fas fa-search"></i> {{ trans('global.search') }}
+                        </button>
                     </div>
                 </div>
             </form>
