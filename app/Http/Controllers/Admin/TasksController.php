@@ -1829,11 +1829,33 @@ class TasksController extends Controller
             $filters['billing_client'] = $loggedUser->client_id;
         }
 
+        // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.
+        $exportsDir = storage_path('app/exports');
+        if (is_dir($exportsDir)) {
+            $cutoff = time() - 3600;
+            foreach ((array) @scandir($exportsDir) as $entry) {
+                if ($entry === '.' || $entry === '..' || $entry === false) continue;
+                $p = $exportsDir . DIRECTORY_SEPARATOR . $entry;
+                if (is_file($p) && @filemtime($p) < $cutoff) {
+                    @unlink($p);
+                }
+            }
+        }
+
         // Generate a unique token for this export
         $token = \Illuminate\Support\Str::random(40);
 
-        // Dispatch the queued job — runs in a Forge queue worker, free from any HTTP timeout
-        \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id);
+        // Dispatch strategy depends on queue connection:
+        // - sync (typical for local dev): use afterResponse() so the redirect is sent FIRST,
+        //   then the job runs in the same PHP process AFTER the connection is closed. No
+        //   HTTP timeout to worry about.
+        // - database / redis (production with a queue worker): regular dispatch pushes the
+        //   job to the worker, which runs it independently of the HTTP request.
+        if (config('queue.default') === 'sync') {
+            \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id)->afterResponse();
+        } else {
+            \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id);
+        }
 
         // Redirect the user to a polling page that auto-downloads the file when ready
         return redirect()->route('admin.tasks.export.status', ['token' => $token]);
@@ -1875,14 +1897,16 @@ class TasksController extends Controller
             return response()->json(['state' => 'pending']);
         }
 
-        // Download endpoint — send the file once and clean it up
-        if ($request->boolean('download') && is_file($doneFlag) && is_file($path)) {
+        // Download endpoint — serves the file. We keep the file on disk so the user can
+        // re-download if needed; old files are garbage-collected by exportExcelDetails().
+        if ($request->boolean('download')) {
+            if (!is_file($doneFlag) || !is_file($path)) {
+                abort(410, 'This export is no longer available. Please generate a new one.');
+            }
             $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
             return response()->download($path, $filename, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ])->deleteFileAfterSend(true);
-            // Note: .done flag stays — gives a 1-shot download semantics. The next status
-            // call will return "pending" until the user requests a new export.
+            ]);
         }
 
         // Default — render the polling page
