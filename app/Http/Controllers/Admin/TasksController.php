@@ -1811,94 +1811,82 @@ class TasksController extends Controller
 
     public function exportExcelDetails(Request $request)
     {
-        // Allow long-running export
-        @set_time_limit(0);
-        @ini_set('memory_limit', '1024M');
-
-        $status        = $request->input('status');
-        $date_from     = $request->input('date_from');
-        $date_to       = $request->input('date_to');
-        $billingClient = $request->input('billing_client');
-        $fromLocation  = $request->input('from_location');
-        $toLocation    = $request->input('to_location');
-        $driverId      = $request->input('driver_id');
+        // Collect filters
+        $filters = [
+            'status'         => $request->input('status'),
+            'date_from'      => $request->input('date_from'),
+            'date_to'        => $request->input('date_to'),
+            'billing_client' => $request->input('billing_client'),
+            'from_location'  => $request->input('from_location'),
+            'to_location'    => $request->input('to_location'),
+            'driver_id'      => $request->input('driver_id'),
+        ];
 
         // SECURITY: if the logged-in user is bound to a client, force-scope the export to
         // their own client_id so they cannot extract other clients' data.
         $loggedUser = auth()->user();
         if ($loggedUser && $loggedUser->client_id) {
-            $billingClient = $loggedUser->client_id;
+            $filters['billing_client'] = $loggedUser->client_id;
         }
 
-        // Build query (no execution yet)
-        $query = Task::query()->with(['driver:id,name', 'client:id,english_name', 'from:id,name', 'to:id,name']);
-        if ($date_from && $date_to) {
-            $query->whereBetween('collection_date', [$date_from, $date_to]);
-        } elseif ($date_from) {
-            $query->where('collection_date', '>=', $date_from);
-        } elseif ($date_to) {
-            $query->where('collection_date', '<=', $date_to);
+        // Generate a unique token for this export
+        $token = \Illuminate\Support\Str::random(40);
+
+        // Dispatch the queued job — runs in a Forge queue worker, free from any HTTP timeout
+        \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id);
+
+        // Redirect the user to a polling page that auto-downloads the file when ready
+        return redirect()->route('admin.tasks.export.status', ['token' => $token]);
+    }
+
+    /**
+     * Status / download page for a queued task export.
+     * - If the job is still running, shows a "preparing" page that auto-polls.
+     * - If the job has finished, serves the .xlsx file as a download.
+     * - If the job errored, shows the error.
+     */
+    public function exportStatus(Request $request, string $token)
+    {
+        // Validate token shape — prevents path traversal
+        if (!preg_match('/^[A-Za-z0-9]{40}$/', $token)) {
+            abort(404);
         }
-        if ($status)        { $query->where('status', $status); }
-        if ($billingClient) { $query->where('billing_client', $billingClient); }
-        if ($fromLocation)  { $query->where('from_location', $fromLocation); }
-        if ($toLocation)    { $query->where('to_location', $toLocation); }
-        if ($driverId)      { $query->where('driver_id', $driverId); }
 
-        // OpenSpout writes XLSX row-by-row to a temp file (constant memory). After all rows
-        // are written, we stream the finished file as the response. This avoids the
-        // Maatwebsite/PhpSpreadsheet "build whole sheet in memory" bottleneck that caused 504s.
-        $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
-        $tmpPath  = storage_path('app/exports/' . $filename);
-        if (!is_dir(dirname($tmpPath))) { @mkdir(dirname($tmpPath), 0775, true); }
+        $dir       = storage_path('app/exports');
+        $path      = $dir . DIRECTORY_SEPARATOR . $token . '.xlsx';
+        $doneFlag  = $path . '.done';
+        $errorFlag = $path . '.error';
 
-        $writer = new \OpenSpout\Writer\XLSX\Writer();
-        $writer->openToFile($tmpPath);
-
-        // Bold header style
-        $headerStyle = (new \OpenSpout\Common\Entity\Style\Style())
-            ->setFontBold()
-            ->setFontSize(11);
-
-        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
-            'Task ID', 'Created Date', 'Reach Time', 'Started Time',
-            'Collected Date', 'Collected Time', 'Close Date', 'Close Time',
-            'Driver', 'Client', 'From Location', 'To Location',
-        ], $headerStyle));
-
-        $count = 0;
-        // chunkById = keyset pagination, constant memory, no offset slowdown
-        $query->orderBy('tasks.id')->chunkById(500, function ($tasks) use ($writer, &$count) {
-            foreach ($tasks as $t) {
-                $collected = $t->collection_date ? Carbon::parse($t->collection_date) : null;
-                $closed    = $t->close_date      ? Carbon::parse($t->close_date)      : null;
-                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
-                    (string) $t->id,
-                    (string) $t->created_at,
-                    (string) ($t->from_location_confirmation_timestamp ?? ''),
-                    (string) ($t->driver_start_date ?? ''),
-                    $collected ? $collected->format('Y-m-d') : '',
-                    $collected ? $collected->format('H:i:s') : '',
-                    $closed    ? $closed->format('Y-m-d')    : '',
-                    $closed    ? $closed->format('H:i:s')    : '',
-                    optional($t->driver)->name         ?: 'N/A',
-                    optional($t->client)->english_name ?: 'N/A',
-                    optional($t->from)->name           ?: 'N/A',
-                    optional($t->to)->name             ?: 'N/A',
-                ]));
-                $count++;
+        // JSON status endpoint for the polling page
+        if ($request->wantsJson() || $request->boolean('status')) {
+            if (is_file($errorFlag)) {
+                return response()->json([
+                    'state' => 'error',
+                    'error' => (string) @file_get_contents($errorFlag),
+                ]);
             }
-        });
+            if (is_file($doneFlag) && is_file($path)) {
+                return response()->json([
+                    'state'    => 'ready',
+                    'count'    => (int) @file_get_contents($doneFlag),
+                    'download' => route('admin.tasks.export.status', ['token' => $token, 'download' => 1]),
+                ]);
+            }
+            return response()->json(['state' => 'pending']);
+        }
 
-        // Summary row
-        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
-        $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['Number of tasks', $count]));
-        $writer->close();
+        // Download endpoint — send the file once and clean it up
+        if ($request->boolean('download') && is_file($doneFlag) && is_file($path)) {
+            $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
+            return response()->download($path, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+            // Note: .done flag stays — gives a 1-shot download semantics. The next status
+            // call will return "pending" until the user requests a new export.
+        }
 
-        // Send file as download then delete from disk
-        return response()->download($tmpPath, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ])->deleteFileAfterSend(true);
+        // Default — render the polling page
+        return view('admin.tasks.export-pending', ['token' => $token]);
     }
 
 
