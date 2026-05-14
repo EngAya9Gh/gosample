@@ -48,6 +48,12 @@ class GenerateTaskReportJob implements ShouldQueue
     {
         @set_time_limit(0);
         @ini_set('memory_limit', '9000M');
+        // mPDF parses HTML internally via PCRE. PHP's default
+        // pcre.backtrack_limit (1,000,000) is too small for our large report
+        // HTML and trips "The HTML code size is larger than pcre.backtrack_limit".
+        // Raise both backtrack + recursion to handle multi-megabyte report HTML.
+        @ini_set('pcre.backtrack_limit', '100000000');
+        @ini_set('pcre.recursion_limit', '100000000');
 
         $dir = storage_path('app/exports');
         if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
