@@ -1033,6 +1033,56 @@
     .modern-filter-card .modern-filter-actions__col .btn-search,
     .modern-filter-card .modern-filter-actions__col > a.btn { margin: 0 !important; }
 
+    /* ===== Card-header CTA (e.g. "Add Tasks") — gentle pulsing glow draws the eye =====
+       Scoped to .btn-card-action so it ONLY applies to dedicated CTAs, never filter
+       buttons. Filter Search/Export buttons keep their .btn-search styling untouched. */
+    .btn-card-action {
+        background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+        color: #fff !important;
+        border: 0;
+        height: 40px;
+        padding: 0 22px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        letter-spacing: 0.02em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28);
+        transition: transform .18s ease, box-shadow .2s ease, filter .15s ease;
+        animation: btn-card-action-pulse 2.6s ease-in-out infinite;
+        cursor: pointer;
+        position: relative;
+        white-space: nowrap;
+    }
+    .btn-card-action i { font-size: 1.05rem; line-height: 1; }
+    .btn-card-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(13, 148, 136, 0.45), 0 0 0 4px rgba(13, 148, 136, 0.12);
+        filter: brightness(1.05);
+        color: #fff !important;
+        text-decoration: none;
+        animation: none;   /* pause the pulse on hover so the lift feels intentional */
+    }
+    .btn-card-action:active { transform: translateY(0); }
+    .btn-card-action:focus { outline: 0; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28), 0 0 0 4px rgba(13, 148, 136, 0.18); }
+
+    @keyframes btn-card-action-pulse {
+        0%, 100% { box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28); }
+        50%      { box-shadow: 0 4px 18px rgba(13, 148, 136, 0.55), 0 0 0 5px rgba(13, 148, 136, 0.10); }
+    }
+
+    /* Make the card header containing this button align nicely */
+    .card-header.d-flex .btn-card-action { margin: 0; }
+
+    /* Reduce-motion users: respect their preference and stop the pulse */
+    @media (prefers-reduced-motion: reduce) {
+        .btn-card-action { animation: none; }
+    }
+
     /* ===== Button loading state — spinner inside the button on click ===== */
     .modern-filter-card .btn.is-loading {
         position: relative;
@@ -1063,6 +1113,715 @@
     }
     @keyframes mf-btn-spin {
         to { transform: rotate(360deg); }
+    }
+
+    /* ===== DataTables — modernize toolbar controls (Show entries / Search / export buttons) ===== */
+    .dataTables_wrapper {
+        padding: 0;
+    }
+    /* "Show N entries" dropdown */
+    .dataTables_wrapper .dataTables_length {
+        margin-bottom: 14px;
+    }
+    .dataTables_wrapper .dataTables_length label {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #475569;
+        letter-spacing: 0.01em;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+    /* Native select fallback (in case Choices.js fails) */
+    .dataTables_wrapper .dataTables_length select:not(.choices__input) {
+        height: 36px;
+        min-width: 70px;
+        padding: 0 30px 0 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: #0f172a;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 12 8'><path d='M1 1.5L6 6.5L11 1.5' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+    }
+
+    /* Choices.js–enhanced length dropdown */
+    .mf-dt-length.choices {
+        display: inline-block;
+        min-width: 80px;
+        margin: 0;
+        font-size: 0.88rem;
+    }
+    .mf-dt-length .choices__inner {
+        min-height: 36px !important;
+        padding: 0 28px 0 12px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        background: #f8fafc !important;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        color: #0f172a;
+        transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+    }
+    .mf-dt-length:hover .choices__inner { border-color: #cbd5e1 !important; background: #fff !important; }
+    .mf-dt-length.is-focused .choices__inner,
+    .mf-dt-length.is-open .choices__inner {
+        border-color: #0d9488 !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12) !important;
+    }
+    .mf-dt-length .choices__list--single { padding: 0; }
+    .mf-dt-length .choices__list--single .choices__item { padding: 0; }
+    .mf-dt-length[data-type*="select-one"]::after {
+        border-color: #64748b transparent transparent;
+        right: 12px;
+    }
+    .mf-dt-length.is-open[data-type*="select-one"]::after {
+        border-color: transparent transparent #64748b;
+    }
+    .mf-dt-length .choices__list--dropdown,
+    .mf-dt-length .choices__list[aria-expanded] {
+        border: 1px solid rgba(15, 23, 42, 0.10) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15), 0 4px 8px rgba(15, 23, 42, 0.06) !important;
+        background: #fff !important;
+        padding: 4px !important;
+        margin-top: 4px;
+        z-index: 1050;
+    }
+    .mf-dt-length .choices__list--dropdown .choices__item,
+    .mf-dt-length .choices__list[aria-expanded] .choices__item {
+        padding: 8px 12px !important;
+        margin: 1px 0;
+        border-radius: 6px !important;
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: #0f172a !important;
+        background: transparent !important;
+    }
+    .mf-dt-length .choices__list--dropdown .choices__item--selectable:hover,
+    .mf-dt-length .choices__list--dropdown .choices__item--selectable.is-highlighted {
+        background: #f1f5f9 !important;
+        color: #0d9488 !important;
+    }
+    .mf-dt-length .choices__list--dropdown .choices__item--selectable[aria-selected="true"] {
+        background: rgba(13, 148, 136, 0.10) !important;
+        color: #0d9488 !important;
+        font-weight: 600;
+    }
+    .mf-dt-length .choices__list--dropdown .choices__item--selectable::after { display: none !important; }
+
+    /* Search box */
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 14px;
+    }
+    .dataTables_wrapper .dataTables_filter label {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #475569;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+    .dataTables_wrapper .dataTables_filter input[type="search"] {
+        height: 36px;
+        min-width: 220px;
+        padding: 0 14px 0 36px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'><circle cx='7' cy='7' r='5' stroke='%2364748b' stroke-width='1.5'/><path d='M11 11L14 14' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: left 12px center;
+        background-size: 14px 14px;
+        font-size: 0.88rem;
+        color: #0f172a;
+        margin: 0;
+        transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+    }
+    .dataTables_wrapper .dataTables_filter input[type="search"]:hover {
+        border-color: #cbd5e1;
+        background-color: #fff;
+    }
+    .dataTables_wrapper .dataTables_filter input[type="search"]:focus {
+        border-color: #0d9488;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+        outline: 0;
+    }
+
+    /* Toolbar buttons (Copy, CSV, Excel, Print, Delete) — sized like filter Search/Export */
+    .dataTables_wrapper .dt-buttons {
+        display: inline-flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+    .dataTables_wrapper .dt-button,
+    .dataTables_wrapper button.dt-button,
+    .dataTables_wrapper div.dt-button,
+    .dataTables_wrapper a.dt-button {
+        height: 40px !important;
+        padding: 0 18px !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%) !important;
+        color: #ffffff !important;
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em;
+        text-transform: none !important;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.22) !important;
+        transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+        margin: 0 !important;
+        text-shadow: none !important;
+    }
+    /* Force white text on EVERY descendant of a toolbar button — the DataTables Buttons
+       extension nests <span><span>Label</span></span>, and the theme adds rules with high
+       specificity that hit the inner span. We use the universal selector plus
+       -webkit-text-fill-color (which overrides even Bootstrap's `.btn { color: ... }`
+       inheritance and any anchor :visited rules). */
+    .dataTables_wrapper .dt-button,
+    .dataTables_wrapper .dt-button *,
+    .dataTables_wrapper button.dt-button,
+    .dataTables_wrapper button.dt-button *,
+    .dataTables_wrapper a.dt-button,
+    .dataTables_wrapper a.dt-button *,
+    .dataTables_wrapper a.dt-button:visited,
+    .dataTables_wrapper a.dt-button:link,
+    .dataTables_wrapper .dt-button:focus,
+    .dataTables_wrapper .dt-button:focus *,
+    .dataTables_wrapper .dt-button:active,
+    .dataTables_wrapper .dt-button:active * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: none !important;
+    }
+    .dataTables_wrapper .dt-button:hover,
+    .dataTables_wrapper button.dt-button:hover,
+    .dataTables_wrapper div.dt-button:hover,
+    .dataTables_wrapper a.dt-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.32) !important;
+        filter: brightness(1.05);
+        color: #ffffff !important;
+    }
+    .dataTables_wrapper .dt-button:hover > *,
+    .dataTables_wrapper .dt-button:hover span {
+        color: #ffffff !important;
+    }
+    .dataTables_wrapper .dt-button:active {
+        transform: translateY(0);
+    }
+    .dataTables_wrapper .dt-button:focus,
+    .dataTables_wrapper button.dt-button:focus {
+        outline: 0 !important;
+    }
+
+    /* Differentiate the export buttons by tone so they're distinguishable at a glance */
+    .dataTables_wrapper .buttons-copy {
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.22) !important;
+    }
+    .dataTables_wrapper .buttons-copy:hover {
+        box-shadow: 0 6px 18px rgba(71, 85, 105, 0.32) !important;
+    }
+    .dataTables_wrapper .buttons-csv {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.22) !important;
+    }
+    .dataTables_wrapper .buttons-csv:hover {
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.32) !important;
+    }
+    .dataTables_wrapper .buttons-excel {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.22) !important;
+    }
+    .dataTables_wrapper .buttons-excel:hover {
+        box-shadow: 0 6px 18px rgba(34, 197, 94, 0.32) !important;
+    }
+    .dataTables_wrapper .buttons-print {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.22) !important;
+    }
+    .dataTables_wrapper .buttons-print:hover {
+        box-shadow: 0 6px 18px rgba(14, 165, 233, 0.32) !important;
+    }
+
+    /* Destructive (Delete) action keeps red identity */
+    .dataTables_wrapper .dt-button.btn-danger,
+    .dataTables_wrapper .btn-danger.dt-button,
+    .dataTables_wrapper button.btn-danger {
+        background: linear-gradient(135deg, #f97373 0%, #ef4444 100%) !important;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25) !important;
+    }
+    .dataTables_wrapper .dt-button.btn-danger:hover,
+    .dataTables_wrapper button.btn-danger:hover {
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35) !important;
+    }
+
+    /* ===== "Show N entries" — uses our mf-dropdown component, smaller variant ===== */
+    .mf-dt-length {
+        display: inline-block !important;
+        width: auto !important;
+        min-width: 76px;
+        margin: 0 6px;
+        vertical-align: middle;
+    }
+    .mf-dt-length-trigger {
+        min-width: 76px !important;
+        height: 36px !important;
+        padding: 0 12px !important;
+        font-size: 0.88rem !important;
+    }
+    .mf-dt-length-trigger .mf-dropdown__current {
+        flex: 0 1 auto;
+    }
+    .mf-dt-length-trigger .mf-dropdown__arrow {
+        margin-left: 6px;
+    }
+    .mf-dt-length-panel {
+        min-width: 76px;
+        padding: 4px !important;
+        max-height: 240px;
+    }
+    .mf-dt-length-panel .mf-panel__item {
+        padding: 8px 12px !important;
+        margin: 1px 0;
+        font-size: 0.88rem !important;
+    }
+    .mf-dt-length-panel .mf-panel__item.is-active::after {
+        content: "";  /* hide the checkmark — too much for a tiny pagination dropdown */
+    }
+
+    /* ===== Legacy: Choices-wrapped length dropdown (kept for fallback) ===== */
+    .choices.mf-dt-length {
+        width: auto !important;
+        min-width: 84px;
+        margin: 0 6px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .choices.mf-dt-length .choices__inner {
+        min-height: 36px !important;
+        padding: 6px 28px 6px 12px !important;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .choices.mf-dt-length .choices__list--single { padding: 0; }
+    .choices.mf-dt-length .choices__list--single .choices__item { padding: 0; line-height: 1.4; }
+    .choices.mf-dt-length:hover .choices__inner { border-color: #cbd5e1; background: #fff; }
+    .choices.mf-dt-length.is-focused .choices__inner,
+    .choices.mf-dt-length.is-open .choices__inner {
+        border-color: #0d9488 !important;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+    }
+    .choices.mf-dt-length[data-type*="select-one"]::after {
+        right: 10px;
+        border-color: #64748b transparent transparent;
+    }
+    .choices.mf-dt-length.is-open[data-type*="select-one"]::after {
+        border-color: transparent transparent #64748b;
+    }
+    .choices.mf-dt-length .choices__list--dropdown,
+    .choices.mf-dt-length .choices__list[aria-expanded] {
+        border: 1px solid rgba(15, 23, 42, 0.10) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18), 0 6px 12px rgba(15, 23, 42, 0.06) !important;
+        margin-top: 4px;
+        padding: 4px !important;
+        background: #fff !important;
+        z-index: 9999 !important;
+    }
+    .choices.mf-dt-length .choices__list--dropdown .choices__item,
+    .choices.mf-dt-length .choices__list[aria-expanded] .choices__item {
+        padding: 8px 12px !important;
+        margin: 1px 0;
+        border-radius: 6px !important;
+        font-size: 0.88rem !important;
+        font-weight: 500;
+        color: #0f172a !important;
+        background: transparent !important;
+    }
+    .choices.mf-dt-length .choices__list--dropdown .choices__item--selectable:hover,
+    .choices.mf-dt-length .choices__list--dropdown .choices__item--selectable.is-highlighted {
+        background: #f1f5f9 !important;
+        color: #0d9488 !important;
+    }
+    .choices.mf-dt-length .choices__list--dropdown .choices__item--selectable[aria-selected="true"] {
+        background: rgba(13, 148, 136, 0.10) !important;
+        color: #0d9488 !important;
+        font-weight: 600;
+    }
+    .choices.mf-dt-length .choices__list--dropdown .choices__item--selectable::after {
+        display: none !important;
+    }
+
+    /* ============================================================
+       Pagination — modern centered card-pill design
+       Targets BOTH:
+         • Bootstrap5-DataTables structure (.pagination > .page-item > .page-link)
+           — what dataTables.bootstrap5.min.css actually renders here
+         • Legacy DataTables structure (.paginate_button)
+           — fallback for other pages/wrappers
+       ============================================================ */
+
+    /* --- Force any row/col wrapper around pagination to span full width
+           so the centered bar centers across the whole table, not col-md-7. */
+    .dataTables_wrapper .row > [class*="col-"]:has(> .dataTables_paginate),
+    .dataTables_wrapper .row > [class*="col-"]:has(> .dataTables_info),
+    .dataTables_wrapper .row > .col-sm-12.col-md-5,
+    .dataTables_wrapper .row > .col-sm-12.col-md-7 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    /* --- Info text ("Showing X to Y of Z") */
+    .dataTables_wrapper .dataTables_info {
+        display: block !important;
+        width: 100% !important;
+        float: none !important;
+        text-align: center !important;
+        font-size: 0.82rem;
+        color: #64748b;
+        font-weight: 500;
+        padding: 16px 0 4px 0 !important;
+        letter-spacing: 0.01em;
+    }
+
+    /* --- The outer paginate container — centered, no float */
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center;
+        width: 100% !important;
+        max-width: 100%;
+        margin: 14px 0 10px !important;
+        padding: 0 !important;
+        float: none !important;
+        text-align: center !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* --- Bootstrap5 <ul.pagination> = the visible pill bar */
+    .dataTables_wrapper .dataTables_paginate .pagination {
+        display: inline-flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin: 0 !important;
+        padding: 6px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 10px 25px -12px rgba(15, 23, 42, 0.10);
+        list-style: none;
+        white-space: nowrap;
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /* --- Individual buttons — rounded chips (covers BOTH structures) */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link,
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 14px !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+        font-size: 0.88rem !important;
+        font-weight: 600;
+        color: #475569 !important;
+        background: transparent !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        cursor: pointer;
+        text-decoration: none !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+        transition:
+            background-color .18s ease,
+            color .18s ease,
+            box-shadow .18s ease,
+            transform .18s ease;
+    }
+
+    /* --- Hover */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item:not(.active):not(.disabled) .page-link:hover,
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current):not(.disabled) {
+        background: #f1f5f9 !important;
+        color: #0d9488 !important;
+        transform: translateY(-1px);
+    }
+
+    /* --- Active page — teal gradient + glow */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.active .page-link,
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.active .page-link:hover,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700;
+        box-shadow:
+            0 6px 14px -4px rgba(13, 148, 136, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+        border-color: transparent !important;
+    }
+
+    /* --- Disabled */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.disabled .page-link,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+        color: #cbd5e1 !important;
+        background: transparent !important;
+        cursor: not-allowed;
+        opacity: 0.55;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* --- Previous / Next — text + chevron arrow */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.previous .page-link,
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.next .page-link,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.next {
+        font-weight: 600;
+        color: #334155 !important;
+        padding: 0 16px !important;
+        gap: 8px;
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.previous .page-link::before,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.previous::before,
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.next .page-link::after,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.next::after {
+        content: '';
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-style: solid;
+        border-color: currentColor;
+        border-width: 0;
+        transition: transform .2s ease;
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.previous .page-link::before,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.previous::before {
+        border-left-width: 2px;
+        border-bottom-width: 2px;
+        transform: rotate(45deg);
+        margin-right: 4px;
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.next .page-link::after,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.next::after {
+        border-right-width: 2px;
+        border-top-width: 2px;
+        transform: rotate(45deg);
+        margin-left: 4px;
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.previous:not(.disabled) .page-link:hover::before,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.previous:not(.disabled):hover::before {
+        transform: rotate(45deg) translate(-2px, 2px);
+    }
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.next:not(.disabled) .page-link:hover::after,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.next:not(.disabled):hover::after {
+        transform: rotate(45deg) translate(2px, -2px);
+    }
+
+    /* --- Legacy span wrapper (numbers group) */
+    .dataTables_wrapper .dataTables_paginate span {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 0;
+    }
+    .dataTables_wrapper .dataTables_paginate .ellipsis {
+        color: #94a3b8;
+        padding: 0 6px;
+        align-self: center;
+        font-weight: 600;
+    }
+
+    /* --- Focus ring */
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link:focus,
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link:focus-visible,
+    .dataTables_wrapper .dataTables_paginate .paginate_button:focus,
+    .dataTables_wrapper .dataTables_paginate .paginate_button:focus-visible {
+        outline: 0 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.30) !important;
+    }
+
+    /* --- Reduce-motion */
+    @media (prefers-reduced-motion: reduce) {
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link,
+        .dataTables_wrapper .dataTables_paginate .paginate_button,
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link::before,
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link::after,
+        .dataTables_wrapper .dataTables_paginate .paginate_button::before,
+        .dataTables_wrapper .dataTables_paginate .paginate_button::after {
+            transition: none !important;
+        }
+    }
+
+    /* --- Mobile */
+    @media (max-width: 575.98px) {
+        .dataTables_wrapper .dataTables_paginate .pagination {
+            padding: 4px;
+            border-radius: 12px;
+            gap: 2px;
+        }
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link,
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px !important;
+            font-size: 0.82rem !important;
+            border-radius: 9px !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item.previous .page-link,
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item.next .page-link,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.next {
+            padding: 0 12px !important;
+        }
+    }
+
+    /* Sort arrows in column headers — make them visible and themed */
+    table.dataTable thead th.sorting,
+    table.dataTable thead th.sorting_asc,
+    table.dataTable thead th.sorting_desc {
+        cursor: pointer;
+    }
+
+    /* ============================================================
+       Sticky pinned columns + floating horizontal scrollbar
+       Applies to EVERY DataTable on the site (table.dataTable is
+       auto-added by DataTables on init). Pins the first two columns
+       (checkbox + first data column) to the left and the actions
+       column to the right while the middle columns scroll under.
+
+       Why: many admin lists have 10+ columns that overflow the
+       viewport. The native horizontal scrollbar sits at the bottom
+       of the table, often below the fold — users had to scroll the
+       PAGE down to find it before scrolling the TABLE right. The
+       companion JS in master.blade.php renders a floating proxy
+       scrollbar pinned to the bottom of the viewport.
+       ============================================================ */
+
+    /* --- Pin first two and last column cells (body) and matching header cells.
+           Gated on `.mf-has-overflow` (added by JS only when scrollBody overflows)
+           so narrow tables that already fit get normal rendering. --- */
+    .mf-has-overflow table.dataTable > tbody > tr > td:nth-child(1),
+    .mf-has-overflow table.dataTable > tbody > tr > td:nth-child(2),
+    .mf-has-overflow table.dataTable > tbody > tr > td:last-child,
+    .mf-has-overflow table.dataTable > thead > tr > th:nth-child(1),
+    .mf-has-overflow table.dataTable > thead > tr > th:nth-child(2),
+    .mf-has-overflow table.dataTable > thead > tr > th:last-child {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #ffffff !important;
+        z-index: 2 !important;
+    }
+    .mf-has-overflow table.dataTable > tbody > tr > td:nth-child(1),
+    .mf-has-overflow table.dataTable > thead > tr > th:nth-child(1) {
+        left: 0 !important;
+        inset-inline-start: 0 !important;
+    }
+    .mf-has-overflow table.dataTable > tbody > tr > td:nth-child(2),
+    .mf-has-overflow table.dataTable > thead > tr > th:nth-child(2) {
+        left: var(--mf-sticky-col1-width, 36px) !important;
+        inset-inline-start: var(--mf-sticky-col1-width, 36px) !important;
+        box-shadow: 2px 0 0 #e2e8f0 !important;
+    }
+    .mf-has-overflow table.dataTable > tbody > tr > td:last-child,
+    .mf-has-overflow table.dataTable > thead > tr > th:last-child {
+        right: 0 !important;
+        inset-inline-end: 0 !important;
+        box-shadow: -2px 0 0 #e2e8f0 !important;
+    }
+    /* Header cells above body cells in the z-stack */
+    .mf-has-overflow table.dataTable > thead > tr > th {
+        z-index: 3 !important;
+    }
+    /* Striped odd rows — paint sticky cells so non-sticky cells scroll under */
+    .mf-has-overflow table.dataTable.table-striped > tbody > tr:nth-of-type(odd) > td:nth-child(1),
+    .mf-has-overflow table.dataTable.table-striped > tbody > tr:nth-of-type(odd) > td:nth-child(2),
+    .mf-has-overflow table.dataTable.table-striped > tbody > tr:nth-of-type(odd) > td:last-child {
+        background-color: #f8fafc !important;
+    }
+    /* Hover bg on sticky cells */
+    .mf-has-overflow table.dataTable.table-hover > tbody > tr:hover > td:nth-child(1),
+    .mf-has-overflow table.dataTable.table-hover > tbody > tr:hover > td:nth-child(2),
+    .mf-has-overflow table.dataTable.table-hover > tbody > tr:hover > td:last-child {
+        background-color: #f1f5f9 !important;
+    }
+    /* Selected row (DataTables select extension) */
+    .mf-has-overflow table.dataTable > tbody > tr.selected > td:nth-child(1),
+    .mf-has-overflow table.dataTable > tbody > tr.selected > td:nth-child(2),
+    .mf-has-overflow table.dataTable > tbody > tr.selected > td:last-child {
+        background-color: #ccfbf1 !important;
+    }
+    /* Mobile: disable sticky on phones so cells get full width */
+    @media (max-width: 575.98px) {
+        .mf-has-overflow table.dataTable > tbody > tr > td,
+        .mf-has-overflow table.dataTable > thead > tr > th {
+            position: static !important;
+            box-shadow: none !important;
+        }
+    }
+
+    /* --- Floating horizontal scrollbar (pinned to viewport bottom) --- */
+    .mf-floating-hscroll {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        height: 14px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        background: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid #e2e8f0;
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        z-index: 1030;
+        transition: opacity .2s ease;
+    }
+    .mf-floating-hscroll.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .mf-floating-hscroll__filler { height: 1px; }
+    @media (max-width: 575.98px) {
+        .mf-floating-hscroll { height: 10px; }
     }
 
     /* ===== Back-to-top button: get out of the way when action buttons are visible ===== */
@@ -1123,6 +1882,59 @@
     }
     .modern-filter-card .btn-reset:hover::before { transform: rotate(-180deg); opacity: 1; }
     .modern-filter-card .btn-reset:active { background: #e2e8f0; }
+
+    /* ===== "Create new" / "Add" CTA — same teal as Search button, with attention pulse ===== */
+    .btn-create,
+    .btn-create:hover,
+    .btn-create:focus,
+    .btn-create:active,
+    .btn-create:visited,
+    .btn-create:link {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-decoration: none !important;
+    }
+    .btn-create > *,
+    .btn-create:hover > *,
+    .btn-create * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    .btn-create {
+        background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+        border: 0;
+        height: 40px;
+        padding: 0 22px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        letter-spacing: 0.02em;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28);
+        transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        position: relative;
+    }
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 148, 136, 0.42);
+        filter: brightness(1.05);
+    }
+    .btn-create:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+    }
+    .btn-create i {
+        font-size: 1.1em;
+        line-height: 1;
+        animation: mfCreatePulse 2.4s ease-in-out 1.5s 2;
+    }
+    @keyframes mfCreatePulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.18); }
+    }
 
     [dir="rtl"] .modern-filter-card > .card-header h4::before { margin-right: 0; margin-left: 8px; }
     [dir="rtl"] .modern-filter-card .btn-search i { margin-right: 0; margin-left: 4px; }
@@ -1589,11 +2401,163 @@
         });
     }
 
+    function buildLengthDropdown(select) {
+        if (!select || select.dataset.mfDtInit === '1') return;
+        select.dataset.mfDtInit = '1';
+
+        // Wrap the native select with our own trigger/panel UI
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mf-dropdown mf-dt-length';
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        select.classList.add('mf-native');
+
+        var trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'mf-dropdown__trigger mf-dt-length-trigger';
+        trigger.innerHTML =
+            '<span class="mf-dropdown__current"></span>' +
+            '<svg class="mf-dropdown__arrow" width="10" height="6" viewBox="0 0 12 8" fill="none">' +
+                '<path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '</svg>';
+        wrapper.appendChild(trigger);
+
+        var panel = document.createElement('div');
+        panel.className = 'mf-panel mf-dt-length-panel';
+        document.body.appendChild(panel);
+
+        function renderItems() {
+            panel.innerHTML = '';
+            Array.from(select.options).forEach(function (opt) {
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'mf-panel__item';
+                item.dataset.value = opt.value;
+                if (opt.value === select.value) item.classList.add('is-active');
+                item.textContent = opt.textContent;
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateTrigger();
+                    closePanel();
+                });
+                panel.appendChild(item);
+            });
+        }
+
+        function updateTrigger() {
+            var current = trigger.querySelector('.mf-dropdown__current');
+            var opt = Array.from(select.options).find(function (o) { return o.value === select.value; });
+            current.textContent = opt ? opt.textContent : (select.value || '');
+            panel.querySelectorAll('.mf-panel__item').forEach(function (item) {
+                item.classList.toggle('is-active', item.dataset.value === select.value);
+            });
+        }
+
+        function positionPanel() {
+            var rect = trigger.getBoundingClientRect();
+            panel.style.top = (rect.bottom + 6) + 'px';
+            panel.style.left = rect.left + 'px';
+            panel.style.minWidth = rect.width + 'px';
+        }
+
+        function openPanel() {
+            renderItems();
+            panel.classList.add('is-open');
+            trigger.classList.add('is-open');
+            positionPanel();
+            requestAnimationFrame(positionPanel);
+        }
+        function closePanel() {
+            panel.classList.remove('is-open');
+            trigger.classList.remove('is-open');
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (panel.classList.contains('is-open')) closePanel(); else openPanel();
+        });
+        document.addEventListener('mousedown', function (e) {
+            if (!panel.classList.contains('is-open')) return;
+            if (trigger.contains(e.target) || panel.contains(e.target)) return;
+            closePanel();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && panel.classList.contains('is-open')) closePanel();
+        });
+        select.addEventListener('change', updateTrigger);
+        window.addEventListener('scroll', function () {
+            if (panel.classList.contains('is-open')) positionPanel();
+        }, true);
+        window.addEventListener('resize', function () {
+            if (panel.classList.contains('is-open')) positionPanel();
+        });
+
+        renderItems();
+        updateTrigger();
+    }
+
+    function enhanceDataTablesControls() {
+        // Modernize the "Show N entries" length dropdown that DataTables generates.
+        // We use our OWN mf-dropdown component (not Choices.js) because the length select
+        // is wrapped in a <label>, which Choices.js handles unreliably.
+        document.querySelectorAll('.dataTables_length select').forEach(buildLengthDropdown);
+
+        // Force white text on toolbar buttons (Copy/CSV/Excel/Print/Delete).
+        // Some theme rule keeps winning over our CSS `color: #fff !important`, so we set
+        // inline styles with !important via setProperty — that beats every other rule.
+        forceWhiteOnDtButtons();
+    }
+
+    function forceWhiteOnDtButtons(root) {
+        var scope = root || document;
+        scope.querySelectorAll && scope.querySelectorAll('.dataTables_wrapper .dt-button').forEach(function (btn) {
+            btn.style.setProperty('color', '#ffffff', 'important');
+            btn.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            btn.style.setProperty('text-shadow', 'none', 'important');
+            btn.querySelectorAll('*').forEach(function (child) {
+                child.style.setProperty('color', '#ffffff', 'important');
+                child.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+                child.style.setProperty('text-shadow', 'none', 'important');
+            });
+        });
+    }
+
+    // MutationObserver: any time DataTables re-renders the toolbar (or any future code adds
+    // new buttons), immediately re-apply the white text. This makes the fix permanent
+    // — works on initial load, on table redraws, on paginated views, everywhere.
+    function startDtButtonGuard() {
+        if (!('MutationObserver' in window)) return;
+        if (window.__mfDtGuardStarted) return;
+        window.__mfDtGuardStarted = true;
+        var observer = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var m = mutations[i];
+                if (m.type === 'childList' && m.addedNodes.length) {
+                    for (var j = 0; j < m.addedNodes.length; j++) {
+                        var node = m.addedNodes[j];
+                        if (node.nodeType !== 1) continue;
+                        if (node.matches && node.matches('.dt-button')) {
+                            forceWhiteOnDtButtons(node.parentNode || document);
+                        } else if (node.querySelector && node.querySelector('.dt-button')) {
+                            forceWhiteOnDtButtons(node);
+                        }
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
     function initAll() {
         document.querySelectorAll('.modern-filter-card select').forEach(init);
         initDatePickers();
         initTimePickers();
         enhanceSelect2();
+        enhanceDataTablesControls();
         // Tag ONLY the column that holds the action buttons, so CSS can style it as an
         // actions bar without affecting sibling field columns in the same row.
         document.querySelectorAll('.modern-filter-card .btn-search').forEach(function (btn) {
@@ -1654,13 +2618,15 @@
     function boot() {
         initAll();
         bindReset();
-        // Page-specific scripts that init Select2 may run AFTER us.
+        startDtButtonGuard();
+        // Page-specific scripts that init Select2 / DataTables may run AFTER us.
         // Re-scan a few times so we catch them whenever they finish initializing.
-        setTimeout(enhanceSelect2, 100);
-        setTimeout(enhanceSelect2, 300);
-        setTimeout(enhanceSelect2, 700);
-        setTimeout(enhanceSelect2, 1500);
-        setTimeout(enhanceSelect2, 3000);
+        function rescan() { enhanceSelect2(); enhanceDataTablesControls(); }
+        setTimeout(rescan, 100);
+        setTimeout(rescan, 300);
+        setTimeout(rescan, 700);
+        setTimeout(rescan, 1500);
+        setTimeout(rescan, 3000);
     }
 
     if (document.readyState === 'loading') {

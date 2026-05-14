@@ -93,11 +93,15 @@
 <script>
     $(function() {
 
-        let copyButtonTrans = 'Copy'
-        let csvButtonTrans = 'CSV'
-        let excelButtonTrans = 'Excel'
-        let pdfButtonTrans = 'PDF'
-        let printButtonTrans = 'Print'
+        // Wrap each label in a span with inline white color — this forces readable text
+        // on the colored toolbar buttons. Inline color on the rendered <span> wins over
+        // every other CSS rule because it's an attribute on the actual DOM node DataTables
+        // creates.
+        let copyButtonTrans  = '<span style="color:#fff;-webkit-text-fill-color:#fff">Copy</span>';
+        let csvButtonTrans   = '<span style="color:#fff;-webkit-text-fill-color:#fff">CSV</span>';
+        let excelButtonTrans = '<span style="color:#fff;-webkit-text-fill-color:#fff">Excel</span>';
+        let pdfButtonTrans   = '<span style="color:#fff;-webkit-text-fill-color:#fff">PDF</span>';
+        let printButtonTrans = '<span style="color:#fff;-webkit-text-fill-color:#fff">Print</span>';
         // let colvisButtonTrans = 'columns'
         // let selectAllButtonTrans = 'Select All'
         // let selectNoneButtonTrans = 'Deselect All'
@@ -213,6 +217,135 @@
         });
 
         $.fn.dataTable.ext.classes.sPageButton = '';
+
+        /* -------------------------------------------------------------------
+         * Force WHITE text on every DataTables Buttons toolbar button.
+         * Bootstrap/Velzon rules with `button.btn span` specificity were beating
+         * our stylesheet rules, so we set inline styles with the !important flag
+         * via setProperty — that's the absolute top of the CSS cascade and no
+         * other rule can override it. Runs on init AND on every redraw, so it
+         * survives pagination, sort, search, etc.
+         * -----------------------------------------------------------------*/
+        function _mfForceWhiteDtButtons() {
+            document.querySelectorAll('.dataTables_wrapper .dt-button').forEach(function (btn) {
+                btn.style.setProperty('color', '#ffffff', 'important');
+                btn.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+                btn.style.setProperty('text-shadow', 'none', 'important');
+                btn.querySelectorAll('*').forEach(function (child) {
+                    child.style.setProperty('color', '#ffffff', 'important');
+                    child.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+                    child.style.setProperty('text-shadow', 'none', 'important');
+                });
+            });
+        }
+        // Run repeatedly until DataTables has finished rendering its toolbar
+        var _mfTries = 0;
+        var _mfInterval = setInterval(function () {
+            _mfForceWhiteDtButtons();
+            if (++_mfTries > 20) clearInterval(_mfInterval); // stop after ~5s
+        }, 250);
+        // Re-apply on every DataTables draw (covers re-rendered toolbars)
+        $(document).on('draw.dt init.dt buttons-init.dt', function () {
+            setTimeout(_mfForceWhiteDtButtons, 0);
+            setTimeout(_mfForceWhiteDtButtons, 100);
+        });
+
+        /* -------------------------------------------------------------------
+         * Floating horizontal scrollbar for wide DataTables.
+         * Pairs with the sticky-pinned-columns CSS in modern-filters.blade.php
+         * to fix the "scrollbar lives below the fold" UX. Iterates every
+         * .dataTables_wrapper on the page so multi-table pages are covered.
+         * Per wrapper:
+         *   - Creates one position:fixed proxy scrollbar at viewport bottom
+         *   - Two-way syncs proxy.scrollLeft ↔ scrollBody.scrollLeft
+         *   - Auto-hides when the table doesn't overflow, when the native
+         *     scrollbar is already visible on-screen, or when the wrapper
+         *     is hidden (e.g. inactive tab)
+         *   - Updates the --mf-sticky-col1-width CSS variable so the second
+         *     sticky column lines up against the actual rendered width of
+         *     the first column (DataTables computes column widths at runtime)
+         * -----------------------------------------------------------------*/
+        function _mfHScrollInitOne(wrapperEl) {
+            // Dedup via data attribute — survives even if WeakSet is unsupported.
+            if (wrapperEl.getAttribute('data-mf-hscroll') === '1') return;
+            var scrollBody = wrapperEl.querySelector('.dataTables_scrollBody');
+            if (!scrollBody) return;
+            wrapperEl.setAttribute('data-mf-hscroll', '1');
+
+            var proxy  = document.createElement('div');
+            var filler = document.createElement('div');
+            proxy.className  = 'mf-floating-hscroll is-hidden';
+            filler.className = 'mf-floating-hscroll__filler';
+            proxy.appendChild(filler);
+            document.body.appendChild(proxy);
+
+            var syncing = false;
+            proxy.addEventListener('scroll', function () {
+                if (syncing) { syncing = false; return; }
+                syncing = true;
+                scrollBody.scrollLeft = proxy.scrollLeft;
+            });
+            scrollBody.addEventListener('scroll', function () {
+                if (syncing) { syncing = false; return; }
+                syncing = true;
+                proxy.scrollLeft = scrollBody.scrollLeft;
+            });
+
+            var rafId = 0;
+            function update() {
+                rafId = 0;
+                var rect = scrollBody.getBoundingClientRect();
+                var overflows  = scrollBody.scrollWidth > scrollBody.clientWidth + 1;
+                var bottomSeen = rect.bottom <= window.innerHeight;
+                var hidden     = rect.width === 0;
+                var shouldShow = overflows && !bottomSeen && !hidden;
+
+                // Gate sticky-columns CSS on actual overflow: narrow tables that
+                // already fit the viewport shouldn't have first/last columns
+                // pinned (would be visually weird for 3-4 column tables).
+                wrapperEl.classList.toggle('mf-has-overflow', overflows);
+
+                if (shouldShow) {
+                    proxy.classList.remove('is-hidden');
+                    proxy.style.left   = rect.left + 'px';
+                    proxy.style.width  = rect.width + 'px';
+                    filler.style.width = scrollBody.scrollWidth + 'px';
+                    proxy.scrollLeft   = scrollBody.scrollLeft;
+                } else {
+                    proxy.classList.add('is-hidden');
+                }
+
+                var firstCell = scrollBody.querySelector('tbody tr td:nth-child(1)');
+                if (firstCell) {
+                    wrapperEl.style.setProperty(
+                        '--mf-sticky-col1-width',
+                        firstCell.offsetWidth + 'px'
+                    );
+                }
+            }
+            function schedule() {
+                if (!rafId) rafId = window.requestAnimationFrame(update);
+            }
+
+            window.addEventListener('scroll', schedule, { passive: true });
+            window.addEventListener('resize', schedule, { passive: true });
+            $(document).on('draw.dt column-sizing.dt', schedule);
+
+            if (window.ResizeObserver) {
+                new ResizeObserver(schedule).observe(scrollBody);
+            }
+            schedule();
+        }
+        function _mfHScrollInitAll() {
+            document.querySelectorAll('.dataTables_wrapper').forEach(_mfHScrollInitOne);
+        }
+        _mfHScrollInitAll();
+        $(document).on('init.dt draw.dt', _mfHScrollInitAll);
+        var _mfHsTries = 0;
+        var _mfHsRetry = setInterval(function () {
+            _mfHScrollInitAll();
+            if (++_mfHsTries > 20) clearInterval(_mfHsRetry); // stop after ~5s
+        }, 250);
     });
 </script>
 {{-- 

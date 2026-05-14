@@ -141,21 +141,14 @@
         </div>
     </div>
 
-    @can('task_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
-                <a class="btn btn-success" href="{{ route('admin.tasks.create') }}">
-                    {{ trans('translation.add') }} {{ trans('translation.tasks') }}
-                </a>
-
-
-
-            </div>
-        </div>
-    @endcan
     <div class="card">
-        <div class="card-header">
-            {{ trans('translation.tasks') }} {{ trans('translation.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('translation.tasks') }} {{ trans('translation.list') }}</h5>
+            @can('task_create')
+                <a class="btn btn-create" href="{{ route('admin.tasks.create') }}">
+                    <i class="ri-add-line"></i> {{ trans('translation.add') }} {{ trans('translation.tasks') }}
+                </a>
+            @endcan
         </div>
 
         <div class="card-body">
