@@ -1968,9 +1968,18 @@ class TasksController extends Controller
                 $task->from_location = $from_location;
                 $task->added_by = $logged_id_user->email;
                 $task->created_at = now();
-                $task->eta = $this->calcETA($driver, $from_location, $request->to_location);
+                
+                if ($driver) {
+                    $task->eta = $this->calcETA($driver, $from_location, $request->to_location);
+                } else {
+                    $task->eta = null;
+                }
+
                 $task->save();
-                $driver->sendNotification( 'New Task', 'You have new task',[$driver->fcm_token],$task,'open_task');
+
+                if ($driver) {
+                    $driver->sendNotification('New Task', 'You have new task', [$driver->fcm_token], $task, 'open_task');
+                }
             }
         }
 
@@ -2033,7 +2042,7 @@ class TasksController extends Controller
         $fromLocation = Location::find($fromLocationId);
         $toLocation   = Location::find($toLocationId);
 
-        if (!$fromLocation || !$toLocation) {
+        if (!$fromLocation || !$toLocation || !$driver) {
             return null;
         }
 

@@ -42,10 +42,17 @@ class StoreTaskRequest extends FormRequest
                 'gt:0',
                 'lt:50',
             ],
+            'type' => [
+                'string',
+                'required',
+            ],
+            'task_type' => [
+                'string',
+                'required',
+            ],
             'dropoff_time' => [
                 'date',
                 'required',
-                // 'after:pickup_time',
             ],
             'pickup_time' => [
                 'date',
