@@ -49,7 +49,7 @@ class TasksController extends Controller
 
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
-            \Log::info('Tasks Index AJAX called', ['filters' => $request->all()]);
+            \Log::info('Tasks Index AJAX called (Line 51)', ['filters' => $request->all()]);
 
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
                 ->select('tasks.*');
@@ -57,15 +57,34 @@ class TasksController extends Controller
             // فلتر حسب العميل إذا المستخدم مربوط بعميل
             if ($logged_id_user->client_id) {
                 $query->where('billing_client', $logged_id_user->client_id);
+                \Log::info('Filter applied: client_id = ' . $logged_id_user->client_id);
             }
 
             // فلترة ذكية باستخدام when()
-            $query->when($request->status, fn($q, $v) => $q->where('status', $v))
-                ->when($request->driver_id, fn($q, $v) => $q->where('driver_id', $v))
-                ->when($request->billing_client, fn($q, $v) => $q->where('billing_client', $v))
-                ->when($request->from_location, fn($q, $v) => $q->where('from_location', $v))
-                ->when($request->to_location, fn($q, $v) => $q->where('to_location', $v))
-                ->when($request->keyword, fn($q, $v) => $q->where('tasks.id', $v));
+            $query->when($request->status, function($q, $v) {
+                $q->where('status', $v);
+                \Log::info('Filter applied: status = ' . $v);
+            })
+            ->when($request->driver_id, function($q, $v) {
+                $q->where('driver_id', $v);
+                \Log::info('Filter applied: driver_id = ' . $v);
+            })
+            ->when($request->billing_client, function($q, $v) {
+                $q->where('billing_client', $v);
+                \Log::info('Filter applied: billing_client = ' . $v);
+            })
+            ->when($request->from_location, function($q, $v) {
+                $q->where('from_location', $v);
+                \Log::info('Filter applied: from_location = ' . $v);
+            })
+            ->when($request->to_location, function($q, $v) {
+                $q->where('to_location', $v);
+                \Log::info('Filter applied: to_location = ' . $v);
+            })
+            ->when($request->keyword, function($q, $v) {
+                $q->where('tasks.id', $v);
+                \Log::info('Filter applied: keyword = ' . $v);
+            });
 
             // فلترة التاريخ
             $dateColumn = $request->search_date ?? 'tasks.created_at';
@@ -78,19 +97,15 @@ class TasksController extends Controller
             //     : null;
      
             // $dateTo = $request->date_to
-            //     ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to)
-            //     : null;
+            $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;
+            $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
 
-            // Assume user inputs are in local (browser) time
-
-            $dateFrom = $request->date_from
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_from, 'Asia/Riyadh')->utc()
-                : null;
-
-            $dateTo = $request->date_to
-                ? Carbon::createFromFormat('Y-m-d\TH:i', $request->date_to, 'Asia/Riyadh')->utc()
-                : null;
-
+            // إذا لم يتم تحديد تاريخ، نضع فلتراً افتراضياً لآخر 30 يوماً لتحسين الأداء
+            if (!$dateFrom && !$dateTo && !$request->keyword) {
+                $dateFrom = Carbon::now()->subDays(30)->startOfDay();
+                $dateTo = Carbon::now()->endOfDay();
+                \Log::info('Applying default 30-day filter for performance');
+            }
 
             // Make sure start <= end
             if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
@@ -102,19 +117,18 @@ class TasksController extends Controller
                     $dateFrom->toDateTimeString(),
                     $dateTo->toDateTimeString(),
                 ]);
+                \Log::info('Filter applied: dateBetween ' . $dateFrom->toDateTimeString() . ' and ' . $dateTo->toDateTimeString());
             } elseif ($dateFrom) {
                 $query->where($dateColumn, '>=', $dateFrom);
+                \Log::info('Filter applied: dateFrom >= ' . $dateFrom->toDateTimeString());
             } elseif ($dateTo) {
                 $query->where($dateColumn, '<=', $dateTo);
+                \Log::info('Filter applied: dateTo <= ' . $dateTo->toDateTimeString());
             }
 
             \Log::info('Tasks Query SQL: ' . $query->toSql(), ['bindings' => $query->getBindings()]);
-            \Log::info('Tasks Count: ' . (clone $query)->count());
 
             if ($request->has('order.0.column')) {
-                // $columnIndex = $request->input('order.0.column'); // رقم العمود
-                // $dir = $request->input('order.0.dir') ?? 'desc';   // asc | desc
-
                 // // مصفوفة mapping للعمود الفعلي
                 // $columns = [
                 //     1 => 'id',              // sequence ما هو DB فيمكن تبدأ 2
@@ -230,6 +244,7 @@ class TasksController extends Controller
                 $response = $table->make(true);
                 $endTime = microtime(true);
                 \Log::info('Tasks Index AJAX execution time: ' . ($endTime - $startTime) . ' seconds');
+                \Log::info('Tasks Index JSON Response sample: ' . substr($response->getContent(), 0, 1000));
                 return $response;
             } catch (\Exception $e) {
                 \Log::error('Tasks Index AJAX Error: ' . $e->getMessage(), [
