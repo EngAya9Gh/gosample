@@ -60,7 +60,7 @@ class TasksController extends Controller
             //    This prevents the data leak we just observed where a non-admin user with a
             //    NULL client_id was effectively seeing every task in the system.
             $isAdminUser = $logged_id_user && (
-                $logged_id_user->hasAnyRole(['Admin', 'Super Admin'])
+                $logged_id_user->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
                 || method_exists($logged_id_user, 'getIsAdminAttribute') && $logged_id_user->is_admin
             );
             if ($logged_id_user && $logged_id_user->client_id) {
@@ -1615,7 +1615,7 @@ class TasksController extends Controller
         // entirely if the user is neither an admin nor bound to a client.
         $loggedUser = auth()->user();
         $isAdminUser = $loggedUser && (
-            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
             || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
         );
         if ($loggedUser && $loggedUser->client_id) {
@@ -2402,7 +2402,7 @@ $temp3 = $temperatureReadings->pluck('temp7');
         // admin or client-bound, otherwise refuse the request.
         $loggedUser = auth()->user();
         $isAdminUser = $loggedUser && (
-            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
             || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
         );
         if ($loggedUser && $loggedUser->client_id) {
