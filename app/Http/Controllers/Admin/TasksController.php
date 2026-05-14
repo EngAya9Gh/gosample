@@ -54,8 +54,17 @@ class TasksController extends Controller
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
                 ->select('tasks.*');
 
-            // فلتر حسب العميل إذا المستخدم مربوط بعميل
-            if ($logged_id_user->client_id) {
+            // SECURITY (fail-closed scoping):
+            //  - If the user is bound to a client (client_id set) → scope to that client.
+            //  - Else if the user holds an admin-level role → no scope (sees all).
+            //  - Else (e.g. a "client" user whose client_id was never set) → return nothing.
+            //    This prevents the data leak we just observed where a non-admin user with a
+            //    NULL client_id was effectively seeing every task in the system.
+            $isAdminUser = $logged_id_user && (
+                $logged_id_user->hasAnyRole(['Admin', 'Super Admin'])
+                || method_exists($logged_id_user, 'getIsAdminAttribute') && $logged_id_user->is_admin
+            );
+            if ($logged_id_user && $logged_id_user->client_id) {
                 $query->where('billing_client', $logged_id_user->client_id);
                 \Log::info('Filter applied: client_id = ' . $logged_id_user->client_id);
             }
@@ -1616,30 +1625,113 @@ class TasksController extends Controller
 
     public function exportExcelDetails(Request $request)
     {
-        // Allow long-running export
-        @set_time_limit(600);
-        @ini_set('memory_limit', '1024M');
+        // Collect filters
+        $filters = [
+            'status'         => $request->input('status'),
+            'date_from'      => $request->input('date_from'),
+            'date_to'        => $request->input('date_to'),
+            'billing_client' => $request->input('billing_client'),
+            'from_location'  => $request->input('from_location'),
+            'to_location'    => $request->input('to_location'),
+            'driver_id'      => $request->input('driver_id'),
+        ];
 
-        $status = $request->input('status');
-        $date_from = $request->input('date_from');
-        $date_to = $request->input('date_to');
-        $billingClient = $request->input('billing_client');
-        $fromLocation = $request->input('from_location');
-        $toLocation = $request->input('to_location');
-        $driverId = $request->input('driver_id');
-
-        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
-        // their own client_id so they cannot extract other clients' data.
+        // SECURITY (fail-closed): scope the export to the user's own client OR refuse it
+        // entirely if the user is neither an admin nor bound to a client.
         $loggedUser = auth()->user();
+        $isAdminUser = $loggedUser && (
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
+        );
         if ($loggedUser && $loggedUser->client_id) {
-            $billingClient = $loggedUser->client_id;
+            $filters['billing_client'] = $loggedUser->client_id;
+        } elseif (!$isAdminUser) {
+            // Not bound to a client AND not an admin — refuse to leak data.
+            abort(403, 'You are not allowed to export.');
         }
 
-        // Create an instance of TaskTimeReportExport with the request parameters
-        $export = new TaskTimeReportExport($status, $date_from, $date_to, $billingClient, $fromLocation, $toLocation, $driverId);
+        // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.
+        $exportsDir = storage_path('app/exports');
+        if (is_dir($exportsDir)) {
+            $cutoff = time() - 3600;
+            foreach ((array) @scandir($exportsDir) as $entry) {
+                if ($entry === '.' || $entry === '..' || $entry === false) continue;
+                $p = $exportsDir . DIRECTORY_SEPARATOR . $entry;
+                if (is_file($p) && @filemtime($p) < $cutoff) {
+                    @unlink($p);
+                }
+            }
+        }
 
-        // Return the Excel download
-        return Excel::download($export, 'task_time_report.xlsx');
+        // Generate a unique token for this export
+        $token = \Illuminate\Support\Str::random(40);
+
+        // Dispatch strategy depends on queue connection:
+        // - sync (typical for local dev): use afterResponse() so the redirect is sent FIRST,
+        //   then the job runs in the same PHP process AFTER the connection is closed. No
+        //   HTTP timeout to worry about.
+        // - database / redis (production with a queue worker): regular dispatch pushes the
+        //   job to the worker, which runs it independently of the HTTP request.
+        if (config('queue.default') === 'sync') {
+            \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id)->afterResponse();
+        } else {
+            \App\Jobs\GenerateTaskExportJob::dispatch($token, $filters, $loggedUser?->id);
+        }
+
+        // Redirect the user to a polling page that auto-downloads the file when ready
+        return redirect()->route('admin.tasks.export.status', ['token' => $token]);
+    }
+
+    /**
+     * Status / download page for a queued task export.
+     * - If the job is still running, shows a "preparing" page that auto-polls.
+     * - If the job has finished, serves the .xlsx file as a download.
+     * - If the job errored, shows the error.
+     */
+    public function exportStatus(Request $request, string $token)
+    {
+        // Validate token shape — prevents path traversal
+        if (!preg_match('/^[A-Za-z0-9]{40}$/', $token)) {
+            abort(404);
+        }
+
+        $dir       = storage_path('app/exports');
+        $path      = $dir . DIRECTORY_SEPARATOR . $token . '.xlsx';
+        $doneFlag  = $path . '.done';
+        $errorFlag = $path . '.error';
+
+        // JSON status endpoint for the polling page
+        if ($request->wantsJson() || $request->boolean('status')) {
+            if (is_file($errorFlag)) {
+                return response()->json([
+                    'state' => 'error',
+                    'error' => (string) @file_get_contents($errorFlag),
+                ]);
+            }
+            if (is_file($doneFlag) && is_file($path)) {
+                return response()->json([
+                    'state'    => 'ready',
+                    'count'    => (int) @file_get_contents($doneFlag),
+                    'download' => route('admin.tasks.export.status', ['token' => $token, 'download' => 1]),
+                ]);
+            }
+            return response()->json(['state' => 'pending']);
+        }
+
+        // Download endpoint — serves the file. We keep the file on disk so the user can
+        // re-download if needed; old files are garbage-collected by exportExcelDetails().
+        if ($request->boolean('download')) {
+            if (!is_file($doneFlag) || !is_file($path)) {
+                abort(410, 'This export is no longer available. Please generate a new one.');
+            }
+            $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
+            return response()->download($path, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]);
+        }
+
+        // Default — render the polling page
+        return view('admin.tasks.export-pending', ['token' => $token]);
     }
 
 
@@ -2331,11 +2423,26 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function export(Request $request)
     {
-        // SECURITY: if the logged-in user is bound to a client, force-scope the export to
-        // their own client_id so they cannot extract other clients' data.
+        // SECURITY (fail-closed): same scoping rules as the listing — must be either
+        // admin or client-bound, otherwise refuse the request.
         $loggedUser = auth()->user();
+        $isAdminUser = $loggedUser && (
+            $loggedUser->hasAnyRole(['Admin', 'Super Admin'])
+            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
+        );
         if ($loggedUser && $loggedUser->client_id) {
             $request->merge(['billing_client' => $loggedUser->client_id]);
+        } elseif (!$isAdminUser) {
+            abort(403, 'You are not allowed to export.');
+        }
+
+        // PERFORMANCE: force a date range to avoid scanning the entire tasks table on prod.
+        // Defaults to last 30 days when none is provided.
+        if (empty($request->date_from) && empty($request->date_to)) {
+            $request->merge([
+                'date_from' => Carbon::now()->subDays(30)->startOfDay()->toDateTimeString(),
+                'date_to'   => Carbon::now()->endOfDay()->toDateTimeString(),
+            ]);
         }
 
         if($request->report_type == 'excel')

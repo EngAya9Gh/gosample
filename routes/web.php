@@ -130,6 +130,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::get('scheduled-driver', 'ScheduledTaskController@indexSchedule')->name('tasks.indexSchedule');
 
     Route::get('/export-excel', 'TasksController@exportExcelDetails')->name('tasks.export-excel');
+    Route::get('/tasks/export-status/{token}', 'TasksController@exportStatus')->name('tasks.export.status');
 
 
     // Samples
