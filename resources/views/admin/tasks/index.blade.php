@@ -128,7 +128,7 @@
                                     <i class="fas fa-file-excel"></i> Export Excel Report
                                 </a>
                                 <button class="btn btn-search mr-2 mb-1" type="submit" id="export" style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);box-shadow:0 4px 12px rgba(99,102,241,0.25);">
-                                    <i class="fas fa-download"></i> {{ trans('translation.export') }}
+                                    <i class="fas fa-file-pdf"></i> Export PDF
                                 </button>
                                 <button class="btn btn-search mb-1" type="button" id="search">
                                     <i class="fas fa-search"></i> {{ trans('translation.search') }}

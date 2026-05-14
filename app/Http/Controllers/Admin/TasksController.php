@@ -1600,6 +1600,19 @@ class TasksController extends Controller
 
     public function exportExcelDetails(Request $request)
     {
+        // PERFORMANCE: cap the export to the last 30 days when the user
+        // hasn't supplied a date range. Exporting the full tasks table is
+        // far too heavy for prod (matches the same default already applied
+        // in TasksController@export). Filters below read from $request, so
+        // we merge BEFORE building $filters to ensure they pick up the
+        // defaulted values.
+        if (empty($request->date_from) && empty($request->date_to)) {
+            $request->merge([
+                'date_from' => Carbon::now()->subDays(30)->startOfDay()->toDateTimeString(),
+                'date_to'   => Carbon::now()->endOfDay()->toDateTimeString(),
+            ]);
+        }
+
         // Collect filters
         $filters = [
             'status'         => $request->input('status'),
@@ -1670,39 +1683,53 @@ class TasksController extends Controller
             abort(404);
         }
 
-        $dir       = storage_path('app/exports');
-        $path      = $dir . DIRECTORY_SEPARATOR . $token . '.xlsx';
-        $doneFlag  = $path . '.done';
-        $errorFlag = $path . '.error';
+        $dir = storage_path('app/exports');
+
+        // The token-based file can be either .xlsx (green button — Excel report,
+        // produced by GenerateTaskExportJob) or .pdf (purple button — PDF report,
+        // produced by GenerateTaskReportJob). Try both and use whichever exists.
+        // Each path carries its own .done / .error sibling markers.
+        $candidates = ['xlsx', 'pdf'];
+        $resolved = null; // [ 'ext' => ..., 'path' => ..., 'done' => ..., 'error' => ... ]
+        foreach ($candidates as $ext) {
+            $path  = $dir . DIRECTORY_SEPARATOR . $token . '.' . $ext;
+            $done  = $path . '.done';
+            $error = $path . '.error';
+            if (is_file($path) || is_file($done) || is_file($error)) {
+                $resolved = ['ext' => $ext, 'path' => $path, 'done' => $done, 'error' => $error];
+                break;
+            }
+        }
 
         // JSON status endpoint for the polling page
         if ($request->wantsJson() || $request->boolean('status')) {
-            if (is_file($errorFlag)) {
+            if ($resolved && is_file($resolved['error'])) {
                 return response()->json([
                     'state' => 'error',
-                    'error' => (string) @file_get_contents($errorFlag),
+                    'error' => (string) @file_get_contents($resolved['error']),
                 ]);
             }
-            if (is_file($doneFlag) && is_file($path)) {
+            if ($resolved && is_file($resolved['done']) && is_file($resolved['path'])) {
                 return response()->json([
                     'state'    => 'ready',
-                    'count'    => (int) @file_get_contents($doneFlag),
+                    'count'    => (int) @file_get_contents($resolved['done']),
                     'download' => route('admin.tasks.export.status', ['token' => $token, 'download' => 1]),
                 ]);
             }
             return response()->json(['state' => 'pending']);
         }
 
-        // Download endpoint — serves the file. We keep the file on disk so the user can
-        // re-download if needed; old files are garbage-collected by exportExcelDetails().
+        // Download endpoint — serves whichever file extension was produced.
         if ($request->boolean('download')) {
-            if (!is_file($doneFlag) || !is_file($path)) {
+            if (!$resolved || !is_file($resolved['done']) || !is_file($resolved['path'])) {
                 abort(410, 'This export is no longer available. Please generate a new one.');
             }
-            $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.xlsx';
-            return response()->download($path, $filename, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ]);
+            $ext      = $resolved['ext'];
+            $filename = 'task_time_report_' . now()->format('Y-m-d_His') . '.' . $ext;
+            $mime     = $ext === 'pdf'
+                ? 'application/pdf'
+                : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            return response()->download($resolved['path'], $filename, ['Content-Type' => $mime]);
         }
 
         // Default — render the polling page
@@ -2420,356 +2447,50 @@ $temp3 = $temperatureReadings->pluck('temp7');
             ]);
         }
 
-        if($request->report_type == 'excel')
-        {
-            return $this->exportExcel($request);
-        }
-        set_time_limit(1000);
-        ini_set('memory_limit', '9000M');
-        // $data = [
-        //     'title' => 'My Report',
-        //     'date' => date('Y-m-d'),
-        //     'items' => [
-        //         ['id' => 1, 'name' => 'Item 1', 'quantity' => 10],
-        //         ['id' => 2, 'name' => 'Item 2', 'quantity' => 5],
-        //         ['id' => 3, 'name' => 'Item 3', 'quantity' => 20],
-        //     ],
-        // ];
+        // PDF is generated in the background to avoid Cloudflare 504s — dompdf
+        // rendering + the GROUP_CONCAT query can take longer than the request
+        // timeout. Mirrors the queue-based pattern already used by the green
+        // "Export Excel Report" button (TasksController@exportExcelDetails).
+        //
+        // Build the same $filters shape the job expects (port of the inline
+        // $request->* reads that used to drive the synchronous body below).
+        $filters = [
+            'status'         => $request->input('status'),
+            'date_from'      => $request->input('date_from'),
+            'date_to'        => $request->input('date_to'),
+            'billing_client' => $request->input('billing_client'),
+            'from_location'  => $request->input('from_location'),
+            'to_location'    => $request->input('to_location'),
+            'driver_id'      => $request->input('driver_id'),
+            'search_date'    => $request->input('search_date', 'tasks.created_at'),
+        ];
 
-        // return Excel::download(new MyReportExport($data), 'report.xlsx');
-
-
-
-
-
-        $billing_client = $request->billing_client;
-        if($billing_client != null){
-            $clint = Client::find($billing_client);
-            $client_logo = $clint->logo;
-            // dd($client_logo );
-        }else{
-            $client_logo = null;
-        }
-        $sample_barcode = '';//$sample_barcode;
-        $keyWord = '';//'%'.$keyWord .'%';
-        // $to = date('Y-m-d', strtotime($request->date_to)). ' 11:59:59';
-        // $from = date('Y-m-d', strtotime($request->date_from)). ' 00:00:00';
-
-        $to = $request->date_to;
-        $from = $request->date_from;
-
-        $date_column = $request->search_date ?? 'tasks.created_at';
-
-
-
-        $from_location = $request->from_location;
-        $to_location = $request->to_location;
-        // $task_type = '"SAMPLE"';
-        $driver_id = $request->driver_id;
-        // \Log::info( $driver_id);
-        $status = $request->status;
-        // $status = '';
-        if($from == $to)
-        {
-            $reportDate =  $to;
-        } else{
-            $reportDate = 'From '. $from. '- To '. $to;
-        }
-
-
-
-        $query = 'select  tasks.id as id  ,  from_location.name as "from_organization_name" , tasks.close_date "close_task",  tasks.from_location_arrival_time as "from_location_arrival_time",
-                                    TIMESTAMPDIFF(Minute, tasks.from_location_arrival_time,  tasks.collection_date) as "from_stay_time",
-                                    to_location.name as "to_organization_name",
-                                    tasks.to_location_arrival_time as "to_location_arrival_time",
-                                    /*TIMESTAMPDIFF(Minute, tasks.freezer_out_date, tasks.close_date ) as "to_stay_time",*/
-                                      CASE
-                                        WHEN tasks.is_swap = 1 THEN TIMESTAMPDIFF(Minute, tasks.swap_freezer_out, tasks.close_date)
-                                        ELSE TIMESTAMPDIFF(Minute, tasks.freezer_out_date, tasks.close_date)
-                                    END AS "to_stay_time",
-                                    TIMESTAMPDIFF(Minute,  tasks.from_location_arrival_time, tasks.close_date) as "trip_duration",
-                                    GROUP_CONCAT(samples.bag_code) as "bag_code",
-                                    GROUP_CONCAT(samples.temperature_type) as "temperature_type",
-                                    count(samples.id) as "bags_count",
-                                    tasks.confirmed_by_client,
-                                    tasks.confirmation_time
-                                    from tasks
-                                    left join drivers on drivers.ID = tasks.driver_id
-                                    left join locations as from_location on from_location.ID = tasks.from_location
-                                    left join locations as to_location on to_location.ID = tasks.to_location
-                                    left join samples as samples on samples.task_id = tasks.id
-                                    WHERE tasks.deleted_at is null and tasks.id > 1 and drivers.status = 1';
-
-
-        $billing_client=$request->billing_client;
-        if($billing_client !=null)
-        {
-            $billing_client=$billing_client;
-            $query =  $query.' and tasks.billing_client= '.$billing_client;
-        }
-
-        if($from_location !=null)
-        {
-            $query =  $query.' and tasks.from_location= '.$from_location;
-        }
-
-        if($to_location !=null)
-        {
-            $query =  $query.' and tasks.to_location= '.$to_location;
-        }
-        if($driver_id !=null)
-        {
-            $query =  $query.' and tasks.driver_id= '.$driver_id;
-        }
-
-
-        // if($task_type !=null)
-        // {
-        //     $query =  $query.' and tasks.task_type= '.$task_type;
-        // }
-
-
-        // if($from !=null && $to !=null )
-        // {
-        //     $query =  $query." and tasks.created_at BETWEEN '".date('Y-m-d H:i:s', strtotime( $from))."' and '".date('Y-m-d H:i:s', strtotime( $to))." '";
-        // }
-
-        if($from !=null && $to !=null )
-        {
-            $query =  $query." and ".$date_column." BETWEEN '".date('Y-m-d H:i:s', strtotime( $from))."' and '".date('Y-m-d H:i:s', strtotime( $to))." '";
-        }
-
-        if($status !=null)
-        {
-            $query =  $query." and tasks.status= '".$status."'";
-        }
-
-        // \Log::info($query);
-
-        $tasks = DB::select($query.' group by tasks.id order by from_location.name asc, tasks.from_location_arrival_time asc;');
-        $roomBags = 0;
-        $refBags = 0;
-        $frozenBags = 0;
-
-        $roomSamples = 0;
-        $refSamples = 0;
-        $frozenSamples = 0;
-
-
-        $summaryReport = '';
-        if( $billing_client== 26) // mdlab
-        {
-            // this is mdlab report request by mtc
-            $summaryReport = collect($tasks)
-                ->groupBy('from_organization_name')
-                ->map(function ($task) {
-                    return [
-                        'trip_duration' => $task->sum('trip_duration'),
-                        'count' => $task->count(),
-                    ];
-                });
-        }
-
-
-        foreach ($tasks as $task)
-        {
-            $task->from_stay_time = floor($task->from_stay_time / 60).'H:'.($task->from_stay_time -   floor($task->from_stay_time / 60) * 60).'M';
-            $task->to_stay_time = floor($task->to_stay_time / 60).'H:'.($task->to_stay_time -   floor($task->to_stay_time / 60) * 60).'M';
-            $task->trip_duration = floor($task->trip_duration / 60).'H:'.($task->trip_duration -   floor($task->trip_duration / 60) * 60).'M';
-            if($task->bag_code == null)
-            {
-                $task->bags = array();
-            }else{
-                $task->bags2 = array_count_values (explode(',', $task->bag_code));
-                $task->bags = array_unique (explode(',', $task->bag_code));
-                $task->temperature_types2 = array_count_values (explode(',', $task->temperature_type));
-                $task->temperature_types = array_unique (explode(',', $task->temperature_type));
-                $tempVar = json_decode(json_encode($task->temperature_types2),true);
-                $bagVar = json_decode(json_encode($task->bags2),true);
-                $task->data = array();
-                foreach ($tempVar as $key => $value){
-
-                    $temp = new Task();
-                    $temp->temperature  =$key;
-                    $temp->count  =$value;
-                    foreach ($bagVar as $key1 => $value1) {
-                        if($value == $value1)
-                        {
-                            $temp->bag  =$key1;
-                            break;
-                        }
-                    }
-                    $task->data[]=$temp;
-                    switch ($key)
-                    {
-                        case 'ROOM':
-                            $temp->temperature_label = '+15C TO +25C';
-                            $roomBags += 1;
-                            $roomSamples += $value;
-                            break;
-                        case 'REFRIGERATE':
-                            $temp->temperature_label = '+2C TO +8C';
-                            $refSamples += $value;
-                            $refBags += 1;
-                            break;
-                        case 'FROZEN':
-                            $temp->temperature_label = '0C TO -18C';
-                            $frozenSamples += $value;
-                            $frozenBags += 1;
-                            break;
-                    }
+        // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.
+        // Matches exportExcelDetails().
+        $exportsDir = storage_path('app/exports');
+        if (is_dir($exportsDir)) {
+            $cutoff = time() - 3600;
+            foreach ((array) @scandir($exportsDir) as $entry) {
+                if ($entry === '.' || $entry === '..' || $entry === false) continue;
+                $p = $exportsDir . DIRECTORY_SEPARATOR . $entry;
+                if (is_file($p) && @filemtime($p) < $cutoff) {
+                    @unlink($p);
                 }
             }
-
         }
 
+        // Generate a unique token for this export
+        $token = \Illuminate\Support\Str::random(40);
 
+        // Sync vs queued dispatch — same conditional pattern as exportExcelDetails.
+        if (config('queue.default') === 'sync') {
+            \App\Jobs\GenerateTaskReportJob::dispatch($token, $filters, $loggedUser?->id)->afterResponse();
+        } else {
+            \App\Jobs\GenerateTaskReportJob::dispatch($token, $filters, $loggedUser?->id);
+        }
 
-
-
-        $pickup_smaple = $roomSamples+$refSamples+$frozenSamples;
-        $pickup_container = $frozenBags+$refBags+$roomBags;
-
-        $condition = Task::where(function ($query) use ($keyWord,$sample_barcode) {
-            $query->orWhere('from_location', 'LIKE', $keyWord)
-                ->orWhereHas('driver', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
-                })
-                ->orWhereHas('from', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
-                })
-                ->orWhereHas('to', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
-                })
-                ->orWhereHas('client', function ($query) use ($keyWord) {
-                    $query->where('english_name', 'LIKE', $keyWord);
-                })
-                ->orWhere('type', 'LIKE', $keyWord);
-
-        })
-
-            ->when($sample_barcode, function  ($query) use ($sample_barcode) {
-                $query->whereHas('samples', function ($query) use ($sample_barcode){
-                    $query->where('barcode_id', 'LIKE',  $sample_barcode);
-                });
-            })
-            ->when($status, function  ($query)  use ($status){
-                $query->where('tasks.status', $status);
-            })
-
-            // ->when($task_type, function  ($query) use($task_type) {
-            //     $query->where('task_type', $task_type);
-            // })
-            ->when($from_location, function  ($query) use ($from_location) {
-                $query->where('from_location', $from_location);
-            })
-            ->when($to_location, function  ($query)  use ($to_location){
-                $query->where('to_location', $to_location);
-            })
-            ->when($billing_client, function  ($query) use ($billing_client) {
-                $query->where('billing_client', $billing_client);
-            })
-            ->when($driver_id, function  ($query) use ($driver_id) {
-                $query->where('driver_id', $driver_id);
-            })
-            // if($from !=null && $to !=null )
-            // {
-            //     $query =  $query." and ".$date_column." BETWEEN '".date('Y-m-d H:i:s', strtotime( $from))."' and '".date('Y-m-d H:i:s', strtotime( $to))." '";
-            // }
-            ->whereBetween($date_column, [date('Y-m-d H:i:s', strtotime( $from)), date('Y-m-d H:i:s', strtotime( $to))]);
-            // ->whereDate($date_column, date('Y-m-d'))
-            // ->whereDate('tasks.created_at', date('Y-m-d'))
-        ;
-        $served_orginization = $condition->whereIn('tasks.status',['CLOSED','NO_SAMPLES'])
-            ->distinct('from_location')->count('from_location');
-
-        $visited_orginization = $condition->where('status','NO_SAMPLES')->count();
-
-
-
-        $pick_sum_data = array(
-            $pickup_container,$pickup_smaple
-        );
-
-        //summary data
-        $summary = Task::with(['client' => function ($query) {
-            $query->select('id', 'english_name');
-        }])
-            ->when($sample_barcode, function  ($query) use ($sample_barcode) {
-                $query->whereHas('samples', function ($query) use ($sample_barcode){
-                    $query->where('barcode_id', 'LIKE',  $sample_barcode);
-                });
-            })
-            ->when($status, function  ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            // ->when($task_type, function  ($query)  use ($task_type){
-            //     $query->where('task_type', $task_type);
-            // })
-            ->when($from_location, function  ($query) use ($from_location) {
-                $query->where('from_location', $from_location);
-            })
-            ->when($to_location, function  ($query)  use ($to_location){
-                $query->where('to_location', $to_location);
-            })
-            ->when($billing_client, function  ($query) use ($billing_client) {
-                $query->where('billing_client', $billing_client);
-            })
-            ->when($driver_id, function  ($query) use ($driver_id) {
-                $query->where('driver_id', $driver_id);
-            })
-            ->whereDate('created_at', date('Y-m-d'))
-
-            ->select('status','billing_client',DB::raw('count(*) as total'))->groupBy('status')->get();
-
-
-            // Generate HTML for PDF report using template file
-            $html = View::make('report_template', [
-                'tasks' => $tasks,
-                'summary' => $summary,
-                'pick_sum_data' => $pick_sum_data,
-                'client_logo' => $client_logo,
-                'billing_client' => $billing_client,
-                'reportDate' => $reportDate,
-                'summaryReport' => $summaryReport,
-                'frozenSamples' => $frozenSamples,
-                'visited_orginization'=> $visited_orginization,
-                'served_orginization'=> $served_orginization,
-                'frozenBags'=> $frozenBags,
-                'roomBags'=> $roomBags,
-                'refBags'=> $refBags,
-                'roomSamples'=> $roomSamples,
-                'refSamples' => $refSamples
-                ])->render();
-
-            // $css = file_get_contents(public_path('assets/css/export.css'));
-            // $image = base64_encode(file_get_contents(public_path('/img/mtc_logo.jpg')));
-
-            // $options->set('isRemoteEnabled', true);
-
-            // Generate PDF using Dompdf
-            // $dompdf = new Dompdf();
-
-            $options = new Options();
-            $options->setIsRemoteEnabled(true);
-            $dompdf = new Dompdf($options);
-
-            $dompdf->loadHtml($html);
-
-            // $dompdf->add_css($css);
-
-            $dompdf->setPaper('A3', 'landscape');
-            $dompdf->render();
-
-            // Download PDF file
-
-            // return PDF::setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true])->loadView('users_report.pdf')->stream();
-            return $dompdf->stream('users_report.pdf');
-
-
-
+        return redirect()->route('admin.tasks.export.status', ['token' => $token]);
     }
-
 
     public function exportExcel(Request $request)
     {
