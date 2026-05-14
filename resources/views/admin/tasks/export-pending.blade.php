@@ -14,7 +14,7 @@
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
-                        <h5 class="mb-2">Building your Excel file...</h5>
+                        <h5 class="mb-2">Building your report file...</h5>
                         <p class="text-muted mb-1" id="mf-export-message">This may take up to a few minutes for large exports.</p>
                         <p class="text-muted small">You can leave this page open — your download will start automatically.</p>
                     </div>
@@ -24,7 +24,7 @@
                         <h5 class="mb-3">Your file is ready</h5>
                         <p class="text-muted mb-4" id="mf-export-count"></p>
                         <a id="mf-export-download" href="#" class="btn btn-search">
-                            <i class="ri-download-2-line"></i> Download Excel
+                            <i class="ri-download-2-line"></i> Download report
                         </a>
                         <div class="mt-3">
                             <a href="{{ route('admin.tasks.index') }}" class="btn btn-reset">Back to tasks</a>
