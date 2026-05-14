@@ -49,7 +49,6 @@ class TasksController extends Controller
 
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
-            \Log::info('Tasks Index AJAX called (Line 51)', ['filters' => $request->all()]);
 
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
                 ->select('tasks.*');
@@ -66,33 +65,26 @@ class TasksController extends Controller
             );
             if ($logged_id_user && $logged_id_user->client_id) {
                 $query->where('billing_client', $logged_id_user->client_id);
-                \Log::info('Filter applied: client_id = ' . $logged_id_user->client_id);
             }
 
             // فلترة ذكية باستخدام when()
             $query->when($request->status, function($q, $v) {
                 $q->where('status', $v);
-                \Log::info('Filter applied: status = ' . $v);
             })
             ->when($request->driver_id, function($q, $v) {
                 $q->where('driver_id', $v);
-                \Log::info('Filter applied: driver_id = ' . $v);
             })
             ->when($request->billing_client, function($q, $v) {
                 $q->where('billing_client', $v);
-                \Log::info('Filter applied: billing_client = ' . $v);
             })
             ->when($request->from_location, function($q, $v) {
                 $q->where('from_location', $v);
-                \Log::info('Filter applied: from_location = ' . $v);
             })
             ->when($request->to_location, function($q, $v) {
                 $q->where('to_location', $v);
-                \Log::info('Filter applied: to_location = ' . $v);
             })
             ->when($request->keyword, function($q, $v) {
                 $q->where('tasks.id', $v);
-                \Log::info('Filter applied: keyword = ' . $v);
             });
 
             // فلترة التاريخ
@@ -126,13 +118,10 @@ class TasksController extends Controller
                     $dateFrom->toDateTimeString(),
                     $dateTo->toDateTimeString(),
                 ]);
-                \Log::info('Filter applied: dateBetween ' . $dateFrom->toDateTimeString() . ' and ' . $dateTo->toDateTimeString());
             } elseif ($dateFrom) {
                 $query->where($dateColumn, '>=', $dateFrom);
-                \Log::info('Filter applied: dateFrom >= ' . $dateFrom->toDateTimeString());
             } elseif ($dateTo) {
                 $query->where($dateColumn, '<=', $dateTo);
-                \Log::info('Filter applied: dateTo <= ' . $dateTo->toDateTimeString());
             }
 
             \Log::info('Tasks Query SQL: ' . $query->toSql(), ['bindings' => $query->getBindings()]);
@@ -171,8 +160,6 @@ class TasksController extends Controller
             // $query->orderBy('collection_date', 'desc');
             $query->orderBy($sortColumn, $sortOrder);
     
-            \Log::info('Tasks Sample Data: ', ['sample' => (clone $query)->limit(2)->get()->toArray()]);
-            
             // تجهيز الجدول
             $table = Datatables::of($query)
                 ->addColumn('placeholder', '&nbsp;')
@@ -249,22 +236,10 @@ class TasksController extends Controller
                 ]);
  
             try {
-                $startTime = microtime(true);
-                $response = $table->make(true);
-                $endTime = microtime(true);
-                \Log::info('Tasks Index AJAX execution time: ' . ($endTime - $startTime) . ' seconds');
-                \Log::info('Tasks Index JSON Response sample: ' . substr($response->getContent(), 0, 1000));
-                return $response;
+                return $table->make(true);
             } catch (\Exception $e) {
-                \Log::error('Tasks Index AJAX Error: ' . $e->getMessage(), [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                return response()->json([
-                    'error' => 'DataTables Error',
-                    'message' => $e->getMessage()
-                ], 500);
+                \Log::error('Tasks Index AJAX Error: ' . $e->getMessage());
+                return response()->json(['error' => $e->getMessage()], 500);
             }
         } else{
             // \Log::error("no ajax");
