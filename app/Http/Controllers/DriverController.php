@@ -1026,7 +1026,7 @@ class DriverController extends Controller
         $fromLocation = Location::find($fromLocationId);
         $toLocation   = Location::find($toLocationId);
 
-        if (!$fromLocation || !$toLocation) {
+        if (!$fromLocation || !$toLocation || !$driver) {
             return 0;
         }
         
