@@ -14,18 +14,14 @@
     @endcomponent
 
 
-@can('zone_create')
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route('admin.zones.create') }}">
-                {{ trans('global.add') }} {{ trans('cruds.zone.title_singular') }}
-            </a>
-        </div>
-    </div>
-@endcan
 <div class="card">
-    <div class="card-header">
-        {{ trans('cruds.zone.title_singular') }} {{ trans('global.list') }}
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="card-title mb-0">{{ trans('cruds.zone.title_singular') }} {{ trans('global.list') }}</h5>
+        @can('zone_create')
+            <a class="btn btn-create mb-1" href="{{ route('admin.zones.create') }}">
+                <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.zone.title_singular') }}
+            </a>
+        @endcan
     </div>
 
     <div class="card-body">
@@ -66,26 +62,36 @@
                                 {{ $zone->name ?? '' }}
                             </td>
                             <td>
-                                @can('zone_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.zones.show', $zone->id) }}">
-                                        {{ trans('global.view') }}
-                                    </a>
-                                @endcan
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('zone_show')
+                                        <a class="btn btn-soft-info btn-sm"
+                                            href="{{ route('admin.zones.show', $zone->id) }}"
+                                            title="{{ trans('global.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('zone_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.zones.edit', $zone->id) }}">
-                                        {{ trans('global.edit') }}
-                                    </a>
-                                @endcan
+                                    @can('zone_edit')
+                                        <a class="btn btn-soft-primary btn-sm"
+                                            href="{{ route('admin.zones.edit', $zone->id) }}"
+                                            title="{{ trans('global.edit') }}">
+                                            <i class="ri-edit-2-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('can-delete')
-                                    <form action="{{ route('admin.zones.destroy', $zone->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
-                                    </form>
-                                @endcan
-
+                                    @can('can-delete')
+                                        <form action="{{ route('admin.zones.destroy', $zone->id) }}" method="POST"
+                                            onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
+                                            style="display: inline-block;">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-soft-danger btn-sm"
+                                                title="{{ trans('global.delete') }}">
+                                                <i class="ri-delete-bin-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

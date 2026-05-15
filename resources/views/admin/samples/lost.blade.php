@@ -1,64 +1,53 @@
 @extends('layouts.master')
 @section('content')
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" action="#">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_from">{{ trans('global.date_from') }}</label>
-                            <input class="form-control date-range-picker" data-provider="flatpickr" data-date-format="Y-m-d"
-                                type="text" name="date_from" id="date_from" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_to">{{ trans('global.date_to') }}</label>
-                            <input class="form-control date-range-picker" data-provider="flatpickr" data-date-format="Y-m-d"
-                                type="text" name="date_to" id="date_to" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="email">{{ trans('cruds.sample.fields.barcode') }}</label>
-                            <input class="form-control" type="text" name="barcode_id" id="barcode_id">
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="status">{{ trans('cruds.sample.fields.status') }}</label>
-                            <select class="form-control select2" name="confirmed_by_client" id="confirmed_by_client">
-                                <option value="LOST" {{ old('confirmed_by_client') == 'LOST' ? 'selected' : '' }}>
-                                    LOST
-                                </option>
-                                <option value="YES" {{ old('confirmed_by_client') == 'YES' ? 'selected' : '' }}>
-                                    RECEIVED
-                                </option>
-                                <option value="NO" {{ old('confirmed_by_client') == 'NO' ? 'selected' : '' }}>
-                                    PENDING
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="col-md-12 text-right mt-2">
-                        <button type="button" id="search" name="search"
-                            class="btn btn-primary">{{ trans('global.search') }}</button>
-
-                        <button type="reset" id="reset" name="reset"
-                            class="btn btn-secondary">{{ trans('global.reset') }}</button>
-                    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card modern-filter-card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Filters</h4>
                 </div>
-            </form>
+                <form method="GET" action="#">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_from">{{ trans('global.date_from') }}</label>
+                                <input class="form-control" type="datetime-local" name="date_from" id="date_from">
+                            </div>
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_to">{{ trans('global.date_to') }}</label>
+                                <input class="form-control" type="datetime-local" name="date_to" id="date_to">
+                            </div>
+                            <div class="col-lg-3 mb-3">
+                                <label for="barcode_id">{{ trans('cruds.sample.fields.barcode') }}</label>
+                                <input class="form-control" type="text" name="barcode_id" id="barcode_id" placeholder="Barcode ID">
+                            </div>
+                            <div class="col-lg-3 mb-3">
+                                <label for="confirmed_by_client">{{ trans('cruds.sample.fields.status') }}</label>
+                                <select class="form-control select2" name="confirmed_by_client" id="confirmed_by_client">
+                                    <option value="LOST" {{ old('confirmed_by_client') == 'LOST' ? 'selected' : '' }}>LOST</option>
+                                    <option value="YES" {{ old('confirmed_by_client') == 'YES' ? 'selected' : '' }}>RECEIVED</option>
+                                    <option value="NO" {{ old('confirmed_by_client') == 'NO' ? 'selected' : '' }}>PENDING</option>
+                                </select>
+                            </div>
+
+                            <div class="col-lg-12 d-flex justify-content-end mt-2 flex-wrap">
+                                <button class="btn btn-reset mr-2 mb-1" type="reset" id="reset" name="reset">
+                                    {{ trans('global.reset') }}
+                                </button>
+                                <button class="btn btn-search mb-1" type="button" id="search" name="search">
+                                    <i class="fas fa-search"></i> {{ trans('global.search') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-
-
     <div class="card">
-        <div class="card-header">
-            {{ trans('cruds.sample.title_singular') }} {{ trans('global.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('cruds.sample.title_singular') }} {{ trans('global.list') }}</h5>
         </div>
 
         <div class="card-body">

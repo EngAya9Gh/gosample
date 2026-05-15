@@ -12,17 +12,12 @@
         @endslot
     @endcomponent
 
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success shadow-sm" href="{{ route('admin.shift-templates.create') }}">
-                <i class="ri-add-line me-1"></i> Add New Template
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0"><i class="ri-list-settings-line me-2"></i> Shift Templates List</h5>
+            <a class="btn btn-create mb-1" href="{{ route('admin.shift-templates.create') }}">
+                <i class="ri-add-line"></i> Add New Template
             </a>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
-            <h5 class="mb-0 text-white"><i class="ri-list-settings-line me-2"></i> Shift Templates List</h5>
         </div>
 
         <div class="card-body">
@@ -44,15 +39,20 @@
                                 <td><strong>{{ $shiftTemplate->name ?? '' }}</strong></td>
                                 <td><span class="badge bg-soft-success text-success fs-13">{{ \Carbon\Carbon::parse($shiftTemplate->start_time)->format('H:i') }}</span></td>
                                 <td><span class="badge bg-soft-danger text-danger fs-13">{{ \Carbon\Carbon::parse($shiftTemplate->end_time)->format('H:i') }}</span></td>
-                                <td class="text-end">
-                                    <a class="btn btn-sm btn-info shadow-sm me-1" href="{{ route('admin.shift-templates.edit', $shiftTemplate->id) }}">
-                                        <i class="ri-edit-line"></i> Edit
-                                    </a>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a class="btn btn-soft-primary btn-sm"
+                                            href="{{ route('admin.shift-templates.edit', $shiftTemplate->id) }}"
+                                            title="Edit">
+                                            <i class="ri-edit-2-fill"></i>
+                                        </a>
 
-                                    <button type="button" class="btn btn-sm btn-danger shadow-sm delete-btn" data-id="{{ $shiftTemplate->id }}">
-                                        <i class="ri-delete-bin-line"></i> Delete
-                                    </button>
-                                    
+                                        <button type="button" class="btn btn-soft-danger btn-sm delete-btn"
+                                            data-id="{{ $shiftTemplate->id }}" title="Delete">
+                                            <i class="ri-delete-bin-fill"></i>
+                                        </button>
+                                    </div>
+
                                     <form id="delete-form-{{ $shiftTemplate->id }}" action="{{ route('admin.shift-templates.destroy', $shiftTemplate->id) }}" method="POST" style="display: none;">
                                         @method('DELETE')
                                         @csrf

@@ -1,17 +1,13 @@
 @extends('layouts.master')
 @section('content')
-    @can('money_transfer_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
-                <a class="btn btn-success" href="{{ route('admin.money-transfers.create') }}">
-                    {{ trans('global.add') }} {{ trans('cruds.moneyTransfer.title_singular') }}
-                </a>
-            </div>
-        </div>
-    @endcan
     <div class="card">
-        <div class="card-header">
-            {{ trans('cruds.moneyTransfer.title_singular') }} {{ trans('global.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('cruds.moneyTransfer.title_singular') }} {{ trans('global.list') }}</h5>
+            @can('money_transfer_create')
+                <a class="btn btn-create mb-1" href="{{ route('admin.money-transfers.create') }}">
+                    <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.moneyTransfer.title_singular') }}
+                </a>
+            @endcan
         </div>
 
         <div class="card-body">

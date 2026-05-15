@@ -12,18 +12,14 @@
         @endslot
     @endcomponent
 
-    @can('container_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
-                <a class="btn btn-success" href="{{ route('admin.containers.create') }}">
-                    {{ trans('translation.add') }} {{ trans('translation.container.title_singular') }}
-                </a>
-            </div>
-        </div>
-    @endcan
     <div class="card">
-        <div class="card-header">
-            {{ trans('translation.container.title_singular') }} {{ trans('translation.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('translation.container.title_singular') }} {{ trans('translation.list') }}</h5>
+            @can('container_create')
+                <a class="btn btn-create mb-1" href="{{ route('admin.containers.create') }}">
+                    <i class="ri-add-line"></i> {{ trans('translation.add') }} {{ trans('translation.container.title_singular') }}
+                </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -94,31 +90,36 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @can('container_show')
-                                        <a class="btn btn-xs btn-primary"
-                                            href="{{ route('admin.containers.show', $container->id) }}">
-                                            {{ trans('translation.view') }}
-                                        </a>
-                                    @endcan
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        @can('container_show')
+                                            <a class="btn btn-soft-info btn-sm"
+                                                href="{{ route('admin.containers.show', $container->id) }}"
+                                                title="{{ trans('translation.view') }}">
+                                                <i class="ri-eye-fill"></i>
+                                            </a>
+                                        @endcan
 
-                                    @can('container_edit')
-                                        <a class="btn btn-xs btn-info"
-                                            href="{{ route('admin.containers.edit', $container->id) }}">
-                                            {{ trans('translation.edit') }}
-                                        </a>
-                                    @endcan
+                                        @can('container_edit')
+                                            <a class="btn btn-soft-primary btn-sm"
+                                                href="{{ route('admin.containers.edit', $container->id) }}"
+                                                title="{{ trans('translation.edit') }}">
+                                                <i class="ri-edit-2-fill"></i>
+                                            </a>
+                                        @endcan
 
-                                    @can('can-delete')
-                                        <form action="{{ route('admin.containers.destroy', $container->id) }}" method="POST"
-                                            onsubmit="return confirm('{{ trans('translation.areYouSure') }}');"
-                                            style="display: inline-block;">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <input type="submit" class="btn btn-xs btn-danger"
-                                                value="{{ trans('translation.delete') }}">
-                                        </form>
-                                    @endcan
-
+                                        @can('can-delete')
+                                            <form action="{{ route('admin.containers.destroy', $container->id) }}" method="POST"
+                                                onsubmit="return confirm('{{ trans('translation.areYouSure') }}');"
+                                                style="display: inline-block;">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-soft-danger btn-sm"
+                                                    title="{{ trans('translation.delete') }}">
+                                                    <i class="ri-delete-bin-fill"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
                                 </td>
 
                             </tr>

@@ -29,21 +29,23 @@ class AttendancesController extends Controller
                 $editUrl = route('admin.attendances.edit', $row->id);
                 $deleteUrl = route('admin.attendances.destroy', $row->id);
                 $csrf = csrf_token();
-                
+                $editTitle = trans('translation.edit');
+                $deleteTitle = trans('translation.delete');
+
                 $buttons = "";
-                
+
                 if (Gate::allows('attendance_edit')) {
-                    $buttons .= '<a class="btn btn-xs btn-info shadow-sm me-1 text-white" href="' . $editUrl . '"><i class="ri-edit-line"></i></a>';
+                    $buttons .= '<a class="btn btn-soft-primary btn-sm" href="' . $editUrl . '" title="' . $editTitle . '"><i class="ri-edit-2-fill"></i></a>';
                 }
                 if (Gate::allows('can-delete')) {
                     $buttons .= '<form action="' . $deleteUrl . '" method="POST" onsubmit="return confirm(\'' . trans('translation.areYouSure') . '\');" style="display: inline-block;">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <input type="hidden" name="_token" value="' . $csrf . '">
-                                    <button type="submit" class="btn btn-xs btn-danger shadow-sm"><i class="ri-delete-bin-line"></i></button>
+                                    <button type="submit" class="btn btn-soft-danger btn-sm" title="' . $deleteTitle . '"><i class="ri-delete-bin-fill"></i></button>
                                 </form>';
                 }
-                
-                return '<div class="text-nowrap">' . $buttons . '</div>';
+
+                return '<div class="d-flex gap-1 justify-content-center">' . $buttons . '</div>';
             });
 
             $table->editColumn('id', function ($row) {
