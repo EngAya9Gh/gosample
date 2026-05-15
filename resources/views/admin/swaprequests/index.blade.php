@@ -1,18 +1,8 @@
 @extends('layouts.master')
 @section('content')
-    @can('swaprequest_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
-                <a class="btn btn-success" href="{{ route('admin.swaprequests.create') }}">
-                    {{ trans('global.add') }} {{ trans('cruds.swaprequest.title_singular') }}
-                </a>
-            </div>
-        </div>
-    @endcan
-
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card modern-filter-card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Filters</h4>
                 </div>
@@ -20,34 +10,27 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-4">
-                                <label class="required"
-                                    for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
+                            <div class="col-lg-4 mb-3">
+                                <label for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_from" id="date_from">
                             </div>
-                            <div class="col-lg-4">
-                                <label class="required"
-                                    for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
+                            <div class="col-lg-4 mb-3">
+                                <label for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-4 mb-3">
                                 <label for="task_id">Task ID</label>
-                                <input class="form-control" type="text" name="task_id" id="task_id">
+                                <input class="form-control" type="text" name="task_id" id="task_id" placeholder="Task ID">
                             </div>
-                        </div>
 
-
-
-                        <div class="row">
-
-                            <div class="col-lg-12 d-flex justify-content-between mt-2">
-                                <button class="btn btn-danger" type="button" id="search">
-                                    {{ trans('translation.search') }}
+                            <div class="col-lg-12 d-flex justify-content-end mt-2 flex-wrap">
+                                <button class="btn btn-reset mr-2 mb-1" type="reset" id="reset">
+                                    {{ trans('global.reset') }}
                                 </button>
-
+                                <button class="btn btn-search mb-1" type="button" id="search">
+                                    <i class="fas fa-search"></i> {{ trans('translation.search') }}
+                                </button>
                             </div>
-
-
                         </div>
                     </div>
                 </form>
@@ -56,8 +39,13 @@
     </div>
 
     <div class="card">
-        <div class="card-header">
-            {{ trans('cruds.swaprequest.title_singular') }} {{ trans('global.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('cruds.swaprequest.title_singular') }} {{ trans('global.list') }}</h5>
+            @can('swaprequest_create')
+                <a class="btn btn-create mb-1" href="{{ route('admin.swaprequests.create') }}">
+                    <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.swaprequest.title_singular') }}
+                </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -203,6 +191,12 @@
             });
             $("#search").click(function() {
                 // alert("button");
+                table.draw();
+            });
+            $("#reset").click(function() {
+                $("#date_from").val('');
+                $("#date_to").val('');
+                $("#task_id").val('');
                 table.draw();
             });
 

@@ -17,18 +17,14 @@
         @lang('translation.attendances')
         @endslot
     @endcomponent
-@can('attendance_create')
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route('admin.attendances.create') }}">
-                {{ trans('translation.add') }} {{ trans('translation.attendance') }}
-            </a>
-        </div>
-    </div>
-@endcan
 <div class="card">
-    <div class="card-header">
-        {{ trans('translation.attendance') }} {{ trans('translation.list') }}
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="card-title mb-0">{{ trans('translation.attendance') }} {{ trans('translation.list') }}</h5>
+        @can('attendance_create')
+            <a class="btn btn-create mb-1" href="{{ route('admin.attendances.create') }}">
+                <i class="ri-add-line"></i> {{ trans('translation.add') }} {{ trans('translation.attendance') }}
+            </a>
+        @endcan
     </div>
 
     <div class="card-body">

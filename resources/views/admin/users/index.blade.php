@@ -1,17 +1,13 @@
 @extends('layouts.master')
 @section('content')
-    @can('user_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
-                <a class="btn btn-success" href="{{ route('admin.users.create') }}">
-                    {{ trans('global.add') }} {{ trans('cruds.user.title_singular') }}
-                </a>
-            </div>
-        </div>
-    @endcan
     <div class="card">
-        <div class="card-header">
-            {{ trans('cruds.user.title_singular') }} {{ trans('global.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('cruds.user.title_singular') }} {{ trans('global.list') }}</h5>
+            @can('user_create')
+                <a class="btn btn-create mb-1" href="{{ route('admin.users.create') }}">
+                    <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.user.title_singular') }}
+                </a>
+            @endcan
         </div>
 
         <div class="card-body">
@@ -66,31 +62,36 @@
                                     @endforeach
                                 </td>
                                 <td>
-                                    @can('user_show')
-                                        <a class="btn btn-sm btn-info view-item-btn"
-                                            href="{{ route('admin.users.show', $user->id) }}">
-                                            {{ trans('global.view') }}
-                                        </a>
-                                    @endcan
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        @can('user_show')
+                                            <a class="btn btn-soft-info btn-sm view-item-btn"
+                                                href="{{ route('admin.users.show', $user->id) }}"
+                                                title="{{ trans('global.view') }}">
+                                                <i class="ri-eye-fill"></i>
+                                            </a>
+                                        @endcan
 
-                                    @can('user_edit')
-                                        <a class="btn btn-sm btn-success edit-item-btn"
-                                            href="{{ route('admin.users.edit', $user->id) }}">
-                                            {{ trans('global.edit') }}
-                                        </a>
-                                    @endcan
+                                        @can('user_edit')
+                                            <a class="btn btn-soft-primary btn-sm edit-item-btn"
+                                                href="{{ route('admin.users.edit', $user->id) }}"
+                                                title="{{ trans('global.edit') }}">
+                                                <i class="ri-edit-2-fill"></i>
+                                            </a>
+                                        @endcan
 
-                                    @can('can-delete')
-                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                                            onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
-                                            style="display: inline-block;">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <input type="submit" class="btn btn-sm btn-danger remove-item-btn"
-                                                value="{{ trans('global.delete') }}">
-                                        </form>
-                                    @endcan
-
+                                        @can('can-delete')
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                                onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
+                                                style="display: inline-block;">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-soft-danger btn-sm remove-item-btn"
+                                                    title="{{ trans('global.delete') }}">
+                                                    <i class="ri-delete-bin-fill"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
                                 </td>
 
                             </tr>

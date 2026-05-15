@@ -17,44 +17,38 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" type="text/css" />
 @endsection
 
-<div class="card">
+<div class="card modern-filter-card">
     <div class="card-header">
-        {{ trans('translation.missing') }} {{ trans('translation.sample.title') }}
+        <h4 class="card-title mb-0">{{ trans('translation.missing') }} {{ trans('translation.sample.title') }}</h4>
     </div>
     <div class="card-body">
-
         <div class="row">
-            <div class="form-group col">
-
-                <div class="col-6">
-                    <div class="mb-3">
-                        <label for="sample">Enter Sample</label>
-                        <input id="sample" class="form-control">
-                    </div>
-                </div>
-                <!--end col-->
-                <div class="col-lg-6">
-                    <div class="text-start">
-                        @can('mark_as_lost')
-                            <button type="button" id="mark_as_lost" class="btn btn-danger waves-effect waves-light">Mark As
-                                lost</button>
-                        @endcan
-                        <!-- Base Buttons -->
-                        <button id="mark_as_confirmed" class="btn btn-success waves-effect waves-light">Mark As
-                            confirmed</button>
-                        @can('check_receiving_details')
-                            <button id="get_details" class="btn btn-info waves-effect waves-light">Get Details</button>
-                        @endcan
-                    </div>
-                </div>
-
-
-
+            <div class="col-lg-8 mb-3">
+                <label for="sample">Enter Sample</label>
+                <input id="sample" class="form-control" type="text" placeholder="Scan or type sample barcode...">
             </div>
-            <!--end col-->
+
+            <div class="col-lg-12 d-flex flex-wrap mt-2" style="gap: 10px;">
+                @can('mark_as_lost')
+                    <button type="button" id="mark_as_lost" class="btn btn-create mb-1"
+                        style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);box-shadow:0 4px 12px rgba(239,68,68,0.28);">
+                        <i class="ri-close-circle-line"></i> Mark As lost
+                    </button>
+                @endcan
+                <button type="button" id="mark_as_confirmed" class="btn btn-create mb-1"
+                    style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);box-shadow:0 4px 12px rgba(34,197,94,0.28);">
+                    <i class="ri-checkbox-circle-line"></i> Mark As confirmed
+                </button>
+                @can('check_receiving_details')
+                    <button type="button" id="get_details" class="btn btn-create mb-1"
+                        style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);box-shadow:0 4px 12px rgba(59,130,246,0.28);">
+                        <i class="ri-information-line"></i> Get Details
+                    </button>
+                @endcan
+            </div>
         </div>
-        <div id="resultCard" class="card"></div>
-        <!--end row-->
+
+        <div id="resultCard" class="card mt-3"></div>
     </div>
 </div>
 

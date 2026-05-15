@@ -15,7 +15,7 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card modern-filter-card">
                 <div class="card-header">
                     <h4 class="card-title mb-0">Filters</h4>
                 </div>
@@ -23,7 +23,7 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-4">
+                            <div class="col-lg-3 mb-3">
                                 <label for="client_id">{{ trans('translation.task.fields.billing_client') }}</label>
                                 <select class="form-control select2" name="client_id" id="client_id">
                                     <option value="">Select Client</option>
@@ -32,7 +32,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3 mb-3">
                                 <label for="driver_id">{{ trans('translation.task.fields.driver') }}</label>
                                 <select class="form-control select2" name="driver_id" id="driver_id">
                                     <option value="">Select Driver</option>
@@ -42,17 +42,23 @@
                                 </select>
                             </div>
 
-                            <div class="col-lg-4">
-                                <label class="required"
-                                       for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_from">{{ trans('translation.task.fields.date_from') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_from" id="date_from">
                             </div>
-                            <div class="col-lg-4">
-                                <label class="required"
-                                       for="date_from">{{ trans('translation.task.fields.date_to') }}</label>
+                            <div class="col-lg-3 mb-3">
+                                <label for="date_to">{{ trans('translation.task.fields.date_to') }}</label>
                                 <input class="form-control" type="datetime-local" name="date_to" id="date_to">
                             </div>
 
+                            <div class="col-lg-12 d-flex justify-content-end mt-2 flex-wrap">
+                                <button class="btn btn-reset mr-2 mb-1" type="reset" id="reset">
+                                    {{ trans('global.reset') }}
+                                </button>
+                                <button class="btn btn-search mb-1" type="button" id="search">
+                                    <i class="fas fa-search"></i> {{ trans('global.search') }}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -62,8 +68,8 @@
 
 
     <div class="card">
-        <div class="card-header">
-            {{ trans('translation.tasks') }} {{ trans('translation.list') }}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('translation.tasks') }} {{ trans('translation.list') }}</h5>
         </div>
 
         <div class="card-body">
@@ -162,6 +168,16 @@
             unusedTaskTable.draw();
         });
         $("#date_to").change(function(){
+            unusedTaskTable.draw();
+        });
+        $("#search").click(function(){
+            unusedTaskTable.draw();
+        });
+        $("#reset").click(function(){
+            $("#client_id").val('').trigger('change');
+            $("#driver_id").val('').trigger('change');
+            $("#date_from").val('');
+            $("#date_to").val('');
             unusedTaskTable.draw();
         });
         });
