@@ -64,26 +64,29 @@
                                 {{ $clientDriver->client->english_name ?? '' }}
                             </td>
                             <td>
-                                @can('client_driver_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.client-drivers.show', $clientDriver->id) }}">
-                                        {{ trans('global.view') }}
-                                    </a>
-                                @endcan
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('client_driver_show')
+                                        <a class="btn btn-soft-info btn-sm" href="{{ route('admin.client-drivers.show', $clientDriver->id) }}" title="{{ trans('global.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('client_driver_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.client-drivers.edit', $clientDriver->id) }}">
-                                        {{ trans('global.edit') }}
-                                    </a>
-                                @endcan
+                                    @can('client_driver_edit')
+                                        <a class="btn btn-soft-primary btn-sm" href="{{ route('admin.client-drivers.edit', $clientDriver->id) }}" title="{{ trans('global.edit') }}">
+                                            <i class="ri-edit-2-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('can-delete')
-                                    <form action="{{ route('admin.client-drivers.destroy', $clientDriver->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
-                                    </form>
-                                @endcan
-
+                                    @can('can-delete')
+                                        <form action="{{ route('admin.client-drivers.destroy', $clientDriver->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('global.delete') }}">
+                                                <i class="ri-delete-bin-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

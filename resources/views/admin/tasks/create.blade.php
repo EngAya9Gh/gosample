@@ -1,4 +1,4 @@
-@extends('layouts.master')
+﻿@extends('layouts.master')
 @section('title')
     @lang('translation.tasks')
 @endsection
@@ -231,7 +231,7 @@
                         <a href="{{ route('admin.tasks.index') }}" class="btn btn-reset">
                             Cancel
                         </a>
-                        <button class="btn btn-search" type="submit">
+                        <button class="btn btn-save" type="submit">
                             <i class="fas fa-save"></i> {{ trans('translation.save') }}
                         </button>
                     </div>

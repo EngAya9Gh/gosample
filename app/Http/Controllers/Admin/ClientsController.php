@@ -40,7 +40,19 @@ class ClientsController extends Controller
 
     public function store(StoreClientRequest $request)
     {
-        $client = Client::create($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('logo')) {
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
+            $request->file('logo')->move(public_path('clients/logos'), $filename);
+            $data['logo'] = '/clients/logos/' . $filename;
+        } else {
+            unset($data['logo']);
+        }
+
+        $client = Client::create($data);
+        $client->locations()->sync($request->input('locations', []));
+        $client->drivers()->sync($request->input('drivers', []));
 
         return redirect()->route('admin.clients.index');
     }
@@ -59,11 +71,20 @@ class ClientsController extends Controller
 
     public function update(UpdateClientRequest $request, Client $client)
     {
-        $client->update($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('logo')) {
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
+            $request->file('logo')->move(public_path('clients/logos'), $filename);
+            $data['logo'] = '/clients/logos/' . $filename;
+        } else {
+            // Don't overwrite the existing logo when no new file was picked
+            unset($data['logo']);
+        }
+
+        $client->update($data);
         $client->locations()->sync($request->input('locations', []));
         $client->drivers()->sync($request->input('drivers', []));
-
-        // $path = $request->file('logo')->store('public/clients/logos');
 
         return redirect()->route('admin.clients.index');
     }

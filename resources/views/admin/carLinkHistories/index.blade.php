@@ -58,26 +58,29 @@
                                 {{ App\Models\CarLinkHistory::ACTION_SELECT[$carLinkHistory->action] ?? '' }}
                             </td>
                             <td>
-                                @can('car_link_history_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.car-link-histories.show', $carLinkHistory->id) }}">
-                                        {{ trans('translation.view') }}
-                                    </a>
-                                @endcan
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('car_link_history_show')
+                                        <a class="btn btn-soft-info btn-sm" href="{{ route('admin.car-link-histories.show', $carLinkHistory->id) }}" title="{{ trans('translation.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('car_link_history_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.car-link-histories.edit', $carLinkHistory->id) }}">
-                                        {{ trans('translation.edit') }}
-                                    </a>
-                                @endcan
+                                    @can('car_link_history_edit')
+                                        <a class="btn btn-soft-primary btn-sm" href="{{ route('admin.car-link-histories.edit', $carLinkHistory->id) }}" title="{{ trans('translation.edit') }}">
+                                            <i class="ri-edit-2-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('can-delete')
-                                    <form action="{{ route('admin.car-link-histories.destroy', $carLinkHistory->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('translation.delete') }}">
-                                    </form>
-                                @endcan
-
+                                    @can('can-delete')
+                                        <form action="{{ route('admin.car-link-histories.destroy', $carLinkHistory->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('translation.delete') }}">
+                                                <i class="ri-delete-bin-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

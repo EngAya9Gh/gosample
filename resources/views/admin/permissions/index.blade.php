@@ -1,23 +1,19 @@
 @extends('layouts.master')
 @section('content')
-    @can('permission_create')
-        <div style="margin-bottom: 10px;" class="row">
-            <div class="col-lg-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">{{ trans('cruds.permission.title_singular') }} {{ trans('global.list') }}</h5>
+            @can('permission_create')
                 @if (Auth::guard('web')->check())
-                    <a class="btn btn-success" href="{{ route('admin.permissions.create') }}">
-                        {{ trans('global.add') }} {{ trans('cruds.permission.title_singular') }}
+                    <a class="btn btn-create mb-1" href="{{ route('admin.permissions.create') }}">
+                        <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.permission.title_singular') }}
                     </a>
                 @elseif(Auth::guard('client_users')->check())
-                    <a class="btn btn-success" href="{{ route('admin.client-permissions.create') }}">
-                        {{ trans('global.add') }} {{ trans('cruds.permission.title_singular') }}
+                    <a class="btn btn-create mb-1" href="{{ route('admin.client-permissions.create') }}">
+                        <i class="ri-add-line"></i> {{ trans('global.add') }} {{ trans('cruds.permission.title_singular') }}
                     </a>
                 @endif
-            </div>
-        </div>
-    @endcan
-    <div class="card">
-        <div class="card-header">
-            {{ trans('cruds.permission.title_singular') }} {{ trans('global.list') }}
+            @endcan
         </div>
 
         <div class="card-body">
@@ -59,56 +55,65 @@
                                     {{ $permission->guard_name ?? '' }}
                                 </td>
                                 <td>
-                                    @can('permission_show')
-                                        @if (Auth::guard('web')->check())
-                                            <a class="btn btn-sm btn-info view-item-btn"
-                                                href="{{ route('admin.permissions.show', $permission->id) }}">
-                                                {{ trans('global.view') }}
-                                            </a>
-                                        @elseif(Auth::guard('client_users')->check())
-                                            <a class="btn btn-sm btn-info view-item-btn"
-                                                href="{{ route('admin.client-permissions.show', $permission->id) }}">
-                                                {{ trans('global.view') }}
-                                            </a>
-                                        @endif
-                                    @endcan
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        @can('permission_show')
+                                            @if (Auth::guard('web')->check())
+                                                <a class="btn btn-soft-info btn-sm view-item-btn"
+                                                    href="{{ route('admin.permissions.show', $permission->id) }}"
+                                                    title="{{ trans('global.view') }}">
+                                                    <i class="ri-eye-fill"></i>
+                                                </a>
+                                            @elseif(Auth::guard('client_users')->check())
+                                                <a class="btn btn-soft-info btn-sm view-item-btn"
+                                                    href="{{ route('admin.client-permissions.show', $permission->id) }}"
+                                                    title="{{ trans('global.view') }}">
+                                                    <i class="ri-eye-fill"></i>
+                                                </a>
+                                            @endif
+                                        @endcan
 
-                                    @can('permission_edit')
-                                        @if (Auth::guard('web')->check())
-                                            <a class="btn btn-sm btn-success edit-item-btn"
-                                                href="{{ route('admin.permissions.edit', $permission->id) }}">
-                                                {{ trans('global.edit') }}
-                                            </a>
-                                        @elseif(Auth::guard('client_users')->check())
-                                            <a class="btn btn-sm btn-success edit-item-btn"
-                                                href="{{ route('admin.client-permissions.edit', $permission->id) }}">
-                                                {{ trans('global.edit') }}
-                                            </a>
-                                        @endif
-                                    @endcan
+                                        @can('permission_edit')
+                                            @if (Auth::guard('web')->check())
+                                                <a class="btn btn-soft-primary btn-sm edit-item-btn"
+                                                    href="{{ route('admin.permissions.edit', $permission->id) }}"
+                                                    title="{{ trans('global.edit') }}">
+                                                    <i class="ri-edit-2-fill"></i>
+                                                </a>
+                                            @elseif(Auth::guard('client_users')->check())
+                                                <a class="btn btn-soft-primary btn-sm edit-item-btn"
+                                                    href="{{ route('admin.client-permissions.edit', $permission->id) }}"
+                                                    title="{{ trans('global.edit') }}">
+                                                    <i class="ri-edit-2-fill"></i>
+                                                </a>
+                                            @endif
+                                        @endcan
 
-                                    @can('can-delete')
-                                        @if (Auth::guard('web')->check())
-                                            <form action="{{ route('admin.permissions.destroy', $permission->id) }}"
-                                                method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
-                                                style="display: inline-block;">
-                                                <input type="hidden" name="_method" value="DELETE">
-                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                <input type="submit" class="btn btn-sm btn-danger remove-item-btn"
-                                                    value="{{ trans('global.delete') }}">
-                                            </form>
-                                        @elseif(Auth::guard('client_users')->check())
-                                            <form action="{{ route('admin.client-permissions.destroy', $permission->id) }}"
-                                                method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
-                                                style="display: inline-block;">
-                                                <input type="hidden" name="_method" value="DELETE">
-                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                <input type="submit" class="btn btn-sm btn-danger remove-item-btn"
-                                                    value="{{ trans('global.delete') }}">
-                                            </form>
-                                        @endif
-                                    @endcan
-
+                                        @can('can-delete')
+                                            @if (Auth::guard('web')->check())
+                                                <form action="{{ route('admin.permissions.destroy', $permission->id) }}"
+                                                    method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
+                                                    style="display: inline-block;">
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-soft-danger btn-sm remove-item-btn"
+                                                        title="{{ trans('global.delete') }}">
+                                                        <i class="ri-delete-bin-fill"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif(Auth::guard('client_users')->check())
+                                                <form action="{{ route('admin.client-permissions.destroy', $permission->id) }}"
+                                                    method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');"
+                                                    style="display: inline-block;">
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-soft-danger btn-sm remove-item-btn"
+                                                        title="{{ trans('global.delete') }}">
+                                                        <i class="ri-delete-bin-fill"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endcan
+                                    </div>
                                 </td>
 
                             </tr>

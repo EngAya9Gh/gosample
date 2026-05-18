@@ -1,68 +1,45 @@
 @extends('layouts.master')
 @section('content')
-    <div class="card">
+    @php
+        $isWeb       = Auth::guard('web')->check();
+        $updateRoute = $isWeb ? route('admin.permissions.update', [$permission->id]) : route('admin.client-permissions.update', [$permission->id]);
+        $indexRoute  = $isWeb ? route('admin.permissions.index') : route('admin.client-permissions.index');
+        $guardName   = $isWeb ? 'web' : 'client_users';
+    @endphp
+
+    <div class="card modern-filter-card">
         <div class="card-header">
-            {{ trans('global.edit') }} {{ trans('cruds.permission.name_singular') }}
+            <h4 class="card-title mb-0">{{ trans('global.edit') }} {{ trans('cruds.permission.title_singular') }}</h4>
         </div>
-        @if (Auth::guard('web')->check())
-            <div class="card-body">
-                <form method="POST" action="{{ route('admin.permissions.update', [$permission->id]) }}"
-                    enctype="multipart/form-data">
-                    @method('PUT')
-                    @csrf
-                    <input type="hidden" name="guard_name" value="web">
 
-                    <div class="form-group">
+        <div class="card-body">
+            <form method="POST" action="{{ $updateRoute }}" enctype="multipart/form-data">
+                @method('PUT')
+                @csrf
+                <input type="hidden" name="guard_name" value="{{ $guardName }}">
+
+                <div class="row">
+                    <div class="col-lg-6 mb-3">
                         <label class="required" for="name">{{ trans('cruds.permission.fields.name') }}</label>
                         <input class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}" type="text"
-                            name="name" id="name" value="{{ old('name', $permission->name) }}" required>
+                            name="name" id="name" value="{{ old('name', $permission->name) }}"
+                            placeholder="e.g. user_management_access" required>
                         @if ($errors->has('name'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('name') }}
-                            </div>
+                            <div class="invalid-feedback">{{ $errors->first('name') }}</div>
                         @endif
-                        <span class="help-block">{{ trans('cruds.permission.fields.title_helper') }}</span>
+                        <small class="help-block text-muted">{{ trans('cruds.permission.fields.title_helper') }}</small>
                     </div>
-                    <div class="form-group mt-2">
-                        <button class="btn btn-danger btn-s" type="submit">
-                            {{ trans('global.save') }}
-                        </button>
-                        <a class="btn btn-info btn-s" href="{{ route('admin.permissions.index') }}">
-                            {{ trans('global.back_to_list') }}
-                        </a>
-                    </div>
-                </form>
-            </div>
-        @elseif(Auth::guard('client_users')->check())
-            <div class="card-body">
-                <form method="POST" action="{{ route('admin.client-permissions.update', [$permission->id]) }}"
-                    enctype="multipart/form-data">
-                    @method('PUT')
-                    @csrf
+                </div>
 
-                    <input type="hidden" name="guard_name" value="client_users">
-
-                    <div class="form-group">
-                        <label class="required" for="name">{{ trans('cruds.permission.fields.name') }}</label>
-                        <input class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}" type="text"
-                            name="name" id="name" value="{{ old('name', $permission->name) }}" required>
-                        @if ($errors->has('name'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('name') }}
-                            </div>
-                        @endif
-                        <span class="help-block">{{ trans('cruds.permission.fields.title_helper') }}</span>
-                    </div>
-                    <div class="form-group mt-2">
-                        <button class="btn btn-danger btn-s" type="submit">
-                            {{ trans('global.save') }}
-                        </button>
-                        <a class="btn btn-info btn-s" href="{{ route('admin.permissions.index') }}">
-                            {{ trans('global.back_to_list') }}
-                        </a>
-                    </div>
-                </form>
-            </div>
-        @endif
+                <div class="col-lg-12 d-flex justify-content-end flex-wrap mt-2" style="gap: 10px;">
+                    <a href="{{ $indexRoute }}" class="btn btn-reset mb-1">
+                        {{ trans('global.cancel') }}
+                    </a>
+                    <button class="btn btn-save mb-1" type="submit">
+                        <i class="fas fa-save"></i> {{ trans('global.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection

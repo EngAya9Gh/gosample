@@ -50,14 +50,13 @@
                                 {{ $elmNotification->response_body ?? '' }}
                             </td>
                             <td>
-                                @can('elm_notification_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.elm-notifications.show', $elmNotification->id) }}">
-                                        {{ trans('translation.view') }}
-                                    </a>
-                                @endcan
-
-
-
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('elm_notification_show')
+                                        <a class="btn btn-soft-info btn-sm" href="{{ route('admin.elm-notifications.show', $elmNotification->id) }}" title="{{ trans('translation.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

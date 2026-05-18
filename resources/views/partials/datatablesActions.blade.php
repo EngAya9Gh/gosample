@@ -1,4 +1,15 @@
-@if(isset($crudRoutePart) && in_array($crudRoutePart, ['tasks', 'swaprequests', 'locations']))
+@php
+    // Pages that need a dropdown menu because they have extra actions beyond View/Edit/Delete
+    // (e.g. suspend, upgrade, copy, payments). Everything else uses the modern icon buttons.
+    $needsDropdown = isset($crudRoutePart) && in_array($crudRoutePart, [
+        'subscriptions',
+        'branches',
+        'class-schedules',
+        'member-transactions',
+    ]);
+@endphp
+
+@if (! $needsDropdown)
     <div class="d-flex gap-1 justify-content-center">
         @can($viewGate)
             <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="btn btn-soft-info btn-sm" title="{{ trans('global.view') }}">
@@ -51,7 +62,7 @@
                 </li>
             @endcan
 
-            @if (isset($crudRoutePart) && $crudRoutePart == 'subscriptions')
+            @if ($crudRoutePart == 'subscriptions')
                 @if ($row->status == 'active')
                     @can($suspendGate)
                         <li>
@@ -62,7 +73,7 @@
                 @endif
             @endif
 
-            @if (isset($crudRoutePart) && $crudRoutePart == 'subscriptions')
+            @if ($crudRoutePart == 'subscriptions')
                 @if ($row->status == 'active')
                     @can($upgradeGate)
                         <li>
@@ -73,7 +84,7 @@
                 @endif
             @endif
 
-            @if (isset($crudRoutePart) && $crudRoutePart == 'subscriptions')
+            @if ($crudRoutePart == 'subscriptions')
                 @can($cancelGate)
                     @if ($row->status == 'active')
                         <li>
@@ -90,7 +101,7 @@
                     @endif
                 @endcan
             @endif
-            @if (isset($crudRoutePart) && $crudRoutePart == 'subscriptions')
+            @if ($crudRoutePart == 'subscriptions')
                 @can($reactivateGate)
                     <li>
                         <a class="dropdown-item" href="#"
@@ -106,7 +117,7 @@
                 @endcan
             @endif
 
-            @if (isset($crudRoutePart) && $crudRoutePart == 'branches')
+            @if ($crudRoutePart == 'branches')
                 @can($copyGate)
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.copy', $row->id) }}">
@@ -114,7 +125,7 @@
                     </li>
                 @endcan
             @endif
-            @if (isset($crudRoutePart) && $crudRoutePart == 'class-schedules')
+            @if ($crudRoutePart == 'class-schedules')
                 @can($copyGate)
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.copy', $row->id) }}">
@@ -123,7 +134,7 @@
                 @endcan
             @endif
 
-            @if (isset($crudRoutePart) && $crudRoutePart == 'member-transactions')
+            @if ($crudRoutePart == 'member-transactions')
                 @can($paymentsGate)
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.payments', $row->id) }}">
@@ -131,7 +142,7 @@
                     </li>
                 @endcan
             @endif
-            @if (isset($crudRoutePart) && $crudRoutePart == 'member-transactions')
+            @if ($crudRoutePart == 'member-transactions')
                 @can($tapGate)
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.tap', $row->id) }}">

@@ -42,6 +42,7 @@ class Client extends Model
         'english_name',
         'email',
         'address',
+        'logo',
         'created_at',
         'updated_at',
         'deleted_at',

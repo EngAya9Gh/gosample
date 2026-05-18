@@ -81,26 +81,29 @@
                                 {{ $driverSchedule->plate_number ?? '' }}
                             </td>
                             <td>
-                                @can('driver_schedule_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.driver-schedules.show', $driverSchedule->id) }}">
-                                        {{ trans('translation.view') }}
-                                    </a>
-                                @endcan
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('driver_schedule_show')
+                                        <a class="btn btn-soft-info btn-sm" href="{{ route('admin.driver-schedules.show', $driverSchedule->id) }}" title="{{ trans('translation.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('driver_schedule_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.driver-schedules.edit', $driverSchedule->id) }}">
-                                        {{ trans('translation.edit') }}
-                                    </a>
-                                @endcan
+                                    @can('driver_schedule_edit')
+                                        <a class="btn btn-soft-primary btn-sm" href="{{ route('admin.driver-schedules.edit', $driverSchedule->id) }}" title="{{ trans('translation.edit') }}">
+                                            <i class="ri-edit-2-fill"></i>
+                                        </a>
+                                    @endcan
 
-                                @can('can-delete')
-                                    <form action="{{ route('admin.driver-schedules.destroy', $driverSchedule->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('translation.delete') }}">
-                                    </form>
-                                @endcan
-
+                                    @can('can-delete')
+                                        <form action="{{ route('admin.driver-schedules.destroy', $driverSchedule->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('translation.delete') }}">
+                                                <i class="ri-delete-bin-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

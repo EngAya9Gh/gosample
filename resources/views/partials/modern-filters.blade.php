@@ -113,27 +113,32 @@
         border: 1px solid rgba(13, 148, 136, 0.20) !important;
         border-radius: 6px !important;
         color: #0d9488 !important;
-        padding: 2px 8px !important;
-        margin: 2px 0 !important;
+        padding: 2px 10px 2px 8px !important;
+        margin: 2px 4px 2px 0 !important;
         font-size: 0.85rem;
         font-weight: 500;
         line-height: 1.4;
-        display: inline-flex;
-        align-items: center;
     }
     .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         color: #0d9488 !important;
-        margin-right: 6px !important;
-        font-size: 1.05em;
+        margin-right: 8px !important;
+        margin-left: 0 !important;
+        font-size: 1.15em;
         font-weight: bold;
         transition: color .12s ease;
         border: 0 !important;
         background: none !important;
         padding: 0 !important;
+        float: left;
     }
     .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
         color: #ef4444 !important;
         background: none !important;
+    }
+    [dir="rtl"] .modern-filter-card .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        margin-right: 0 !important;
+        margin-left: 8px !important;
+        float: right;
     }
     .modern-filter-card .select2-container--default .select2-search--inline .select2-search__field {
         margin-top: 4px !important;
@@ -1940,6 +1945,130 @@
     [dir="rtl"] .modern-filter-card .btn-search i { margin-right: 0; margin-left: 4px; }
     [dir="rtl"] .mf-dropdown__arrow { margin-left: 0; margin-right: 10px; }
     [dir="rtl"] .mf-panel__item.is-active::after { margin-left: 0; margin-right: auto; }
+
+    /* ===== File input — modern teal "Choose file" button + placeholder text ===== */
+    .modern-filter-card input[type="file"].form-control {
+        box-sizing: border-box;
+        height: 44px !important;
+        padding: 0 !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 41px;        /* inner content height = 44 - 1.5*2 borders */
+        overflow: hidden;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        cursor: pointer;
+    }
+    .modern-filter-card input[type="file"].form-control:hover {
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+    .modern-filter-card input[type="file"].form-control:focus {
+        outline: none !important;
+        border-color: #0d9488 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12) !important;
+    }
+    .modern-filter-card input[type="file"].form-control::file-selector-button {
+        box-sizing: border-box;
+        height: 41px;             /* fills the input's inner height exactly */
+        padding: 0 18px;
+        margin: 0 12px 0 0;
+        border: 0;
+        background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.88rem;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        vertical-align: top;
+        transition: filter .15s ease, box-shadow .15s ease;
+    }
+    .modern-filter-card input[type="file"].form-control:hover::file-selector-button {
+        filter: brightness(1.05);
+        box-shadow: 0 2px 6px rgba(13, 148, 136, 0.22) inset;
+    }
+    /* Older WebKit fallback */
+    .modern-filter-card input[type="file"].form-control::-webkit-file-upload-button {
+        box-sizing: border-box;
+        height: 41px;
+        padding: 0 18px;
+        margin: 0 12px 0 0;
+        border: 0;
+        background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        vertical-align: top;
+    }
+    .modern-filter-card input[type="file"].form-control.is-invalid {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10) !important;
+    }
+
+    /* ===== Save button — mauve gradient, used on every create form ===== */
+    .btn-save,
+    .btn-save:hover,
+    .btn-save:focus,
+    .btn-save:active,
+    .btn-save:visited,
+    .btn-save:link {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-decoration: none !important;
+    }
+    .btn-save > *,
+    .btn-save:hover > *,
+    .btn-save * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #b07ab5 0%, #9560a0 100%) !important;
+        background-image: linear-gradient(135deg, #b07ab5 0%, #9560a0 100%) !important;
+        border: 0 !important;
+        height: 40px;
+        padding: 0 22px;
+        border-radius: 10px !important;
+        font-weight: 600;
+        font-size: 0.92rem;
+        letter-spacing: 0.02em;
+        box-shadow: 0 4px 12px rgba(149, 96, 160, 0.28) !important;
+        transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(149, 96, 160, 0.42) !important;
+        filter: brightness(1.05);
+    }
+    .btn-save:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(149, 96, 160, 0.30) !important;
+    }
+    .btn-save i {
+        font-size: 1.05em;
+        line-height: 1;
+    }
+    .btn-save::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 60%);
+        opacity: 0;
+        transition: opacity .25s ease;
+        pointer-events: none;
+    }
+    .btn-save:active::after { opacity: 1; transition: none; }
 </style>
 
 <script>

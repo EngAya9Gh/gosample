@@ -13,8 +13,8 @@
     @endcomponent
 
 <div class="card">
-    <div class="card-header">
-        {{ trans('translation.auditLog') }} {{ trans('translation.list') }}
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="card-title mb-0">{{ trans('translation.auditLog') }} {{ trans('translation.list') }}</h5>
     </div>
 
     <div class="card-body">
@@ -79,14 +79,15 @@
                                 {{ $auditLog->created_at ?? '' }}
                             </td>
                             <td>
-                                @can('audit_log_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.audit-logs.show', $auditLog->id) }}">
-                                        {{ trans('translation.view') }}
-                                    </a>
-                                @endcan
-
-
-
+                                <div class="d-flex gap-1 justify-content-center">
+                                    @can('audit_log_show')
+                                        <a class="btn btn-soft-info btn-sm"
+                                            href="{{ route('admin.audit-logs.show', $auditLog->id) }}"
+                                            title="{{ trans('translation.view') }}">
+                                            <i class="ri-eye-fill"></i>
+                                        </a>
+                                    @endcan
+                                </div>
                             </td>
 
                         </tr>

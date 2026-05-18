@@ -1844,7 +1844,14 @@ class TasksController extends Controller
     {
         abort_if(Gate::denies('task_missing'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return view('admin.tasks.missing');
+        // Recent samples not yet confirmed by client (pending or already marked lost)
+        // — shown as quick-pick chips below the barcode input on the missing samples page.
+        $recentMissingSamples = \App\Models\Sample::whereIn('confirmed_by_client', ['NO', 'LOST'])
+            ->orderByDesc('updated_at')
+            ->limit(6)
+            ->get(['id', 'barcode_id', 'confirmed_by_client', 'updated_at']);
+
+        return view('admin.tasks.missing', compact('recentMissingSamples'));
     }
 
     public function store(StoreTaskRequest $request)

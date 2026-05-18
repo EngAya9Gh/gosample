@@ -12,6 +12,7 @@ return [
     'areYouSure'                     => 'Are you sure?',
     'clickHereToVerify'              => 'Click here to verify',
     'create'                         => 'Create',
+    'generate'                       => 'Generate',
     'dashboard'                      => 'Dashboard',
     'delete'                         => 'Delete',
     'cancel'                         => 'Cancel',

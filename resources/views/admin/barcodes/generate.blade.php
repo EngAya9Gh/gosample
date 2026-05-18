@@ -15,71 +15,62 @@
             margin-bottom: -3px !important;
         }
     </style>
-    <div class="container-fluid">
-        <div class="row justify-content-center pull-up  px-5">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body pt-2">
-                        <form method="POST" action="{{ route('admin.barcodes.generateBarcodes') }}"
-                            enctype="multipart/form-data">
 
-                            <div class="form-row">
-                                <div class="form-group col">
-                                    <label for="start">Total Count</label>
-                                    <input type="number" name="range" class="form-control" id="range"
-                                        placeholder="How many barcode to generate?">
-                                </div>
-                                <div class="form-group col">
-                                    <label for="start">Type</label>
-                                    <select name="type" class="form-control">
-                                        <option value="bag">Bag</option>
-                                        <option value="sample">Sample</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
+    <div class="card modern-filter-card">
+        <div class="card-header">
+            <h4 class="card-title mb-0">{{ trans('global.generate') }} {{ trans('cruds.barcode.title_singular') }}</h4>
+        </div>
 
-                                @csrf
-                                <button type="submit" class="btn  btn-dark">
-                                    <i class="mdi mdi-barcode-scan text-light" style="font-size: 20px;"></i>
-                                    Generate barcode
-                                </button>
-
-                                <button role="button" class="btn btn-info" onclick="printReport()">
-                                    <i class="mdi mdi-printer text-light" style="font-size: 20px;"></i>
-                                    Print Barcode
-                                </button>
-                        </form>
+        <div class="card-body">
+            <form method="POST" action="{{ route('admin.barcodes.generateBarcodes') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-lg-6 mb-3">
+                        <label for="range">Total Count</label>
+                        <input type="number" name="range" class="form-control" id="range"
+                            placeholder="How many barcode to generate?">
                     </div>
-
-
-                    <div id="barcode_area" class="text-center">
-
-                        @for ($i = $start; $i < $start + $sequence; $i++)
-                            @if ($type == 'location')
-                                <div wire:key="{{ uniqid() }}" class="pt-2 ">
-                                    {!! DNS1D::getBarcodeSVG($sequence . '-' . $type, 'C128', 4, 55) !!}
-                                </div>
-                            @elseif ($type == 'container')
-                                <div wire:key="{{ uniqid() }}" class="pt-2">
-                                    {!! DNS1D::getBarcodeSVG($sequence . '-' . $type, 'C128', 4, 55) !!}
-                                </div>
-                            @elseif ($type == 'bag')
-                                <div wire:key="{{ uniqid() }}" class="pt-2">
-                                    {!! DNS1D::getBarcodeSVG($i . '-' . $type, 'C128', 6, 280) !!}
-                                </div>
-                            @else
-                                <div wire:key="{{ uniqid() }}" class="pt-5">
-                                    {!! DNS1D::getBarcodeSVG(str_pad($i, 10, '0', STR_PAD_LEFT), 'C128', 4, 55) !!}
-                                </div>
-                            @endif
-                        @endfor
+                    <div class="col-lg-6 mb-3">
+                        <label for="type">Type</label>
+                        <select name="type" id="type" class="form-control">
+                            <option value="bag" {{ ($type ?? 'bag') === 'bag' ? 'selected' : '' }}>Bag</option>
+                            <option value="sample" {{ ($type ?? 'bag') === 'sample' ? 'selected' : '' }}>Sample</option>
+                        </select>
                     </div>
                 </div>
+
+                <div class="col-lg-12 d-flex justify-content-end flex-wrap mt-2" style="gap: 10px;">
+                    <button type="button" class="btn btn-create mb-1" onclick="printReport()">
+                        <i class="mdi mdi-printer"></i> Print Barcode
+                    </button>
+                    <button type="submit" class="btn btn-save mb-1">
+                        <i class="mdi mdi-barcode-scan"></i> Generate Barcode
+                    </button>
+                </div>
+            </form>
+
+            <div id="barcode_area" class="text-center">
+                @for ($i = $start; $i < $start + $sequence; $i++)
+                    @if ($type == 'location')
+                        <div wire:key="{{ uniqid() }}" class="pt-2 ">
+                            {!! DNS1D::getBarcodeSVG($sequence . '-' . $type, 'C128', 4, 55) !!}
+                        </div>
+                    @elseif ($type == 'container')
+                        <div wire:key="{{ uniqid() }}" class="pt-2">
+                            {!! DNS1D::getBarcodeSVG($sequence . '-' . $type, 'C128', 4, 55) !!}
+                        </div>
+                    @elseif ($type == 'bag')
+                        <div wire:key="{{ uniqid() }}" class="pt-2">
+                            {!! DNS1D::getBarcodeSVG($i . '-' . $type, 'C128', 6, 280) !!}
+                        </div>
+                    @else
+                        <div wire:key="{{ uniqid() }}" class="pt-5">
+                            {!! DNS1D::getBarcodeSVG(str_pad($i, 10, '0', STR_PAD_LEFT), 'C128', 4, 55) !!}
+                        </div>
+                    @endif
+                @endfor
             </div>
         </div>
-    </div>
-    </div>
     </div>
 @endsection
 

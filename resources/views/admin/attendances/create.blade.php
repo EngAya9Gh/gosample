@@ -1,4 +1,4 @@
-@extends('layouts.master')
+﻿@extends('layouts.master')
 @section('title')
     @lang('translation.attendances')
 @endsection
@@ -112,7 +112,7 @@
                             <a href="{{ route('admin.attendances.index') }}" class="btn btn-reset">
                                 Cancel
                             </a>
-                            <button class="btn btn-search" type="submit">
+                            <button class="btn btn-save" type="submit">
                                 <i class="ri-save-3-line"></i> Save Attendance
                             </button>
                         </div>

@@ -25,8 +25,34 @@
         <div class="row">
             <div class="col-lg-8 mb-3">
                 <label for="sample">Enter Sample</label>
-                <input id="sample" class="form-control" type="text" placeholder="Scan or type sample barcode...">
+                <input id="sample" class="form-control" type="text"
+                    placeholder="Scan or type sample barcode..." autofocus>
             </div>
+
+            @isset($recentMissingSamples)
+                @if ($recentMissingSamples->count() > 0)
+                    <div class="col-lg-12 mb-3">
+                        <label class="d-block mb-2" style="font-size: 0.85rem; color: #64748b;">
+                            <i class="ri-history-line"></i> Recently missing / pending samples
+                            <span style="font-size: 0.75rem; opacity: 0.8;">— click to fill</span>
+                        </label>
+                        <div class="d-flex flex-wrap" style="gap: 6px;">
+                            @foreach ($recentMissingSamples as $sample)
+                                <button type="button"
+                                    class="btn btn-sm sample-chip"
+                                    data-barcode="{{ $sample->barcode_id }}"
+                                    title="Sample #{{ $sample->id }} · {{ $sample->confirmed_by_client }}"
+                                    style="background: rgba(13, 148, 136, 0.08); border: 1px solid rgba(13, 148, 136, 0.20); color: #0d9488; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; font-weight: 500;">
+                                    <i class="ri-barcode-line"></i> {{ $sample->barcode_id }}
+                                    @if ($sample->confirmed_by_client === 'LOST')
+                                        <span class="badge ms-1" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 0.65rem;">LOST</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            @endisset
 
             <div class="col-lg-12 d-flex flex-wrap mt-2" style="gap: 10px;">
                 @can('mark_as_lost')
@@ -48,9 +74,63 @@
             </div>
         </div>
 
-        <div id="resultCard" class="card mt-3"></div>
+        <div id="resultCard" class="mt-3"></div>
     </div>
 </div>
+
+<style>
+    .result-hint {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        line-height: 1.45;
+        max-width: 100%;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        animation: resultHintIn .18s ease-out;
+    }
+    .result-hint .result-hint__icon {
+        font-size: 1.05rem;
+        line-height: 1;
+        margin-top: 1px;
+        flex-shrink: 0;
+    }
+    .result-hint--success {
+        background: rgba(34, 197, 94, 0.10);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        color: #16a34a;
+    }
+    .result-hint--error {
+        background: rgba(239, 68, 68, 0.10);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #dc2626;
+    }
+    .result-hint--info {
+        background: rgba(13, 148, 136, 0.08);
+        border: 1px solid rgba(13, 148, 136, 0.22);
+        color: #0d9488;
+    }
+    .result-hint__details {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.78rem;
+        font-weight: 400;
+        color: #475569;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 4px 16px;
+    }
+    .result-hint__details li { display: flex; gap: 4px; }
+    .result-hint__details li strong { color: #0f172a; font-weight: 600; }
+    @keyframes resultHintIn {
+        from { opacity: 0; transform: translateY(-3px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
 
 <div class="hstack flex-wrap gap-2">
     <button type="button" hidden id="success-message" data-toast data-toast-text="Success" data-toast-gravity="top"
@@ -72,6 +152,45 @@
     console.log(user);
     var username = user.email;
     var BatchSamples = [];
+
+    // Click a recent-sample chip to fill the input and re-focus for the next scan/action.
+    $(document).on('click', '.sample-chip', function () {
+        var barcode = $(this).data('barcode');
+        if (barcode !== undefined && barcode !== null) {
+            $('#sample').val(barcode).trigger('focus');
+        }
+    });
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Render the action response as a small inline hint (success / error / info with optional detail rows).
+    function showResult(type, message, details) {
+        var icons = {
+            success: 'ri-checkbox-circle-fill',
+            error:   'ri-error-warning-fill',
+            info:    'ri-information-fill'
+        };
+        var icon = icons[type] || icons.info;
+        var html = '<div class="result-hint result-hint--' + type + '">' +
+                       '<i class="' + icon + ' result-hint__icon"></i>' +
+                       '<div>' +
+                           '<div>' + escapeHtml(message) + '</div>';
+        if (details && Object.keys(details).length) {
+            html += '<ul class="result-hint__details">';
+            Object.keys(details).forEach(function (label) {
+                var val = details[label];
+                if (val === null || val === undefined || val === '') return;
+                html += '<li><strong>' + escapeHtml(label) + ':</strong> ' + escapeHtml(val) + '</li>';
+            });
+            html += '</ul>';
+        }
+        html += '</div></div>';
+        $('#resultCard').html(html);
+    }
     $("#mark_as_lost").on("click", function() {
         $.ajax({
             type: "POST",
@@ -82,28 +201,10 @@
             }),
             dataType: 'json',
             contentType: "application/json; charset=utf-8",
-        }).done(function(response, textStatus, xhr) {
-            var message = response.message;
-            var data = response.data;
-
-            if (response.status) {
-                var cardContent = '<div class="card-body">';
-                cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                cardContent += '<p class="card-text">' + response.message + '</p>';
-                cardContent += '</div>';
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-            } else {
-                var cardContent = '<div class="card-body">';
-                cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                cardContent += '<p class="card-text">' + response.message + '</p>';
-                cardContent += '</div>';
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-            }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            $('#failed-message').attr('data-toast-text', jqXHR.responseJSON.errorMessage);
-            $('#failed-message').click();
+        }).done(function(response) {
+            showResult(response.status ? 'success' : 'error', response.message);
+        }).fail(function(jqXHR) {
+            showResult('error', (jqXHR.responseJSON && jqXHR.responseJSON.errorMessage) || 'Request failed');
         });
     });
 
@@ -118,76 +219,22 @@
             }),
             dataType: 'json',
             contentType: "application/json; charset=utf-8",
-        }).done(function(response, textStatus, xhr) {
-            var message = response.message;
-            var data = response.data;
-
+        }).done(function(response) {
             if (response.status) {
-                // if (data.data.confirmed_by_client == 'YES') {
-                //     $('#success-message').attr('data-toast-text', 'Sample is confirmed by ' + data.data
-                //         .confirmed_by + ' at ' + data.data.updated_at);
-                //     $('#success-message').click();
-                // } else {
-                //     if (data.data.confirmed_by_client == 'NO') {
-                //         $('#success-message').attr('Sample is not confimed yet');
-                //         $('#success-message').click();
-                //     } else {
-                //         $('#success-message').attr('Sample is lost, and is marked by ' + data.data
-                //             .confirmed_by + ' at ' + data.data.updated_at);
-                //         $('#success-message').click();
-                //     }
-                // }
-
-                // API call succeeded
-                // var message = response.message;
-                // var data = response.data;
-
-                // // Create the card content
-                // var cardContent = '<div class="card-body">';
-                // cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                // cardContent += '<p class="card-text">' + data + '</p>';
-                // cardContent += '</div>';
-                // // Update the card with the content
-                // $('#resultCard').html(cardContent);
-
-
-                // var message = response.message;
-                // var data = response.data;
-
-                // Create the card content
-                var cardContent = '<div class="card-body">';
-                // cardContent += '<h5 class="card-title">' + message + '</h5>';
-//                cardContent += '<p class="card-text">ID: ' + data.id + '</p>';
-                cardContent += '<p class="card-text">Barcode ID: ' + data.barcode_id + '</p>';
-//                cardContent += '<p class="card-text">Location ID: ' + data.location_id + '</p>';
-                cardContent += '<p class="card-text">Task ID: ' + data.task_id + '</p>';
-                cardContent += '<p class="card-text">Temperature Type: ' + data.temperature_type +
-                    '</p>';
-                cardContent += '<p class="card-text">Confirmed By: ' + data.confirmed_by + '</p>';
-                cardContent += '<p class="card-text">Confirmed By Client: ' + data.confirmed_by_client +
-                    '</p>';
-                cardContent += '<p class="card-text">Sample Type: ' + data.sample_type + '</p>';
-//                cardContent += '<p class="card-text">Status: ' + data.status + '</p>';
-//                cardContent += '<p class="card-text">Created At: ' + data.created_at + '</p>';
-//                cardContent += '<p class="card-text">Updated At: ' + data.updated_at + '</p>';
-                // Add more properties as needed
-                cardContent += '</div>';
-
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-
+                var data = response.data || {};
+                showResult('info', 'Sample details', {
+                    'Barcode ID':           data.barcode_id,
+                    'Task ID':              data.task_id,
+                    'Temperature Type':     data.temperature_type,
+                    'Confirmed By':         data.confirmed_by,
+                    'Confirmed By Client':  data.confirmed_by_client,
+                    'Sample Type':          data.sample_type
+                });
             } else {
-                var cardContent = '<div class="card-body">';
-                cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                cardContent += '<p class="card-text">' + response.data + '</p>';
-                cardContent += '</div>';
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-
+                showResult('error', response.data || response.message || 'No details found');
             }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            $('#resultCard').html('Error occurred during API request');
-
+        }).fail(function() {
+            showResult('error', 'Error occurred during API request');
         });
     });
 
@@ -203,31 +250,12 @@
             }),
             dataType: 'json',
             contentType: "application/json; charset=utf-8",
-        }).done(function(response, textStatus, xhr) {
+        }).done(function(response) {
             BatchSamples = [];
-            var message = response.message;
-            var data = response.data;
-
-            if (response.status) {
-                var cardContent = '<div class="card-body">';
-                cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                cardContent += '<p class="card-text">' + response.message + '</p>';
-                cardContent += '</div>';
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-            } else {
-                var cardContent = '<div class="card-body">';
-                cardContent += '<h5 class="card-title">' + 'Result:' + '</h5>';
-                cardContent += '<p class="card-text">' + response.message + '</p>';
-                cardContent += '</div>';
-                // Update the card with the content
-                $('#resultCard').html(cardContent);
-            }
-
-        }).fail(function(jqXHR, textStatus, errorThrown) {
+            showResult(response.status ? 'success' : 'error', response.message);
+        }).fail(function(jqXHR) {
             BatchSamples = [];
-            $('#failed-message').attr('data-toast-text', jqXHR.responseJSON.errorMessage);
-            $('#failed-message').click();
+            showResult('error', (jqXHR.responseJSON && jqXHR.responseJSON.errorMessage) || 'Request failed');
         });
     });
 </script>

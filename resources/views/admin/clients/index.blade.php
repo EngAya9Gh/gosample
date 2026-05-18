@@ -89,11 +89,14 @@
                                 </td>
                                 <td>
                                     @if ($client->logo)
-                                        <a href={{ URL::to('/') . $client->logo }}" target="_blank"
-                                            style="display: inline-block">
-                                            <img src="{{ URL::to('/') . '/' . $client->logo }}"
-                                                style="width:100px;height:100px;">
+                                        <a href="{{ asset(ltrim($client->logo, '/')) }}" target="_blank"
+                                            style="display: inline-block;">
+                                            <img src="{{ asset(ltrim($client->logo, '/')) }}"
+                                                alt="logo"
+                                                style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;">
                                         </a>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.78rem;">—</span>
                                     @endif
                                 </td>
                                 <td>
