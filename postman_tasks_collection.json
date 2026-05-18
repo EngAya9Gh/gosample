@@ -1,0 +1,769 @@
+{
+	"info": {
+		"_postman_id": "9a5b2c8d-4e26-4fa2-bf31-a7b129808681",
+		"name": "MTC Tasks Module API",
+		"description": "Complete ultimate collection for testing the Tasks module APIs, covering the full task lifecycle (creation, driver operations, sample collecting, freezing, delivery/closing), the Admin Dashboard filtering API, and advanced Admin CRUD & Export operations, including Web Authentication.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication & Session Management",
+			"item": [
+				{
+					"name": "1.1 Web - Get Login Page (CSRF Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract CSRF token from HTML response and store in environment variable",
+									"var responseHTML = pm.response.text();",
+									"var match = responseHTML.match(/name=\"_token\"\\s+value=\"([^\"]+)\"/);",
+									"if (match) {",
+									"    pm.environment.set(\"csrf_token\", match[1]);",
+									"    console.log(\"CSRF Token extracted: \" + match[1]);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Accesses the web login page to retrieve the session cookie and extracts the CSRF token automatically to the environment variable {{csrf_token}}."
+					}
+				},
+				{
+					"name": "1.2 Web - Login Submit (Admin/Client Session)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "email", "value": "admin@admin.com", "type": "text" },
+								{ "key": "password", "value": "password", "type": "text" },
+								{ "key": "_token", "value": "{{csrf_token}}", "type": "text", "description": "Automatically populated CSRF token from the GET request" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Submits the web login form to authenticate and obtain the session cookie (laravel_session) needed for all /admin routes."
+					}
+				},
+				{
+					"name": "1.3 Driver Login (API)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "username", "value": "driver_username", "type": "text" },
+								{ "key": "password", "value": "password", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "login"]
+						}
+					}
+				},
+				{
+					"name": "1.4 Driver Login with Mobile (API)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "mobile", "value": "966500000000", "type": "text" },
+								{ "key": "password", "value": "password", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/loginWithMobile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "loginWithMobile"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Task Creation & Initialization",
+			"item": [
+				{
+					"name": "Create Task (Admin/Client)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "from_location", "value": "1358", "type": "text" },
+								{ "key": "to_location", "value": "1048", "type": "text" },
+								{ "key": "billing_client", "value": "25", "type": "text" },
+								{ "key": "cost", "value": "50", "type": "text" },
+								{ "key": "driver_id", "value": "141", "type": "text" },
+								{ "key": "status", "value": "NEW", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "create"]
+						}
+					}
+				},
+				{
+					"name": "Create Custom Task (Third-Party)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{client_token}}", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from_location\": 1358,\n    \"to_location\": 1048,\n    \"type\": \"one_time\",\n    \"task_type\": \"SAMPLE\",\n    \"pickup_time\": \"2026-05-17 12:00:00\",\n    \"dropoff_time\": \"2026-05-17 16:00:00\",\n    \"takasi\": \"NO\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/third-party/{{clientId}}/tasks/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "third-party", "{{clientId}}", "tasks", "create"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Driver Workflow & Confirmations",
+			"item": [
+				{
+					"name": "Get Driver Tasks",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "driver_id", "value": "141", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/tasks",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "tasks"]
+						}
+					}
+				},
+				{
+					"name": "Start Task by Driver",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/task/start",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "task", "start"]
+						}
+					}
+				},
+				{
+					"name": "Confirm Task by Driver",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/task/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "task", "confirm"]
+						}
+					}
+				},
+				{
+					"name": "Confirm Arrival at From-Location",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/task/fromlocation/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "task", "fromlocation", "confirm"]
+						}
+					}
+				},
+				{
+					"name": "Confirm Arrival at To-Location",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/task/tolocation/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "driver", "task", "tolocation", "confirm"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Task Lifecycle Operations",
+			"item": [
+				{
+					"name": "Check Location Barcode",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" },
+								{ "key": "barcode", "value": "LOC-1358-BARCODE", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/location/check",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "location", "check"]
+						}
+					}
+				},
+				{
+					"name": "Close Task (No Samples)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/nosamples",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "nosamples"]
+						}
+					}
+				},
+				{
+					"name": "Collect Task Samples (Start)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" },
+								{ "key": "box_count", "value": "1", "type": "text" },
+								{ "key": "sample_count", "value": "5", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/collect",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "collect"]
+						}
+					}
+				},
+				{
+					"name": "Move Task to Freezer (IN_FREEZER)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/freezer",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "freezer"]
+						}
+					}
+				},
+				{
+					"name": "Move Task Out of Freezer (OUT_FREEZER)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/freezer/out",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "freezer", "out"]
+						}
+					}
+				},
+				{
+					"name": "Close/Deliver Task (CLOSED)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" },
+								{ "key": "deliver_confirmationCode", "value": "1234", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/close",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "close"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Samples & Bags inside Tasks",
+			"item": [
+				{
+					"name": "Add Single Sample",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" },
+								{ "key": "barcode_id", "value": "SAMPLE-BARCODE-999", "type": "text" },
+								{ "key": "location_id", "value": "1358", "type": "text" },
+								{ "key": "temperature_type", "value": "ROOM", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sample/new",
+							"host": ["{{base_url}}"],
+							"path": ["api", "sample", "new"]
+						}
+					}
+				},
+				{
+					"name": "Add Multiple Samples (Optimized Array)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"task_id\": 719149,\n    \"location_id\": 1358,\n    \"temperature_type\": \"ROOM\",\n    \"sample_type\": \"SAMPLE\",\n    \"bag_code\": \"BAG-BATCH-A1\",\n    \"barcode_ids\": [\"SAMPLE-001\", \"SAMPLE-002\", \"SAMPLE-003\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/samples/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", "add"]
+						}
+					}
+				},
+				{
+					"name": "Add Samples with Multiple Bags Array",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"task_id\": 719149,\n    \"location_id\": 1358,\n    \"bags\": [\n        {\n            \"bag_code\": \"BAG-BATCH-B1\",\n            \"temperature_type\": \"FROZEN\",\n            \"barcode_ids\": [\"SAMP-F01\", \"SAMP-F02\"]\n        },\n        {\n            \"bag_code\": \"BAG-BATCH-B2\",\n            \"temperature_type\": \"REFRIGERATED\",\n            \"barcode_ids\": [\"SAMP-R01\", \"SAMP-R02\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/samples/bags/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", "bags", "add"]
+						}
+					}
+				},
+				{
+					"name": "List Task Samples",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/samples/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", "list"]
+						}
+					}
+				},
+				{
+					"name": "Get Bags by Task ID",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/task/bags/get",
+							"host": ["{{base_url}}"],
+							"path": ["api", "task", "bags", "get"]
+						}
+					}
+				},
+				{
+					"name": "Remove Sample from Task",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "task_id", "value": "719149", "type": "text" },
+								{ "key": "sample_id", "value": "1", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sample/remove",
+							"host": ["{{base_url}}"],
+							"path": ["api", "sample", "remove"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Admin Dashboard Tasks (With Filters)",
+			"item": [
+				{
+					"name": "Admin Tasks DataTables AJAX",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "X-Requested-With", "value": "XMLHttpRequest", "type": "text" },
+							{ "key": "Accept", "value": "application/json", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/tasks?draw=1&start=0&length=10&status=NEW&driver_id=141&billing_client=25&from_location=1358&to_location=1048&search_date=tasks.created_at&date_from=2026-05-01&date_to=2026-05-17",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks"],
+							"query": [
+								{ "key": "draw", "value": "1", "description": "DataTable draw sequence counter" },
+								{ "key": "start", "value": "0", "description": "Starting record index" },
+								{ "key": "length", "value": "10", "description": "Records per page" },
+								{ "key": "status", "value": "NEW", "description": "Filter by status: NEW, COLLECTED, IN_FREEZER, OUT_FREEZER, CLOSED, NO_SAMPLES" },
+								{ "key": "driver_id", "value": "141", "description": "Filter by Driver ID" },
+								{ "key": "billing_client", "value": "25", "description": "Filter by Billing Client ID" },
+								{ "key": "from_location", "value": "1358", "description": "Filter by Pickup Location ID" },
+								{ "key": "to_location", "value": "1048", "description": "Filter by Dropoff Location ID" },
+								{ "key": "search_date", "value": "tasks.created_at", "description": "Date column: tasks.created_at, tasks.collection_date, tasks.close_date" },
+								{ "key": "date_from", "value": "2026-05-01", "description": "Date from (Y-m-d)" },
+								{ "key": "date_to", "value": "2026-05-17", "description": "Date to (Y-m-d)" },
+								{ "key": "keyword", "value": "", "description": "Search by Task ID", "disabled": true }
+							]
+						},
+						"description": "Fetch tasks list for the admin dashboard via AJAX, utilizing Yajra DataTables structure and smart caching/date-range filtering."
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Admin Dashboard Tasks - Advanced & Operations",
+			"item": [
+				{
+					"name": "Admin Store Task (Create)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "from_location[]", "value": "1358", "type": "text" },
+								{ "key": "to_location", "value": "1048", "type": "text" },
+								{ "key": "billing_client", "value": "25", "type": "text" },
+								{ "key": "driver_id", "value": "141", "type": "text" },
+								{ "key": "time_of_visit", "value": "1", "type": "text" },
+								{ "key": "type", "value": "one_time", "type": "text" },
+								{ "key": "task_type", "value": "SAMPLE", "type": "text" },
+								{ "key": "pickup_time", "value": "2026-05-17 12:00:00", "type": "text" },
+								{ "key": "dropoff_time", "value": "2026-05-17 16:00:00", "type": "text" },
+								{ "key": "takasi", "value": "NO", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/tasks",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks"]
+						},
+						"description": "Create a task through the web admin portal using StoreTaskRequest validation."
+					}
+				},
+				{
+					"name": "Admin Update Task Times",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "freezer_out_date", "value": "2026-05-17 14:30:00", "type": "text" },
+								{ "key": "close_date", "value": "2026-05-17 15:00:00", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/719149/update-times",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "719149", "update-times"]
+						},
+						"description": "Admin operation to modify or correct the task freezer out and closing timestamps."
+					}
+				},
+				{
+					"name": "Admin Trigger Excel Export (Queued)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/export-excel?status=NEW&date_from=2026-05-01&date_to=2026-05-17&billing_client=25&driver_id=141",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "export-excel"],
+							"query": [
+								{ "key": "status", "value": "NEW" },
+								{ "key": "date_from", "value": "2026-05-01" },
+								{ "key": "date_to", "value": "2026-05-17" },
+								{ "key": "billing_client", "value": "25" },
+								{ "key": "driver_id", "value": "141" }
+							]
+						},
+						"description": "Starts the Excel background generation and redirects with a unique polling token."
+					}
+				},
+				{
+					"name": "Admin Check Export Status & Download",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/export-status/YOUR_EXPORT_TOKEN_HERE",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "export-status", "YOUR_EXPORT_TOKEN_HERE"]
+						},
+						"description": "Poll the status of the generated Excel export or download the resulting .xlsx file."
+					}
+				},
+				{
+					"name": "Admin Unused Tasks List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "X-Requested-With", "value": "XMLHttpRequest", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/unused",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "unused"]
+						},
+						"description": "Datatable AJAX endpoint to list unused tasks."
+					}
+				},
+				{
+					"name": "Admin Missing Tasks List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "X-Requested-With", "value": "XMLHttpRequest", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/missing",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "missing"]
+						},
+						"description": "Datatable AJAX endpoint to list missing tasks."
+					}
+				},
+				{
+					"name": "Admin Delayed Tasks - Pickup Delayed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "X-Requested-With", "value": "XMLHttpRequest", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/pickupdelayed?status=NEW&driver_id=141",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "pickupdelayed"],
+							"query": [
+								{ "key": "status", "value": "NEW" },
+								{ "key": "driver_id", "value": "141" }
+							]
+						},
+						"description": "Get data for tasks that delayed starting pickup (pickup_time < collection_date)."
+					}
+				},
+				{
+					"name": "Admin Delayed Tasks - Drop Delayed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "X-Requested-With", "value": "XMLHttpRequest", "type": "text" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dropdelayed?status=COLLECTED&driver_id=141",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "dropdelayed"],
+							"query": [
+								{ "key": "status", "value": "COLLECTED" },
+								{ "key": "driver_id", "value": "141" }
+							]
+						},
+						"description": "Get data for tasks that delayed dropoff."
+					}
+				},
+				{
+					"name": "Admin Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/719149",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "719149"]
+						},
+						"description": "Delete a single task by ID."
+					}
+				},
+				{
+					"name": "Admin Mass Delete Tasks",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "ids[]", "value": "719149", "type": "text" },
+								{ "key": "ids[]", "value": "719150", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/tasks/destroy",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "tasks", "destroy"]
+						},
+						"description": "Delete multiple tasks in bulk."
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost",
+			"type": "string"
+		},
+		{
+			"key": "clientId",
+			"value": "25",
+			"type": "string"
+		},
+		{
+			"key": "client_token",
+			"value": "your_third_party_token",
+			"type": "string"
+		}
+	]
+}

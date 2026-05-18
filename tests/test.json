@@ -1,0 +1,30 @@
+{
+	"info": {
+		"_postman_id": "update-driver-location",
+		"name": "GoSample Driver API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Update Driver Location",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"driver_id\": 131,\n    \"lat\": 24.7156901,\n    \"lng\": 46.6439257\n}"
+				},
+				"url": {
+					"raw": "https://test.gosample.com/api/driver/location",
+					"protocol": "https",
+					"host": [ "test", "gosample", "com" ],
+					"path": [ "api", "driver", "location" ]
+				}
+			},
+			"response": []
+		}
+	]
+}

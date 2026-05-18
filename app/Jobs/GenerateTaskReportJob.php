@@ -48,6 +48,7 @@ class GenerateTaskReportJob implements ShouldQueue
 
     public function handle(): void
     {
+        DB::disableQueryLog();
         @set_time_limit(0);
         @ini_set('memory_limit', '9000M');
 
@@ -124,7 +125,7 @@ class GenerateTaskReportJob implements ShouldQueue
             $query .= " and tasks.status= '" . $status . "'";
         }
 
-        $tasks = DB::select($query . ' group by tasks.id order by from_location.name asc, tasks.from_location_arrival_time asc;');
+        $tasks = DB::select($query . ' group by tasks.id order by from_location.name asc, tasks.from_location_arrival_time asc LIMIT 1000;');
 
         $roomBags = 0;
         $refBags = 0;
