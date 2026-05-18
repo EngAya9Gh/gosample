@@ -39,10 +39,11 @@ return new class extends Migration
         });
 
         $schema->create('telescope_entries_tags', function (Blueprint $table) {
+            $table->bigIncrements('id');
             $table->uuid('entry_uuid');
             $table->string('tag');
 
-            $table->primary(['entry_uuid', 'tag']);
+            $table->index(['entry_uuid', 'tag']);
             $table->index('tag');
 
             $table->foreign('entry_uuid')
@@ -52,7 +53,10 @@ return new class extends Migration
         });
 
         $schema->create('telescope_monitoring', function (Blueprint $table) {
-            $table->string('tag')->primary();
+            $table->bigIncrements('id');
+            $table->string('tag');
+            
+            $table->unique('tag');
         });
     }
 
