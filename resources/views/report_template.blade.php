@@ -101,6 +101,11 @@
         <h6>
             DAILY REPORT | {{ $reportDate }}
         </h6>
+        @if (count($tasks) >= 1000)
+            <div style="color: #c0392b; font-weight: bold; margin-top: 10px; font-size: 14px; border: 1px solid #c0392b; padding: 8px; display: inline-block; background-color: #fadbd8; border-radius: 5px; font-family: sans-serif;">
+                ⚠️ Note: For performance and stability reasons, this PDF report is capped at the first 1,000 tasks. For the full dataset, please export using the Excel option.
+            </div>
+        @endif
     </div>
     </br>
 

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Generates the task time-report XLSX file in the background.
@@ -42,6 +43,7 @@ class GenerateTaskExportJob implements ShouldQueue
 
     public function handle(): void
     {
+        DB::disableQueryLog();
         @set_time_limit(0);
         @ini_set('memory_limit', '1024M');
 
