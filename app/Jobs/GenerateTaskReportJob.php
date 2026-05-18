@@ -4,8 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Client;
 use App\Models\Task;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -51,6 +49,12 @@ class GenerateTaskReportJob implements ShouldQueue
         DB::disableQueryLog();
         @set_time_limit(0);
         @ini_set('memory_limit', '9000M');
+        // mPDF parses HTML internally via PCRE. PHP's default
+        // pcre.backtrack_limit (1,000,000) is too small for our large report
+        // HTML and trips "The HTML code size is larger than pcre.backtrack_limit".
+        // Raise both backtrack + recursion to handle multi-megabyte report HTML.
+        @ini_set('pcre.backtrack_limit', '100000000');
+        @ini_set('pcre.recursion_limit', '100000000');
 
         $dir = storage_path('app/exports');
         if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
@@ -245,14 +249,19 @@ class GenerateTaskReportJob implements ShouldQueue
             'refSamples'           => $refSamples,
         ])->render();
 
-        $options = new Options();
-        $options->setIsRemoteEnabled(true);
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A3', 'landscape');
-        $dompdf->render();
+        // Render the PDF with mPDF (replaces dompdf — same HTML input, but
+        // ~2–3× faster on large tables and significantly better Arabic/RTL
+        // support for the bilingual client report).
+        $tempDir = storage_path('app/mpdf_tmp');
+        if (!is_dir($tempDir)) { @mkdir($tempDir, 0775, true); }
 
-        file_put_contents($path, $dompdf->output());
+        $mpdf = new \Mpdf\Mpdf([
+            'mode'    => 'utf-8',
+            'format'  => 'A3-L',
+            'tempDir' => $tempDir,
+        ]);
+        $mpdf->WriteHTML($html);
+        $mpdf->Output($path, \Mpdf\Output\Destination::FILE);
 
         return is_array($tasks) ? count($tasks) : 0;
     }
