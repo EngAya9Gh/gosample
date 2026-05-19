@@ -53,7 +53,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => explode(',', env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
         ],
 
@@ -116,6 +116,11 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+
+        'sentry_logs' => [
+            'driver' => 'sentry_logs',
+            'level' => env('LOG_LEVEL', 'info'),
         ],
     ],
 
