@@ -46,6 +46,13 @@ class GenerateTaskReportJob implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+        \Log::info('GenerateTaskReportJob (PDF) started', [
+            'token' => $this->token,
+            'user_id' => $this->userId,
+            'filters' => $this->filters
+        ]);
+
         DB::disableQueryLog();
         @set_time_limit(0);
         @ini_set('memory_limit', '9000M');
@@ -63,7 +70,20 @@ class GenerateTaskReportJob implements ShouldQueue
         try {
             $count = $this->generatePdf($path);
             @file_put_contents($path . '.done', (string) $count);
+
+            $duration = microtime(true) - $startTime;
+            \Log::info('GenerateTaskReportJob (PDF) completed successfully', [
+                'token' => $this->token,
+                'duration_seconds' => $duration,
+                'count' => $count
+            ]);
         } catch (\Throwable $e) {
+            $duration = microtime(true) - $startTime;
+            \Log::error('GenerateTaskReportJob (PDF) failed', [
+                'token' => $this->token,
+                'duration_seconds' => $duration,
+                'error' => $e->getMessage()
+            ]);
             @file_put_contents($path . '.error', $e->getMessage());
             throw $e;
         }
