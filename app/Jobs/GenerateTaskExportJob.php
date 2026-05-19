@@ -43,6 +43,13 @@ class GenerateTaskExportJob implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+        \Log::info('GenerateTaskExportJob started', [
+            'token' => $this->token,
+            'user_id' => $this->userId,
+            'filters' => $this->filters
+        ]);
+
         DB::disableQueryLog();
         @set_time_limit(0);
         @ini_set('memory_limit', '1024M');
@@ -89,6 +96,10 @@ class GenerateTaskExportJob implements ShouldQueue
             $count = 0;
             $query->orderBy('tasks.id')->chunkById(500, function ($tasks) use ($writer, &$count) {
                 foreach ($tasks as $t) {
+                    if ($count >= 30000) {
+                        \Log::info('GenerateTaskExportJob reached maximum limit of 30,000 records. Stopping export.', ['token' => $this->token]);
+                        return false;
+                    }
                     $collected = $t->collection_date ? Carbon::parse($t->collection_date) : null;
                     $closed    = $t->close_date      ? Carbon::parse($t->close_date)      : null;
                     $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
@@ -115,7 +126,20 @@ class GenerateTaskExportJob implements ShouldQueue
 
             // Mark complete
             @file_put_contents($path . '.done', (string) $count);
+
+            $duration = microtime(true) - $startTime;
+            \Log::info('GenerateTaskExportJob completed successfully', [
+                'token' => $this->token,
+                'duration_seconds' => $duration,
+                'count' => $count
+            ]);
         } catch (\Throwable $e) {
+            $duration = microtime(true) - $startTime;
+            \Log::error('GenerateTaskExportJob failed', [
+                'token' => $this->token,
+                'duration_seconds' => $duration,
+                'error' => $e->getMessage()
+            ]);
             @file_put_contents($path . '.error', $e->getMessage());
             throw $e;
         }

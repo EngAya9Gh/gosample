@@ -160,8 +160,17 @@ class TasksController extends Controller
             // $query->orderBy('collection_date', 'desc');
             $query->orderBy($sortColumn, $sortOrder);
     
+            $totalCount = \Cache::remember('tasks_total_count_' . ($logged_id_user?->id ?? 'guest'), 600, function () use ($logged_id_user) {
+                $q = Task::query();
+                if ($logged_id_user && $logged_id_user->client_id) {
+                    $q->where('billing_client', $logged_id_user->client_id);
+                }
+                return $q->count();
+            });
+
             // تجهيز الجدول
             $table = Datatables::of($query)
+                ->setTotalRecords($totalCount)
                 ->addColumn('placeholder', '&nbsp;')
                 ->addColumn('actions', '&nbsp;')
                 ->addColumn('sequence', function () {
@@ -1627,6 +1636,13 @@ class TasksController extends Controller
         // SECURITY (fail-closed): scope the export to the user's own client OR refuse it
         // entirely if the user is neither an admin nor bound to a client.
         $loggedUser = auth()->user();
+        \Log::info('Export Excel Details (Background) initiated', [
+            'user_id'    => $loggedUser?->id,
+            'user_name'  => $loggedUser?->name,
+            'user_email' => $loggedUser?->email,
+            'ip'         => $request->ip(),
+            'filters'    => $request->all(),
+        ]);
         $isAdminUser = $loggedUser && (
             $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
             || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
@@ -2435,6 +2451,13 @@ $temp3 = $temperatureReadings->pluck('temp7');
         // SECURITY (fail-closed): same scoping rules as the listing — must be either
         // admin or client-bound, otherwise refuse the request.
         $loggedUser = auth()->user();
+        \Log::info('Export PDF initiated', [
+            'user_id'    => $loggedUser?->id,
+            'user_name'  => $loggedUser?->name,
+            'user_email' => $loggedUser?->email,
+            'ip'         => $request->ip(),
+            'filters'    => $request->all(),
+        ]);
         $isAdminUser = $loggedUser && (
             $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
             || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
@@ -2504,6 +2527,13 @@ $temp3 = $temperatureReadings->pluck('temp7');
         // SECURITY: scope to logged-in user's client_id so a client user cannot
         // pull data for other clients.
         $loggedUser = auth()->user();
+        \Log::info('Export Excel (Direct) initiated', [
+            'user_id'    => $loggedUser?->id,
+            'user_name'  => $loggedUser?->name,
+            'user_email' => $loggedUser?->email,
+            'ip'         => $request->ip(),
+            'filters'    => $request->all(),
+        ]);
         if ($loggedUser && $loggedUser->client_id) {
             $request->merge(['billing_client' => $loggedUser->client_id]);
         }
