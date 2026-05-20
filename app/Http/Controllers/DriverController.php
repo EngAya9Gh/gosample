@@ -554,7 +554,7 @@ class DriverController extends Controller
             // $list = $user->notifications;
             $date = \Carbon\Carbon::today()->subDays(100);
             // add type for driver only
-            $list = Notifications::where('notifiable_id',$request->driver_id)->where('created_at','>=',$date)->orderBy('created_at','desc')->get();
+            $list = Notifications::where('notifiable_id',$request->driver_id)->where('notifiable_type', Driver::class)->where('created_at','>=',$date)->orderBy('created_at','desc')->get();
 
             $list->each(function ($item, $key) {
                 $item->agoArabic=parent::time_elapsed_stringArabic($item->created_at);

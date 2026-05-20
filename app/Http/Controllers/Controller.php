@@ -336,7 +336,7 @@ class Controller extends BaseController
                 return '';
         }
     }
-    protected function getEnglishNotificationDescription($type, $status){
+    protected function getArabicNotificationDescription($type, $status){
         switch ($type) {
             case 'App\Notifications\TaskCreated':
                 return 'تم إنشاء طلب جديد';
@@ -355,7 +355,7 @@ class Controller extends BaseController
         }
     }
 
-    protected function getArabicNotificationDescription($type, $status){
+    protected function getEnglishNotificationDescription($type, $status){
         switch ($type) {
             case 'App\Notifications\TaskCreated':
                 return 'You have new Task';
@@ -376,53 +376,9 @@ class Controller extends BaseController
         }
     }
 
-    public static function sendNotification($title, $body,$tokens){
-        $url = 'https://fcm.googleapis.com/fcm/send';
-        $FcmToken = $tokens;//
-        // $serverKey = 'AAAAbiFTUvY:APA91bGlTJ77caxTQAO6bAUw5OHDyDV9vMjLJ0Scy5OHebuv9xWEU_VOhzWsR5rNPMA8HramV-8PI5d03zwjWnm-3UmsZkYQKUMpr6lyNw1m8l4TpQTaw8P_B9StNRD82-7JAUl8iy-r';
-        $serverKey = 'AAAALUm9zs0:APA91bEPvG8yI7CWfmFLKrqEJPDCVNpmDlqrPz1jY62Wq0k7lEakb36Qts8ZvNLSoo5Sh_dc47-H61y2NoZurjY0bV-wms1xk13NHEnIQq771LYXPZtJi_qVPZXmbQzELGEZE7ohTlIL';
-
-        $data = [
-            "registration_ids" => $FcmToken,
-            "data" => [
-                "task_id" => 1,
-                "task_type" => 'task',
-            ]
-            // ,
-            // "notification" => [
-            //     "title" => $title,
-            //     "body" => $body,
-            // ]
-        ];
-
-        // \Log::info( $data);
-        $encodedData = json_encode($data);
-
-        $headers = [
-            'Authorization:key=' . $serverKey,
-            'Content-Type: application/json',
-        ];
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        // Disabling SSL Certificate support temporarly
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $encodedData);
-        // Execute post
-        $result = curl_exec($ch);
-        if ($result === FALSE) {
-            die('Curl failed: ' . curl_error($ch));
-        }
-        // Close connection
-        curl_close($ch);
-        // \Log::info($result);
-        return  $result;
+    public static function sendNotification($title, $body, $tokens) {
+        \App\Jobs\SendFcmPushNotification::dispatch($title, $body, $tokens, null, 'no_action');
+        return true;
     }
 
 

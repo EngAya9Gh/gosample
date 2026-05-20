@@ -16,8 +16,14 @@ class NotificationsController extends Controller
         abort_if(Gate::denies('notification_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Notifications::with(['task', 'from_location', 'to_location', 'driver', 'billing_client'])->select(sprintf('notifications.*', (new Notifications())->table));
-            $table = Datatables::of($query);
+            $query = Notifications::with(['task', 'fromLocation', 'toLocation', 'driver', 'billingClient'])->select(sprintf('notifications.*', (new Notifications())->table));
+            
+            // تجنب تشغيل دالة count(*) البطيئة جداً في كل مرة يتم فيها تحديث الجدول
+            $totalCount = \Illuminate\Support\Facades\Cache::remember('notifications_total_count', now()->addMinutes(30), function () {
+                return Notifications::count();
+            });
+
+            $table = Datatables::of($query)->setTotalRecords($totalCount);
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
@@ -45,11 +51,11 @@ class NotificationsController extends Controller
             });
 
             $table->addColumn('from_location_name', function ($row) {
-                return $row->from_location ? $row->fromLocation->name : '';
+                return $row->fromLocation ? $row->fromLocation->name : '';
             });
 
             $table->addColumn('to_location_name', function ($row) {
-                return $row->to_location ? $row->toLocation->name : '';
+                return $row->toLocation ? $row->toLocation->name : '';
             });
 
             $table->addColumn('driver_name', function ($row) {
@@ -57,7 +63,7 @@ class NotificationsController extends Controller
             });
 
             $table->addColumn('billing_client_english_name', function ($row) {
-                return $row->billing_client ? $row->billingClient->english_name : '';
+                return $row->billingClient ? $row->billingClient->english_name : '';
             });
 
             $table->editColumn('type', function ($row) {

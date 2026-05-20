@@ -36,7 +36,7 @@ class TaskDelayedCommand extends Command
     {
         // 1. Existing Check: Pickup Delay
         $tasks = Task::whereRaw('pickup_time < collection_date')
-        ->where('delayed_reason', '=', '')
+        ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', ''); })
         ->get();
 
         foreach ($tasks as $task) {
@@ -44,13 +44,14 @@ class TaskDelayedCommand extends Command
             $driver = Driver::find($task->driver_id);
             if ($driver) {
                 $driver->sendNotification( 'Delayed Task', 'You have delay in pickup task',[$driver->fcm_token],$task,'no_action');
+                \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();
         }
 
         // 2. Existing Check: Drop-off Delay (Scheduled)
         $tasks1   = Task::whereRaw('dropoff_time < close_date')
-        ->where('delayed_reason', '=', '')
+        ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', ''); })
         ->get();
 
         foreach ($tasks1 as $task) {
@@ -58,6 +59,7 @@ class TaskDelayedCommand extends Command
             $driver = Driver::find($task->driver_id);
             if ($driver) {
                 $driver->sendNotification( 'Delayed Task', 'You have delay in drop off task',[$driver->fcm_token],$task,'no_action');
+                \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save(); 
         }
@@ -67,7 +69,7 @@ class TaskDelayedCommand extends Command
         $tasks_placement = Task::where('status', 'COLLECTED')
             ->whereNotNull('collection_date')
             ->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
-            ->where('delayed_reason', 'NOT LIKE', '%placement_delayed%')
+            ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', 'NOT LIKE', '%placement_delayed%'); })
             ->get();
 
         foreach ($tasks_placement as $task) {
@@ -75,6 +77,7 @@ class TaskDelayedCommand extends Command
             $driver = Driver::find($task->driver_id);
             if ($driver) {
                 $driver->sendNotification('تنبيه: تأخر وضع العينات', 'لقد تجاوزت الوقت المسموح (15 دقيقة) لوضع العينات في الحافظة.', [$driver->fcm_token], $task, 'no_action');
+                \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();
         }
@@ -84,7 +87,7 @@ class TaskDelayedCommand extends Command
         $tasks_delivery = Task::where('status', 'OUT_FREEZER')
             ->whereNotNull('freezer_out_date')
             ->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
-            ->where('delayed_reason', 'NOT LIKE', '%delivery_step_delayed%')
+            ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', 'NOT LIKE', '%delivery_step_delayed%'); })
             ->get();
 
         foreach ($tasks_delivery as $task) {
@@ -92,6 +95,7 @@ class TaskDelayedCommand extends Command
             $driver = Driver::find($task->driver_id);
             if ($driver) {
                 $driver->sendNotification('تنبيه: تأخر تسليم العينات', 'لقد تجاوزت الوقت المسموح (15 دقيقة) لتسليم العينات بعد إخراجها.', [$driver->fcm_token], $task, 'no_action');
+                \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();
         }

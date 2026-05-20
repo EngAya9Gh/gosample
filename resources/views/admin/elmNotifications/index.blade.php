@@ -64,6 +64,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="mt-3">
+            {{ $elmNotifications->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 </div>
 
