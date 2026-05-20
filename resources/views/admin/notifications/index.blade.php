@@ -87,8 +87,8 @@
 { data: 'actions', name: '{{ trans('global.actions') }}' ,sorting:false}
     ],
     orderCellsTop: false,
-    order: [[ 7, 'desc' ]],
-    pageLength: 100,
+    order: [[ 1, 'desc' ]],
+    pageLength: 25,
   };
   let table = $('.datatable-Notification').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

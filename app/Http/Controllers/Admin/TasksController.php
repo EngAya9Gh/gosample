@@ -105,7 +105,7 @@ class TasksController extends Controller
             if (!$dateFrom && !$dateTo && !$request->keyword) {
                 $dateFrom = Carbon::now()->subDays(30)->startOfDay();
                 $dateTo = Carbon::now()->endOfDay();
-                \Log::info('Applying default 30-day filter for performance');
+                // \Log::info('Applying default 30-day filter for performance');
             }
 
             // Make sure start <= end
@@ -124,7 +124,7 @@ class TasksController extends Controller
                 $query->where($dateColumn, '<=', $dateTo);
             }
 
-            \Log::info('Tasks Query SQL: ' . $query->toSql(), ['bindings' => $query->getBindings()]);
+            // \Log::info('Tasks Query SQL: ' . $query->toSql(), ['bindings' => $query->getBindings()]);
 
             if ($request->has('order.0.column')) {
                 // // مصفوفة mapping للعمود الفعلي
