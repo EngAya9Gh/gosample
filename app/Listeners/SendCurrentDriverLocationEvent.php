@@ -12,8 +12,10 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
 use Log;
 
-class SendCurrentDriverLocationEvent
+class SendCurrentDriverLocationEvent implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     /**
      * Create the event listener.
      *

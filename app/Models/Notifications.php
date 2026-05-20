@@ -36,20 +36,7 @@ class Notifications extends Model
         return $this->belongsTo(Location::class, "to_location", "id");
     }
 
-    public function from_location()
-    {
-        return $this->belongsTo(Location::class, 'from_location','id');
-    }
-
-    public function to_location()
-    {
-        return $this->belongsTo(Location::class, 'to_location','id');
-    }
     public function billingClient()
-    {
-        return $this->belongsTo(Client::class, 'billing_client','id');
-    }
-    public function billing_client()
     {
         return $this->belongsTo(Client::class, 'billing_client','id');
     }

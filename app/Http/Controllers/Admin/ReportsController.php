@@ -169,7 +169,7 @@ class ReportsController extends Controller
         $cacheKey = 'header_notifications_' . $user->id;
 
         $data = \Cache::remember($cacheKey, 120, function () use ($user, $user_client_id) {
-            $fourDaysAgo = Carbon::now()->subDays(4);
+            $fourHoursAgo = Carbon::now()->subHours(8);
 
             // جلب المهام الجديدة (سجلات وليس مجرد عدد)
             $newTasks = Task::where('status', 'NEW')
@@ -189,14 +189,14 @@ class ReportsController extends Controller
 
             $pickup_delayedTasks = Task::query()
                 ->whereRaw('pickup_time < collection_date')
-                ->where('created_at', '>=', $fourDaysAgo)
+                ->where('created_at', '>=', $fourHoursAgo)
                 ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
                 ->select('id', 'created_at', 'pickup_time', 'collection_date')
                 ->limit(5)->get();
 
             $drop_off_delayedTasks = Task::query()
                 ->whereRaw('dropoff_time < close_date')
-                ->where('created_at', '>=', $fourDaysAgo)
+                ->where('created_at', '>=', $fourHoursAgo)
                 ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
                 ->select('id', 'created_at', 'dropoff_time', 'close_date')
                 ->limit(5)->get();
@@ -204,20 +204,20 @@ class ReportsController extends Controller
             $delayed_tasks_in_freezer = Task::query()
                 ->whereRaw('TIMESTAMPDIFF(MINUTE, collection_date, NOW()) > 15')
                 ->where('status', 'COLLECTED')
-                ->where('created_at', '>=', $fourDaysAgo)
+                ->where('created_at', '>=', $fourHoursAgo)
                 ->select('id', 'created_at', 'collection_date')
                 ->limit(5)->get();
 
             $delayed_tasks_delivered = Task::query()
                 ->whereRaw('TIMESTAMPDIFF(MINUTE, freezer_out_date, NOW()) > 15')
                 ->where('status', 'OUT_FREEZER')
-                ->where('created_at', '>=', $fourDaysAgo)
+                ->where('created_at', '>=', $fourHoursAgo)
                 ->when($user_client_id, fn($q) => $q->where('billing_client', $user_client_id))
                 ->select('id', 'created_at', 'freezer_out_date')
                 ->limit(5)->get();
 
             $lost_samples = Sample::where('samples.confirmed_by_client', 'LOST')
-                ->where('samples.created_at', '>=', $fourDaysAgo)
+                ->where('samples.created_at', '>=', $fourHoursAgo)
                 ->when($user_client_id, function($q) use ($user_client_id) {
                     return $q->leftjoin('tasks', 'tasks.id', '=', 'samples.task_id')
                              ->where('tasks.billing_client', $user_client_id);

@@ -14,7 +14,7 @@ class ElmNotificationsController extends Controller
     {
         abort_if(Gate::denies('elm_notification_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $elmNotifications = ElmNotification::with(['task'])->get();
+        $elmNotifications = ElmNotification::with(['task'])->paginate(50);
 
         return view('admin.elmNotifications.index', compact('elmNotifications'));
     }

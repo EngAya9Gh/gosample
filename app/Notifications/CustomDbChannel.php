@@ -15,11 +15,11 @@ class CustomDbChannel
             'id' => $notification->id,
 
 
-            'driver_id' => $data['task']['driver_id'] ,
-            'task_id' => $data['task']['id'],
-            'billing_client' => $data['task']['billing_client'],
-            'from_location' => $data['task']['from_location'],
-            'to_location' => $data['task']['to_location'],
+            'driver_id' => $data['task']['driver_id'] ?? $data['driver_id'] ?? null,
+            'task_id' => $data['task']['id'] ?? $data['task_id'] ?? null,
+            'billing_client' => $data['task']['billing_client'] ?? null,
+            'from_location' => $data['task']['from_location'] ?? null,
+            'to_location' => $data['task']['to_location'] ?? null,
 
             'type' => get_class($notification),
             'data' => $data,

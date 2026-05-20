@@ -291,10 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // تحميل في الخلفية عند فتح الصفحة
-    fetchNotifications();
+    //fetchNotifications();
 
     // تحديث دوري كل 3 دقائق
-    setInterval(fetchNotifications, 180000);
+    // setInterval(fetchNotifications, 180000);
 });
 </script>
 

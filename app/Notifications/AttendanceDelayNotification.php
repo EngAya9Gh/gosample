@@ -21,10 +21,10 @@ class AttendanceDelayNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database']; // Internal system notification
+        return [CustomDbChannel::class]; // Internal system notification
     }
 
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         return [
             'title' => 'تأخير في الدوام - Attendance Delay',

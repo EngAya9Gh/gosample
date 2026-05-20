@@ -260,7 +260,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $notificationsQuery->where('billing_client', $loggedUser->client_id);
         }
 
-        $notifications = $notificationsQuery->paginate(10);
+        $notifications = $notificationsQuery->limit(10)->get();
 
         // =========================
         // Top Drivers
