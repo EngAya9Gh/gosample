@@ -33,9 +33,15 @@ class AppServiceProvider extends ServiceProvider
         // تسجيل أي استعلام يستغرق أكثر من 100ms في ملفات الـ Log لمراقبة أداء السيرفر
         \Illuminate\Support\Facades\DB::listen(function ($query) {
             if ($query->time > 100) {
+                $req = request();
+                $url = $req ? $req->fullUrl() : 'CLI / Job';
+                $method = $req ? $req->method() : 'CLI';
+
                 \Illuminate\Support\Facades\Log::warning('[Slow Query Detected]', [
-                    'sql'  => $query->sql,
-                    'time' => $query->time . ' ms',
+                    'url'    => $url,
+                    'method' => $method,
+                    'sql'    => $query->sql,
+                    'time'   => $query->time . ' ms',
                 ]);
             }
         });
