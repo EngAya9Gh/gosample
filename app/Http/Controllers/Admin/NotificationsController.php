@@ -18,12 +18,25 @@ class NotificationsController extends Controller
         if ($request->ajax()) {
             $query = Notifications::with(['task', 'fromLocation', 'toLocation', 'driver', 'billingClient'])->select(sprintf('notifications.*', (new Notifications())->table));
             
-            // تجنب تشغيل دالة count(*) البطيئة جداً في كل مرة يتم فيها تحديث الجدول
-            $totalCount = \Illuminate\Support\Facades\Cache::remember('notifications_total_count', now()->addMinutes(30), function () {
-                return Notifications::count();
+            // استخدام metadata قاعدة البيانات للحصول على عدد تقريبي فوري (< 1ms)
+            // بدلاً من count(*) الذي يستغرق 500ms+ على الجداول الكبيرة
+            $totalCount = \Illuminate\Support\Facades\Cache::remember('notifications_total_count', now()->addMinutes(10), function () {
+                $row = \Illuminate\Support\Facades\DB::selectOne(
+                    "SELECT TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notifications'"
+                );
+                // TABLE_ROWS تقديري من MySQL metadata، أسرع بكثير من count(*)
+                return $row ? (int) $row->TABLE_ROWS : \App\Models\Notifications::count();
             });
 
-            $table = Datatables::of($query)->setTotalRecords($totalCount);
+            $table = Datatables::of($query)
+                ->setTotalRecords($totalCount)
+                ->setFilteredRecords($totalCount);
+
+            // إذا كان المستخدم يبحث، نسمح بحساب الفلتر الفعلي
+            $searchValue = $request->input('search.value', '');
+            if (!empty($searchValue)) {
+                $table->setFilteredRecords(null); // يسمح للمكتبة بحساب الفلتر الصحيح
+            }
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
@@ -91,7 +104,7 @@ class NotificationsController extends Controller
     {
         abort_if(Gate::denies('notification_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $notification->load('task', 'from_location', 'to_location', 'driver', 'billing_client');
+        $notification->load('task', 'fromLocation', 'toLocation', 'driver', 'billingClient');
 
         return view('admin.notifications.show', compact('notification'));
     }

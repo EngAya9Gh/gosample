@@ -29,5 +29,15 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // تسجيل أي استعلام يستغرق أكثر من 100ms في ملفات الـ Log لمراقبة أداء السيرفر
+        \Illuminate\Support\Facades\DB::listen(function ($query) {
+            if ($query->time > 100) {
+                \Illuminate\Support\Facades\Log::warning('[Slow Query Detected]', [
+                    'sql'  => $query->sql,
+                    'time' => $query->time . ' ms',
+                ]);
+            }
+        });
     }
 }

@@ -265,57 +265,74 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // =========================
         // Top Drivers
         // =========================
-        if ($loggedUser->client_id) {
-            $top_drivers = Cache::remember("top_drivers_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
-                return Task::select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
-                    ->leftJoin('drivers','drivers.id','=','tasks.driver_id')
-                    ->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
-                    ->where('client_driver.client_id', $loggedUser->client_id)
-                    ->where('billing_client',$loggedUser->client_id)
-                    ->where('drivers.status', 1)
-                    ->groupBy('driver_id','drivers.name')
-                    ->orderByDesc('total')
-                    ->limit(5)
-                    ->get();
-            });
-        } else {
-            $top_drivers = Cache::remember('top_drivers', now()->addMinutes(30), function() {
+        $cacheKeyTopDrivers = $loggedUser->client_id
+            ? "top_drivers_client_{$loggedUser->client_id}"
+            : 'top_drivers_admin';
+
+        $t1 = microtime(true);
+        $top_drivers = Cache::remember($cacheKeyTopDrivers, now()->addMinutes(30), function () use ($loggedUser) {
+            if ($loggedUser->client_id) {
+                // INNER JOIN مع الفهارس الجديدة على client_driver
                 return DB::table('tasks')
-                    ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(*) as total'))
+                    ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(tasks.id) as total'))
                     ->join('drivers', 'drivers.id', '=', 'tasks.driver_id')
+                    ->join('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
+                    ->where('client_driver.client_id', $loggedUser->client_id)
+                    ->where('tasks.billing_client', $loggedUser->client_id)
                     ->where('drivers.status', 1)
+                    ->whereNull('tasks.deleted_at')
                     ->groupBy('tasks.driver_id', 'drivers.name')
                     ->orderByDesc('total')
                     ->limit(5)
                     ->get();
-            });
-        }
+            } else {
+                // Subquery محسّن مع الفهرس المركب tasks_deleted_at_driver_id_idx
+                return DB::table(DB::raw('(
+                    SELECT driver_id, COUNT(id) as total
+                    FROM tasks
+                    WHERE deleted_at IS NULL AND driver_id IS NOT NULL
+                    GROUP BY driver_id
+                ) t'))
+                ->select('t.driver_id', 'drivers.name', 't.total')
+                ->join('drivers', 'drivers.id', '=', 't.driver_id')
+                ->where('drivers.status', 1)
+                ->orderByDesc('t.total')
+                ->limit(5)
+                ->get();
+            }
+        });
+        $t2 = microtime(true);
+        \Log::info('[Dashboard] top_drivers', [
+            'cache_key' => $cacheKeyTopDrivers,
+            'ms'        => round(($t2 - $t1) * 1000, 2),
+        ]);
 
         // =========================
         // Statistics
         // =========================
+        $cacheKeyStats = $loggedUser->client_id
+            ? "dashboard_stats_client_{$loggedUser->client_id}"
+            : 'dashboard_stats_admin';
+
+        $t3 = microtime(true);
         if ($loggedUser->client_id) {
-            $stats = Cache::remember("dashboard_stats_client_{$loggedUser->client_id}", now()->addMinutes(30), function () use ($loggedUser) {
+            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () use ($loggedUser) {
                 return (object) [
-                    'cars' => Car::whereHas('driver.clientDrivers', function ($query) use ($loggedUser) {
-                        $query->where('client_id', $loggedUser->client_id);
-                    })->count(),
-
-                    'tasks' => Task::where('billing_client', $loggedUser->client_id)->count(),
-
-                    'samples' => Sample::leftJoin('tasks','tasks.id','=','task_id')
-                        ->where('tasks.billing_client',$loggedUser->client_id)
-                        ->count(),
-
-                    'locations' => Location::leftJoin('client_location','client_location.location_id','=','locations.id')
-                        ->where('client_location.client_id',$loggedUser->client_id)
-                        ->count(),
-
-                    'clients' => 1, // ثابت
+                    'cars'      => Car::whereHas('driver.clientDrivers', function ($q) use ($loggedUser) {
+                                      $q->where('client_id', $loggedUser->client_id);
+                                  })->count(),
+                    'tasks'     => Task::where('billing_client', $loggedUser->client_id)->count(),
+                    'samples'   => Sample::leftJoin('tasks', 'tasks.id', '=', 'task_id')
+                                      ->where('tasks.billing_client', $loggedUser->client_id)
+                                      ->count(),
+                    'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
+                                      ->where('client_location.client_id', $loggedUser->client_id)
+                                      ->count(),
+                    'clients'   => 1,
                 ];
             });
         } else {
-            $stats = Cache::remember("dashboard_stats_admin", now()->addMinutes(30), function () {
+            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () {
                 return (object) [
                     'cars'      => DB::table('cars')->count(),
                     'tasks'     => DB::table('tasks')->count(),
@@ -327,6 +344,11 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 ];
             });
         }
+        $t4 = microtime(true);
+        \Log::info('[Dashboard] stats', [
+            'cache_key' => $cacheKeyStats,
+            'ms'        => round(($t4 - $t3) * 1000, 2),
+        ]);
 
         // =========================
         // Return View
