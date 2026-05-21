@@ -1740,13 +1740,12 @@ class SampleController extends Controller
                 {
                     return $this->response(false,'task is not found');
                 } else{
-                    if($task->status != 'CLOSED')
-                    {
+                    if($task->status != 'CLOSED') {
                         return $this->response(false,'task status is not closed from driver');
                     }
 
                     // check sample
-                    $samples = Sample::leftJoin('tasks','tasks.id','=','samples.task_id')
+                    $samples = Sample::join('tasks','tasks.id','=','samples.task_id')
                         ->where('samples.confirmed_by_client','NO')
                         ->where('tasks.driver_id',$task->driver_id)
                         ->where('tasks.billing_client',$task->billing_client)->get();
@@ -1816,7 +1815,7 @@ class SampleController extends Controller
                     if($lastestTask != null)
                     {
                         // check sample
-                        $samples = Sample::leftJoin('tasks','tasks.id','=','samples.task_id')
+                        $samples = Sample::join('tasks','tasks.id','=','samples.task_id')
                             ->where('samples.confirmed_by_client','NO')
                             ->where('tasks.driver_id',$request->driver_id)
                             ->where('tasks.to_location',$to_location)
@@ -1992,7 +1991,7 @@ class SampleController extends Controller
                 ->first()->client_id;
                 $to_location = $request->to_location;
                 // check sample
-                $result= $samples = Sample::leftJoin('tasks','tasks.id','=','samples.task_id')
+                $result= $samples = Sample::join('tasks','tasks.id','=','samples.task_id')
                     ->where('samples.confirmed_by_client','NO')
                     ->where('tasks.driver_id',$request->driver_id)
                     ->where('tasks.to_location',$to_location)
@@ -2173,7 +2172,7 @@ class SampleController extends Controller
                 
                 if(isset($logged_id_user->client_id) && $logged_id_user->client_id != null) {
                     $data = Sample::select('samples.temperature_type',DB::raw('count(*) as total'))
-                    ->leftJoin('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id)
+                    ->join('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id)
                     // ->whereBetween('created_at', [$from, $to])
                     ->groupby('temperature_type')
                     ->orderBy('total','desc')

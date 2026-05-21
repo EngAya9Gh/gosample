@@ -322,7 +322,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                                       $q->where('client_id', $loggedUser->client_id);
                                   })->count(),
                     'tasks'     => Task::where('billing_client', $loggedUser->client_id)->count(),
-                    'samples'   => Sample::leftJoin('tasks', 'tasks.id', '=', 'task_id')
+                    'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')
                                       ->where('tasks.billing_client', $loggedUser->client_id)
                                       ->count(),
                     'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
