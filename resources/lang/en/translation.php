@@ -105,6 +105,8 @@ return [
     "location.fields.mobile"=>"Mobile",
     "location.fields.status"=>"Status",
     "location.fields.arabic_name"=>"Arabic Name",
+    "location.fields.city"=>"City",
+    "location.fields.neighborhood"=>"Neighborhood",
 
 
     'barcodes'                    => 'Barcodes',

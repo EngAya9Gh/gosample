@@ -83,6 +83,27 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>
+                            {{ trans('translation.location.fields.city') }}
+                        </th>
+                        <td>
+                            @if($location->city && isset(App\Models\Location::SAUDI_CITIES[$location->city]))
+                                {{ App\Models\Location::SAUDI_CITIES[$location->city]['en'] }}
+                                — {{ App\Models\Location::SAUDI_CITIES[$location->city]['ar'] }}
+                            @else
+                                {{ $location->city }}
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            {{ trans('translation.location.fields.neighborhood') }}
+                        </th>
+                        <td>
+                            {{ $location->neighborhood }}
+                        </td>
+                    </tr>
+                    <tr>
                                         <td id='barcode_{{$location->id}}' class='text-center barcode d-none' colspan='3'>
                                             <img src="{{asset('assets/img/mtc_logo.jpg')}}" alt="">
                                             <h1>{{$location->name}}</h1>

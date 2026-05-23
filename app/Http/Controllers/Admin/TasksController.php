@@ -1758,6 +1758,46 @@ class TasksController extends Controller
     //     return Excel::download(new TaskTimeReportExport(), 'task_time_report.xlsx');
     // }
 
+    private function formatLocationOption($loc)
+    {
+        $cityLabel = '';
+        if (!empty($loc->city)) {
+            if (isset(\App\Models\Location::SAUDI_CITIES[$loc->city])) {
+                $cityLabel = \App\Models\Location::SAUDI_CITIES[$loc->city]['en'];
+            } else {
+                $cityLabel = $loc->city;
+            }
+        }
+
+        $parts = [];
+        if (!empty($loc->name)) {
+            $parts[] = $loc->name;
+        }
+        if (!empty($cityLabel)) {
+            $parts[] = $cityLabel;
+        }
+        if (!empty($loc->neighborhood)) {
+            $parts[] = $loc->neighborhood;
+        }
+
+        return !empty($parts) ? implode(' — ', $parts) : ($loc->name ?? '');
+    }
+
+    private function buildLocationOptions($builder, bool $prependPleaseSelect = false)
+    {
+        $options = $builder->get()
+            ->unique('id')
+            ->mapWithKeys(function ($loc) {
+                return [$loc->id => $this->formatLocationOption($loc)];
+            });
+
+        if ($prependPleaseSelect) {
+            $options = $options->prepend(trans('translation.pleaseSelect'), '');
+        }
+
+        return $options;
+    }
+
     public function create()
     {
         abort_if(Gate::denies('task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -1768,14 +1808,12 @@ class TasksController extends Controller
         $logged_id_user = auth()->user();
         if($logged_id_user->client_id != null)
         {
-            // $from_locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-
-            $from_locations = Location::select('locations.*')
-            ->leftJoin('client_location','client_location.location_id','locations.id')
-            ->where('client_location.client_id',$logged_id_user->client_id)
-            ->pluck('name', 'id');
-            // ->get();
-            $to_locations = $from_locations  ;//Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+            $from_locations = $this->buildLocationOptions(
+                Location::select('locations.*')
+                    ->leftJoin('client_location','client_location.location_id','locations.id')
+                    ->where('client_location.client_id',$logged_id_user->client_id)
+            );
+            $to_locations = $from_locations;
 
             $billing_clients = Client::where('id',$logged_id_user->client_id)->pluck('english_name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
@@ -1783,9 +1821,9 @@ class TasksController extends Controller
 
             $cars = Car::pluck('imei', 'id')->prepend(trans('translation.pleaseSelect'), '');
         } else{
-            $from_locations = Location::pluck('name', 'id');
+            $from_locations = $this->buildLocationOptions(Location::query());
 
-            $to_locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+            $to_locations = $this->buildLocationOptions(Location::query(), true);
 
             $billing_clients = Client::pluck('english_name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
@@ -2162,9 +2200,9 @@ class TasksController extends Controller
     {
         abort_if(Gate::denies('task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $from_locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+        $from_locations = $this->buildLocationOptions(Location::query(), true);
 
-        $to_locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+        $to_locations = $this->buildLocationOptions(Location::query(), true);
 
         $billing_clients = Client::pluck('english_name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 

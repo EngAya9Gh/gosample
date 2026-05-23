@@ -290,15 +290,38 @@
                 border: 0;
                 box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
                 overflow: hidden;
+                max-width: 280px;
             }
             #calendar .fc-popover .fc-header {
                 background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
                 color: #fff;
                 padding: 8px 12px;
+                position: sticky;
+                top: 0;
+                z-index: 2;
             }
             #calendar .fc-popover .fc-header .fc-close {
                 color: #fff;
                 opacity: 0.9;
+            }
+            /* Make popover body scrollable when many events overflow the viewport */
+            #calendar .fc-popover .fc-body {
+                max-height: 60vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+            #calendar .fc-popover .fc-body::-webkit-scrollbar { width: 8px; }
+            #calendar .fc-popover .fc-body::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 4px;
+            }
+            #calendar .fc-popover .fc-body::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #0ea5a4 0%, #0d9488 100%);
+                border-radius: 4px;
+            }
+            #calendar .fc-popover .fc-body::-webkit-scrollbar-thumb:hover {
+                background: #0d9488;
             }
         </style>
 

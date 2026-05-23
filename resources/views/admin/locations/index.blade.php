@@ -25,6 +25,15 @@
                                     <option value="0" data-color="#ef4444">Not Active</option>
                                 </select>
                             </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="cityInput">{{ trans('translation.location.fields.city') }}</label>
+                                <select class="form-control" name="city" id="cityInput" data-placeholder="All cities">
+                                    <option value="">{{ trans('translation.pleaseSelect') }}</option>
+                                    @foreach (App\Models\Location::SAUDI_CITIES as $key => $labels)
+                                        <option value="{{ $key }}">{{ $labels['en'] }} — {{ $labels['ar'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -87,6 +96,12 @@
                         </th>
                         <th>
                             {{ trans('cruds.location.fields.mobile') }}
+                        </th>
+                        <th>
+                            {{ trans('cruds.location.fields.city') }}
+                        </th>
+                        <th>
+                            {{ trans('cruds.location.fields.neighborhood') }}
                         </th>
                         <th>
                             {{ trans('cruds.location.fields.status') }}
@@ -157,6 +172,7 @@
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                         d.status = $('#statusInput').val();
+                        d.city = $('#cityInput').val();
                         // d.keyword = $('#keyword').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
@@ -196,6 +212,14 @@
                     {
                         data: 'mobile',
                         name: 'mobile'
+                    },
+                    {
+                        data: 'city',
+                        name: 'city'
+                    },
+                    {
+                        data: 'neighborhood',
+                        name: 'neighborhood'
                     },
                     {
                         data: 'status',

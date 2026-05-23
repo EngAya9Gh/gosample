@@ -153,7 +153,7 @@ class Task extends Model
     }
 
     public function delayed_tasks_delivered($client_id = null)
-    { 
+    {
         $fourDaysAgo = Carbon::now()->subDays(4);
         $data =  $this
         ->whereRaw('TIMESTAMPDIFF(MINUTE,  freezer_out_date,NOW() ) > 15')
@@ -166,7 +166,7 @@ class Task extends Model
     }
 
     public function pickup_delayedTasks($client_id = null)
-    { 
+    {
         $fourDaysAgo = Carbon::now()->subDays(4);
         $data =  $this->whereRaw('pickup_time < collection_date')
         ->where('created_at', '>=', $fourDaysAgo);
@@ -187,7 +187,7 @@ class Task extends Model
         return $data->get();
     }
 
-    
+
     public function from()
     {
         return $this->belongsTo(Location::class, 'from_location');
@@ -355,10 +355,10 @@ class Task extends Model
     public function getDelayedReasonLabelsAttribute()
     {
         if (!$this->delayed_reason) return '';
-        
+
         $reasons = explode(',', $this->delayed_reason);
         $labels = [];
-        
+
         foreach ($reasons as $reason) {
             switch (trim($reason)) {
                 case 'pickup_delayed':
@@ -377,7 +377,7 @@ class Task extends Model
                     $labels[] = $reason;
             }
         }
-        
+
         return implode(', ', $labels);
     }
 }

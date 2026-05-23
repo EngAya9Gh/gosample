@@ -35,6 +35,9 @@ class LocationsController extends Controller
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
+            if ($request->filled('city')) {
+                $query->where('city', $request->city);
+            }
 
             if ($logged_id_user->client_id !== null) {
                 $query = $query->whereHas('locationsClients', function ($q) use ($logged_id_user) {
@@ -95,6 +98,16 @@ class LocationsController extends Controller
             });
             $table->editColumn('mobile', function ($row) {
                 return $row->mobile ? $row->mobile : '';
+            });
+            $table->editColumn('city', function ($row) {
+                if ($row->city && isset(\App\Models\Location::SAUDI_CITIES[$row->city])) {
+                    $labels = \App\Models\Location::SAUDI_CITIES[$row->city];
+                    return $labels['en'] . ' — ' . $labels['ar'];
+                }
+                return $row->city ?? '';
+            });
+            $table->editColumn('neighborhood', function ($row) {
+                return $row->neighborhood ?? '';
             });
             $table->editColumn('status', function ($row) {
                 if ($row->status == 1) {

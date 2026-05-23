@@ -36,6 +36,16 @@ class StoreLocationRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'city' => [
+                'required',
+                'string',
+                'in:' . implode(',', array_keys(Location::SAUDI_CITIES)),
+            ],
+            'neighborhood' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
             // 'mobile' => [
             //     'string',
             //     'required',

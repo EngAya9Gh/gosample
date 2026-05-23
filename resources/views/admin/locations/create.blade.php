@@ -50,6 +50,33 @@
                     </div>
 
                     <div class="col-lg-6 mb-3">
+                        <label class="required" for="city">{{ trans('translation.location.fields.city') }}</label>
+                        <select class="form-control {{ $errors->has('city') ? 'is-invalid' : '' }}" name="city" id="city" required>
+                            <option value="" disabled {{ old('city', null) === null ? 'selected' : '' }}>
+                                {{ trans('translation.pleaseSelect') }}
+                            </option>
+                            @foreach (App\Models\Location::SAUDI_CITIES as $key => $labels)
+                                <option value="{{ $key }}" {{ old('city') === $key ? 'selected' : '' }}>
+                                    {{ $labels['en'] }} — {{ $labels['ar'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if ($errors->has('city'))
+                            <div class="invalid-feedback">{{ $errors->first('city') }}</div>
+                        @endif
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
+                        <label for="neighborhood">{{ trans('translation.location.fields.neighborhood') }}</label>
+                        <input class="form-control {{ $errors->has('neighborhood') ? 'is-invalid' : '' }}" type="text"
+                            name="neighborhood" id="neighborhood" value="{{ old('neighborhood', '') }}"
+                            placeholder="e.g. Al Olaya / العليا">
+                        @if ($errors->has('neighborhood'))
+                            <div class="invalid-feedback">{{ $errors->first('neighborhood') }}</div>
+                        @endif
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
                         <label for="statuss">{{ trans('translation.location.fields.status') }}</label>
                         <select class="form-control {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status"
                             id="statuss">

@@ -59,10 +59,10 @@
                             <div class="col-md-6 mb-3">
                                 <label for="shift_id"><i class="ri-history-line"></i> الوردية (Shift)</label>
                                 <select class="form-control select2 {{ $errors->has('shift_id') ? 'is-invalid' : '' }}"
-                                    name="shift_id" id="shift_id" data-placeholder="Select shift">
+                                    name="shift_id" id="shift_id" data-placeholder="اختر السائق أولاً (Select a driver first)" disabled>
                                     <option value=""></option>
                                 </select>
-                                <small class="help-block">اختر الوردية المحددة لهذا السائق اليوم.</small>
+                                <small class="help-block" id="shift_hint">اختر السائق أولاً لعرض الورديات المتاحة.</small>
                             </div>
 
                             <input type="hidden" name="source" value="manual">
@@ -126,25 +126,54 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        const $shift = $('#shift_id');
+        const $hint  = $('#shift_hint');
+
+        function resetShiftDropdown(message, disable) {
+            $shift.prop('disabled', !!disable);
+            $shift.empty().append('<option value=""></option>');
+            // Re-sync Select2 with the new (empty) option set
+            $shift.trigger('change.select2');
+            if (message) $hint.text(message);
+        }
+
         $('#driver_id').on('change', function() {
-            let driverId = $(this).val();
-            if (driverId) {
-                // جلب الورديات الخاصة بالسائق عبر AJAX
-                $.get(`/admin/drivers/${driverId}/get-shifts`, function(data) {
-                    let shiftDropdown = $('#shift_id');
-                    shiftDropdown.empty();
-                    shiftDropdown.append('<option value="">{{ trans('translation.pleaseSelect') }}</option>');
-                    
-                    if (data.length > 0) {
-                        $.each(data, function(index, shift) {
-                            shiftDropdown.append(`<option value="${shift.id}">${shift.shift_number ? 'Shift #' + shift.shift_number : 'Custom Shift'} (${shift.start_time} - ${shift.end_time})</option>`);
-                        });
-                    } else {
-                        // في حال لا يوجد ورديات مسجلة في الجدول المنفصل، نعطي خياراً فارغاً للاعتماد على بيانات السائق الأساسية
-                        shiftDropdown.append('<option value="">Default Driver Schedule</option>');
-                    }
-                });
+            const driverId = $(this).val();
+
+            if (!driverId) {
+                resetShiftDropdown('اختر السائق أولاً لعرض الورديات المتاحة.', true);
+                return;
             }
+
+            // Loading state while AJAX runs
+            resetShiftDropdown('...جاري تحميل الورديات', true);
+
+            $.get(`/admin/drivers/${driverId}/get-shifts`)
+                .done(function(data) {
+                    $shift.empty().append('<option value=""></option>');
+
+                    if (data && data.length > 0) {
+                        $.each(data, function(_, shift) {
+                            const label = shift.shift_number
+                                ? 'Shift #' + shift.shift_number
+                                : 'Custom Shift';
+                            $shift.append(
+                                `<option value="${shift.id}">${label} (${shift.start_time} - ${shift.end_time})</option>`
+                            );
+                        });
+                        $shift.prop('disabled', false);
+                        $hint.text('اختر الوردية المحددة لهذا السائق اليوم.');
+                    } else {
+                        $shift.prop('disabled', true);
+                        $hint.text('لا توجد ورديات مسجلة لهذا السائق.');
+                    }
+
+                    // CRITICAL: tell Select2 the underlying <option> list changed
+                    $shift.trigger('change.select2');
+                })
+                .fail(function() {
+                    resetShiftDropdown('تعذر تحميل الورديات. حاول مرة أخرى.', true);
+                });
         });
     });
 </script>
