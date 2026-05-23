@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -67,7 +67,7 @@
                         required
                     >
                         @foreach ($from_locations as $id => $entry)
-                            <option value="{{ $id }}">{{ $entry }}</option>
+                            <option value="{{ $id }}" {{ (is_array(old('from_location_id')) && in_array($id, old('from_location_id'))) ? 'selected' : '' }}>{{ $entry }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -153,6 +153,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 $(document).ready(function () {
+    const oldVisitHours = {!! json_encode(old('visit_hours', [])) !!};
 
     $('.select2').each(function () {
         $(this).select2({
@@ -160,8 +161,6 @@ $(document).ready(function () {
             allowClear: false
         });
     });
-    // Start/End date pickers are auto-initialized by the modern-filters partial
-    // because the inputs carry data-mf-date="date" inside a .modern-filter-card.
 
     const tableBody = $('#visit-hours-table tbody');
 
@@ -177,11 +176,12 @@ $(document).ready(function () {
             }
         });
 
-        // 2. Add rows for newly-selected locations (preserve existing rows + their values)
+        // 2. Add rows for newly-selected locations and initialize Flatpickr immediately
         locations.forEach(loc => {
             const existing = tableBody.find('tr[data-loc-id="' + loc.id + '"]');
             if (existing.length === 0) {
-                tableBody.append(`
+                let oldVal = oldVisitHours[loc.id] ? oldVisitHours[loc.id] : '';
+                let newRow = $(`
                     <tr data-loc-id="${loc.id}">
                         <td>${loc.text}</td>
                         <td>
@@ -189,6 +189,7 @@ $(document).ready(function () {
                                 type="text"
                                 class="form-control visit-hour-input"
                                 name="visit_hours[${loc.id}]"
+                                value="${oldVal}"
                                 placeholder="Select time"
                                 autocomplete="off"
                                 required
@@ -196,14 +197,10 @@ $(document).ready(function () {
                         </td>
                     </tr>
                 `);
-            }
-        });
+                tableBody.append(newRow);
 
-        // 3. Init Flatpickr on any inputs that don't already have it attached.
-        //    Display: 12-hour AM/PM. Submitted value: HH:MM (24-hour) — backend contract unchanged.
-        tableBody.find('.visit-hour-input').each(function () {
-            if (!this._flatpickr) {
-                flatpickr(this, {
+                // Init Flatpickr ONLY on this new row's input to prevent nesting bugs
+                flatpickr(newRow.find('.visit-hour-input')[0], {
                     enableTime: true,
                     noCalendar: true,
                     dateFormat: 'H:i',
@@ -211,13 +208,33 @@ $(document).ready(function () {
                     altFormat: 'h:i K',
                     time_24hr: false,
                     allowInput: false,
-                    minuteIncrement: 5
+                    minuteIncrement: 5,
+                    defaultDate: oldVal ? oldVal : null
                 });
             }
         });
     }
 
     $('#from_location_id').on('change', syncTable);
+
+    $('form').on('submit', function(e) {
+        let valid = true;
+        tableBody.find('input[type="hidden"].visit-hour-input').each(function () {
+            if (!$(this).val()) {
+                valid = false;
+                return false; // break loop
+            }
+        });
+        if (!valid) {
+            e.preventDefault();
+            alert('Please select a Visit Hour for all selected locations!');
+        }
+    });
+
+    // Run once on load in case of old input
+    if ($('#from_location_id').val() && $('#from_location_id').val().length > 0) {
+        syncTable();
+    }
 });
 </script>
 @endsection
