@@ -505,6 +505,11 @@ class PermissionsTableSeeder extends Seeder
                 'guard_name' => 'web',
                 'name' => 'profile_password_edit',
             ],
+            [
+                'id'    => 100,
+                'guard_name' => 'web',
+                'name' => 'scheduled_task_mass_delete',
+            ],
         ];
 
         Permission::insert($permissions);

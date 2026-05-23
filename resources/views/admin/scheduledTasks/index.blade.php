@@ -174,6 +174,7 @@
 @endsection
 @section('scripts')
     @parent
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(function() {
             // Initialize Select2 with AJAX for driver_id
@@ -249,27 +250,40 @@
             });
 
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('can-delete')
+            @can('scheduled_task_mass_delete')
                 let deleteButtonTrans = '{{ trans('global.datatables.delete') }}';
                 let deleteButton = {
                     text: deleteButtonTrans,
                     url: "{{ route('admin.scheduled-tasks.massDestroy') }}",
                     className: 'btn-danger',
                     action: function(e, dt, node, config) {
-                        var ids = $.map(dt.rows({
-                            selected: true
-                        }).data(), function(entry) {
-                            return entry.id
+                        var ids = $.map(dt.rows('.selected').data(), function(entry) {
+                            return entry.id;
                         });
 
                         if (ids.length === 0) {
-                            alert('{{ trans('global.datatables.zero_selected') }}')
-
-                            return
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'تنبيه',
+                                text: '{{ trans('global.datatables.zero_selected') }}',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'حسناً'
+                            });
+                            return;
                         }
 
-                        if (confirm('{{ trans('global.areYouSure') }}')) {
-                            $.ajax({
+                        Swal.fire({
+                            title: 'تأكيد الحذف',
+                            html: 'أنت على وشك حذف المهام بالأرقام المعرفة التالية:<br><strong style="color:red;">' + ids.join(' ، ') + '</strong><br><br>هل أنت متأكد من المتابعة؟',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'نعم، قم بالحذف!',
+                            cancelButtonText: 'إلغاء'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajax({
                                     headers: {
                                         'x-csrf-token': _token
                                     },
@@ -281,13 +295,44 @@
                                     }
                                 })
                                 .done(function() {
-                                    location.reload()
+                                    Swal.fire(
+                                        'تم الحذف!',
+                                        'تمت عملية الحذف بنجاح.',
+                                        'success'
+                                    ).then(() => {
+                                        location.reload();
+                                    });
                                 })
-                        }
+                                .fail(function(xhr) {
+                                    Swal.fire(
+                                        'خطأ!',
+                                        'حدث خطأ أثناء محاولة الحذف. يرجى التأكد من الصلاحيات.',
+                                        'error'
+                                    );
+                                });
+                            }
+                        });
                     }
                 }
-                // dtButtons.push(deleteButton)
+                dtButtons.push(deleteButton)
             @endcan
+
+            let selectAllButton = {
+                text: 'تحديد الكل',
+                className: 'btn-primary',
+                action: function(e, dt, node, config) {
+                    dt.rows({ page: 'current' }).nodes().to$().addClass('selected');
+                }
+            };
+            let selectNoneButton = {
+                text: 'إلغاء تحديد الكل',
+                className: 'btn-primary',
+                action: function(e, dt, node, config) {
+                    dt.rows({ page: 'current' }).nodes().to$().removeClass('selected');
+                }
+            };
+            dtButtons.push(selectAllButton, selectNoneButton);
+
             var scheduleRoute = "{{ route('admin.scheduled-tasks.show', ['__ID__']) }}";
             let dtOverrideGlobals = {
                 buttons: dtButtons,
@@ -385,7 +430,18 @@
                 ],
                 orderCellsTop: true,
                 order: [
-                    [1, 'desc']
+                    [2, 'desc']
+                ],
+                select: {
+                    style: 'multi',
+                    selector: 'td.select-checkbox'
+                },
+                columnDefs: [
+                    {
+                        orderable: false,
+                        className: 'select-checkbox',
+                        targets: 0
+                    }
                 ],
                 pageLength: 100,
             };

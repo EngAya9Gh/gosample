@@ -44,6 +44,10 @@ class UpdateScheduledTaskRequest extends FormRequest
             'task_type' => [
                 'required',
             ],
+            'driver_id' => [
+                'required',
+                'integer',
+            ],
             // 'added_by' => [
             //     'string',
             //     'nullable',

@@ -32,7 +32,7 @@ class UpdateTaskRequest extends FormRequest
             ],
             'driver_id' => [
                 'numeric',
-                'nullable',
+                'required',
             ],
             // 'time_of_visit' => [
             //     'numeric',

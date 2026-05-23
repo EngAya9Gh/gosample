@@ -25,9 +25,9 @@ class ScheduledTaskController extends Controller
         $logged_id_user = auth()->user();
         if ($request->ajax()) {
             $query = ScheduledTask::with(['from_location', 'to_location', 'client'])->select(sprintf('%s.*', (new ScheduledTask)->table));
-            $query->where('scheduled_tasks.parent_id',null);
-             // Apply search criteria
-             if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->where('scheduled_tasks.parent_id', null);
+            // Apply search criteria
+            if ($request->filled('date_from') && $request->filled('date_to')) {
                 $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
             }
             if ($request->filled('driver_id')) {
@@ -102,31 +102,30 @@ class ScheduledTaskController extends Controller
                 static $index = 0;
                 return ++$index;
             });
-            $table->rawColumns([ 'placeholder', 'from_location', 'to_location', 'client','driver']);
+            $table->rawColumns(['placeholder', 'from_location', 'to_location', 'client', 'driver']);
 
             return $table->make(true);
         }
 
 
-        if( $logged_id_user->client_id != null)
-        {
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
-                $locations = Location::select('locations.*')
-                ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+        if ($logged_id_user->client_id != null) {
+            $clients = Client::where('id', $logged_id_user->client_id)->get();
+            $locations = Location::select('locations.*')
+                ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+                ->where('client_location.client_id', $logged_id_user->client_id)
                 ->get();
-                $drivers = Driver::all();
-        } else{
+            $drivers = Driver::all();
+        } else {
             $clients = Client::all();
             $locations = Location::all();
             $drivers = Driver::all();
         }
 
 
-        return view('admin.scheduledTasks.index',[
-            'clients' =>  $clients,
-            'locations' =>  $locations,
-            'drivers' =>  $drivers
+        return view('admin.scheduledTasks.index', [
+            'clients' => $clients,
+            'locations' => $locations,
+            'drivers' => $drivers
         ]);
     }
 
@@ -137,12 +136,12 @@ class ScheduledTaskController extends Controller
         $from_locations = Location::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $to_locations = Location::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"];
+        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
         $clients = Client::pluck('english_name', 'id')->prepend(trans('global.pleaseSelect'), '');
         $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.scheduledTasks.create', compact('days','drivers','clients', 'from_locations', 'to_locations'));
+        return view('admin.scheduledTasks.create', compact('days', 'drivers', 'clients', 'from_locations', 'to_locations'));
     }
     public function quick()
     {
@@ -151,12 +150,12 @@ class ScheduledTaskController extends Controller
         $from_locations = Location::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $to_locations = Location::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"];
+        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
         $clients = Client::pluck('english_name', 'id')->prepend(trans('global.pleaseSelect'), '');
         $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.scheduledTasks.quick', compact('days','drivers','clients', 'from_locations', 'to_locations'));
+        return view('admin.scheduledTasks.quick', compact('days', 'drivers', 'clients', 'from_locations', 'to_locations'));
     }
 
 
@@ -199,14 +198,14 @@ class ScheduledTaskController extends Controller
     //     }
 
     //     return redirect()->route('admin.scheduled-tasks.index');
-    // }
     public function store(StoreScheduledTaskRequest $request)
     {
         $data = $request->except(['from_location_id', 'days', 'visit_hours']);
         $driver = Driver::find($request->driver_id);
 
-        $data['name'] = optional($driver)->name . ' - ' . \Carbon\Carbon::parse($request->start_date)->format('Y-m-d');        $fromLocations = $request->input('from_location_id', []);
-        $selectedDays  = $request->input('days', []);
+        $data['name'] = optional($driver)->name . ' - ' . \Carbon\Carbon::parse($request->start_date)->format('Y-m-d');
+        $fromLocations = $request->input('from_location_id', []);
+        $selectedDays = $request->input('days', []);
         $selectedHours = $request->input('visit_hours', []);
 
         // تحقق إنو كل location عندها ساعة
@@ -290,35 +289,35 @@ class ScheduledTaskController extends Controller
         $clients = Client::pluck('english_name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         //$scheduledTask->load('from_location', 'to_location', 'client');
-        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"];
+        $days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
 
-        return view('admin.scheduledTasks.edit', compact('days','clients','drivers', 'from_locations', 'scheduledTask', 'to_locations'));
+        return view('admin.scheduledTasks.edit', compact('days', 'clients', 'drivers', 'from_locations', 'scheduledTask', 'to_locations'));
     }
 
     public function update(UpdateScheduledTaskRequest $request, ScheduledTask $scheduledTask)
     {
         $scheduledTask->update($request->all());
 
-        if (empty($scheduledTask->parent_id)){
+        if (empty($scheduledTask->parent_id)) {
             return redirect()->route('admin.scheduled-tasks.show', $scheduledTask);
         }
-        $scheduled = ScheduledTask::where('id',$scheduledTask->parent_id)->first();
+        $scheduled = ScheduledTask::where('id', $scheduledTask->parent_id)->first();
         if (isset($scheduled->id)) {
             return redirect()->route('admin.scheduled-tasks.show', $scheduled);
         }
         return redirect()->route('admin.scheduled-tasks.index');
     }
 
-    public function show(Request $request,ScheduledTask $scheduledTask)
+    public function show(Request $request, ScheduledTask $scheduledTask)
     {
         abort_if(Gate::denies('scheduled_task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
             $query = ScheduledTask::with(['from_location', 'to_location', 'client'])->select(sprintf('%s.*', (new ScheduledTask)->table));
-            $query->where(function($q) use($scheduledTask){
-                $q->where('scheduled_tasks.parent_id',$scheduledTask->id)
+            $query->where(function ($q) use ($scheduledTask) {
+                $q->where('scheduled_tasks.parent_id', $scheduledTask->id)
                     ->orWhere('scheduled_tasks.id', $scheduledTask->id);
             });
             $table = Datatables::of($query);
@@ -330,9 +329,9 @@ class ScheduledTaskController extends Controller
             $table->addColumn('actions', '&nbsp;');
 
             $table->editColumn('actions', function ($row) {
-                $viewGate      = '';
-                $editGate      = 'scheduled_task_edit';
-                $deleteGate    = 'scheduled_task_delete';
+                $viewGate = '';
+                $editGate = 'scheduled_task_edit';
+                $deleteGate = 'scheduled_task_delete';
                 $crudRoutePart = 'scheduled-tasks';
 
                 return view('partials.datatablesActions', compact(
@@ -380,11 +379,11 @@ class ScheduledTaskController extends Controller
                 static $index = 0;
                 return ++$index;
             });
-            $table->rawColumns(['row_select', 'actions', 'placeholder', 'from_location', 'to_location', 'client','driver']);
+            $table->rawColumns(['row_select', 'actions', 'placeholder', 'from_location', 'to_location', 'client', 'driver']);
 
             return $table->make(true);
         }
-       // $scheduledTask->load('from_location', 'to_location', 'client');
+        // $scheduledTask->load('from_location', 'to_location', 'client');
         return view('admin.scheduledTasks.show', compact('scheduledTask'));
     }
 
@@ -393,12 +392,12 @@ class ScheduledTaskController extends Controller
         $this->authorize('can-delete');
         $schedule = null;
         $parent_id = $scheduledTask->parent_id;
-        if (empty($scheduledTask->parent_id)){
-            $schedule = ScheduledTask::where('parent_id',$scheduledTask->id)->first();
+        if (empty($scheduledTask->parent_id)) {
+            $schedule = ScheduledTask::where('parent_id', $scheduledTask->id)->first();
             if (isset($schedule->id)) {
                 $schedule->parent_id = null;
                 $schedule->save();
-                $allParent = ScheduledTask::where('parent_id',$scheduledTask->id)->update(['parent_id' => $schedule->id]);
+                $allParent = ScheduledTask::where('parent_id', $scheduledTask->id)->update(['parent_id' => $schedule->id]);
             }
         }
         $scheduledTask->delete();
@@ -430,10 +429,13 @@ class ScheduledTaskController extends Controller
 
     public function massDestroy(MassDestroyScheduledTaskRequest $request)
     {
-        $this->authorize('can-delete');
         $scheduledTasks = ScheduledTask::find(request('ids'));
 
         foreach ($scheduledTasks as $scheduledTask) {
+            // Delete all children if this is a parent task
+            if (empty($scheduledTask->parent_id)) {
+                ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
+            }
             $scheduledTask->delete();
         }
 
@@ -442,10 +444,9 @@ class ScheduledTaskController extends Controller
 
     public function massDestroyChildren(Request $request, ScheduledTask $scheduledTask)
     {
-        $this->authorize('can-delete');
 
         $validated = $request->validate([
-            'ids'   => ['required', 'array'],
+            'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:scheduled_tasks,id'],
         ]);
 
@@ -513,25 +514,24 @@ class ScheduledTaskController extends Controller
 
         $schedule = $this->formatScheduleForCalendar($tasks);
 
-        if( $logged_id_user->client_id != null)
-        {
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
-                $locations = Location::select('locations.*')
-                ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+        if ($logged_id_user->client_id != null) {
+            $clients = Client::where('id', $logged_id_user->client_id)->get();
+            $locations = Location::select('locations.*')
+                ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+                ->where('client_location.client_id', $logged_id_user->client_id)
                 ->get();
-                $drivers = Driver::all();
-        } else{
+            $drivers = Driver::all();
+        } else {
             $clients = Client::all();
             $locations = Location::all();
             $drivers = Driver::all();
         }
 
-        return view('admin.scheduledTasks.index-schedule',[
-            'clients' =>  $clients,
-            'schedule' =>  $schedule,
-            'locations' =>  $locations,
-            'drivers' =>  $drivers
+        return view('admin.scheduledTasks.index-schedule', [
+            'clients' => $clients,
+            'schedule' => $schedule,
+            'locations' => $locations,
+            'drivers' => $drivers
         ]);
     }
 
@@ -545,7 +545,7 @@ class ScheduledTaskController extends Controller
             $startDate = Carbon::parse($task->start_date);
             $endDate = Carbon::parse($task->end_date);
             $taskStartDate = $startDate->max($today);
-            $taskEndDate =  $endDate->min($endOfMonth);
+            $taskEndDate = $endDate->min($endOfMonth);
 
             for ($date = $taskStartDate->copy(); $date->lte($taskEndDate); $date->addDay()) {
                 if (strtolower($date->format('l')) == strtolower($task->day)) {
@@ -595,16 +595,16 @@ class ScheduledTaskController extends Controller
         // Filter by client if user is not admin
         if ($logged_id_user->client_id != null) {
             $query->leftJoin('client_driver', 'client_driver.driver_id', 'drivers.id')
-                  ->where('client_driver.client_id', $logged_id_user->client_id)
-                  ->select('drivers.*')
-                  ->distinct();
+                ->where('client_driver.client_id', $logged_id_user->client_id)
+                ->select('drivers.*')
+                ->distinct();
         }
 
         if (!empty($term)) {
-            $query->where(function($q) use ($term) {
+            $query->where(function ($q) use ($term) {
                 $q->where('drivers.name', 'like', '%' . $term . '%')
-                  ->orWhere('drivers.mobile', 'like', '%' . $term . '%')
-                  ->orWhere('drivers.username', 'like', '%' . $term . '%');
+                    ->orWhere('drivers.mobile', 'like', '%' . $term . '%')
+                    ->orWhere('drivers.username', 'like', '%' . $term . '%');
             });
         }
 
@@ -630,14 +630,14 @@ class ScheduledTaskController extends Controller
 
         if ($logged_id_user->client_id != null) {
             $query->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-                  ->where('client_location.client_id', $logged_id_user->client_id)
-                  ->distinct();
+                ->where('client_location.client_id', $logged_id_user->client_id)
+                ->distinct();
         }
 
         if (!empty($term)) {
-            $query->where(function($q) use ($term) {
+            $query->where(function ($q) use ($term) {
                 $q->where('locations.name', 'like', '%' . $term . '%')
-                  ->orWhere('locations.arabic_name', 'like', '%' . $term . '%');
+                    ->orWhere('locations.arabic_name', 'like', '%' . $term . '%');
             });
         }
 
