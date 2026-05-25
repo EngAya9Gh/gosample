@@ -8,6 +8,14 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Add CORS headers for static files
+    <IfModule mod_headers.c>
+        <FilesMatch "\.(jpg|jpeg|png|gif|css|js|woff|woff2|ttf|svg|eot)$">
+            Header set Access-Control-Allow-Origin "*"
+            Header set Access-Control-Allow-Methods "GET, OPTIONS"
+        </FilesMatch>
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
