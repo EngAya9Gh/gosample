@@ -784,6 +784,12 @@ class DriverController extends Controller
                 'signature'   => 'nullable|image|max:5120',
                 'images'      => 'nullable',
                 'images.*'    => 'image|max:5120',
+                'image_front' => 'nullable|image|max:5120',
+                'image_back'  => 'nullable|image|max:5120',
+                'image_right' => 'nullable|image|max:5120',
+                'image_left'  => 'nullable|image|max:5120',
+                'image_inside1' => 'nullable|image|max:5120',
+                'image_inside2' => 'nullable|image|max:5120',
             ];
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
@@ -803,6 +809,18 @@ class DriverController extends Controller
                     $car->attachMedia($media, 'signature');
                 }
 
+                $directions = ['image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'];
+                foreach ($directions as $dir) {
+                    if ($request->hasFile($dir)) {
+                        $media = \MediaUploader::fromSource($request->file($dir))
+                            ->toDestination('uploads', 'car-images')
+                            ->useHashForFilename()
+                            ->upload();
+                        $car->attachMedia($media, $dir);
+                    }
+                }
+
+                // Fallback for old multi-image upload
                 if ($request->hasFile('images')) {
                     $images = is_array($request->file('images')) ? $request->file('images') : [$request->file('images')];
                     foreach ($images as $image) {
@@ -840,25 +858,46 @@ class DriverController extends Controller
                 }
 
                 $images = [];
+                $directions = ['image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'];
+                
+                foreach ($directions as $dir) {
+                    $media = $car->firstMedia($dir);
+                    if ($media) {
+                        $url = ltrim($media->getUrl(), '/');
+                        if (!preg_match('/^https?:\/\//', $url)) {
+                            $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
+                        }
+                        $images[$dir] = [
+                            'id' => $media->id,
+                            'url' => $url
+                        ];
+                    }
+                }
+
+                // Fallback for old multi-image upload
+                $oldImages = [];
                 $carImages = $car->getMedia('images');
                 foreach ($carImages as $media) {
-                    // Try to get a valid absolute URL for the frontend
-                    $url = $media->getUrl();
+                    $url = ltrim($media->getUrl(), '/');
                     if (!preg_match('/^https?:\/\//', $url)) {
-                        $url = url($url);
+                        $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
                     }
-                    $images[] = [
+                    $oldImages[] = [
                         'id' => $media->id,
                         'url' => $url
                     ];
+                }
+                
+                if (count($oldImages) > 0) {
+                    $images['other_images'] = $oldImages;
                 }
 
                 $signature = null;
                 $carSignature = $car->firstMedia('signature');
                 if ($carSignature) {
-                    $url = $carSignature->getUrl();
+                    $url = ltrim($carSignature->getUrl(), '/');
                     if (!preg_match('/^https?:\/\//', $url)) {
-                        $url = url($url);
+                        $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
                     }
                     $signature = [
                         'id' => $carSignature->id,
