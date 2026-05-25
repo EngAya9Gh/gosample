@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('sample_tracking', function (Blueprint $table) {
-            $table->index('task_id', 'sample_tracking_task_id_idx');
-        });
+        if (Schema::hasTable('sample_tracking')) {
+            Schema::table('sample_tracking', function (Blueprint $table) {
+                $table->index('task_id', 'sample_tracking_task_id_idx');
+            });
+        }
 
         Schema::table('car_tracking', function (Blueprint $table) {
             $table->index(['car_id', 'created_at'], 'car_tracking_car_created_idx');
@@ -37,9 +39,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('sample_tracking', function (Blueprint $table) {
-            $table->dropIndex('sample_tracking_task_id_idx');
-        });
+        if (Schema::hasTable('sample_tracking')) {
+            Schema::table('sample_tracking', function (Blueprint $table) {
+                $table->dropIndex('sample_tracking_task_id_idx');
+            });
+        }
 
         Schema::table('car_tracking', function (Blueprint $table) {
             $table->dropIndex('car_tracking_car_created_idx');
