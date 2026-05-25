@@ -592,13 +592,24 @@ class DriverController extends Controller
                 return $this->response(false,$this->validationHandle($validator->messages()));
             } else {
 
-                $task = Task::find(2438);
-//                DriverArrivedAtPickUpLocationEvent::dispatch($task);
-                event (new CurrentDriverLocationEvent($task));
+                $car = Car::where('id', $request->car_id)->where('driver_id', $request->driver_id)->first();
+                if ($car) {
+                    $car->driver_id = null;
+                    $car->save();
+
+                    \App\Models\CarLinkHistory::create([
+                        'car_id' => $request->car_id,
+                        'driver_id' => $request->driver_id,
+                        'action' => \App\Models\CarLinkHistory::ACTION_SELECT['unlinked']
+                    ]);
+                } else {
+                    return $this->response(false, 'Car is not linked to this driver or not found');
+                }
 
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            \Log::error('Error releasing car: ' . $e->getMessage());
             return $this->response(false,'system error');
         }
 
@@ -763,62 +774,107 @@ class DriverController extends Controller
     }
 
 
-    public function uploadPhotes(Request $request)
+    public function uploadPhotos(Request $request)
     {
         try {
             $data = $request->only(['driver_id','images','signature','car_id']);
             $rules = [
                 'driver_id'   => 'required',
-                'car_id'   => 'required',
-                // 'deliver_signature'   => 'required',
-                // 'deliver_confirmationCode'   => 'required',
+                'car_id'      => 'required',
+                'signature'   => 'nullable|image|max:5120',
+                'images'      => 'nullable',
+                'images.*'    => 'image|max:5120',
             ];
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
                 return $this->response(false,$this->validationHandle($validator->messages()));
             } else {
 
-
-                $carPhoto = new CarPhoto;
-                if ($request->hasFile('signature')) {
-                    $carPhoto->addMedia($request->signature)->toMediaCollection('downloads', 'local');
-
+                $car = Car::where('id', $request->car_id)->where('driver_id', $request->driver_id)->first();
+                if (!$car) {
+                    return $this->response(false, 'Car is not linked to this driver or not found');
                 }
 
+                if ($request->hasFile('signature')) {
+                    $media = \MediaUploader::fromSource($request->file('signature'))
+                        ->toDestination('uploads', 'signature-car-images')
+                        ->useHashForFilename()
+                        ->upload();
+                    $car->attachMedia($media, 'signature');
+                }
 
-                //                $image = $request->file('signature');
-                //                $s3 = \Storage::disk('s3');
-                //                $file_name = uniqid() .'.'. $image->getClientOriginalExtension();
-                //                $s3filePath = '/assets/' . $file_name;
-                //                $s3->put($s3filePath, file_get_contents($image), 'public');
-
-
-                //                $signature = '';
-                //                if($request->signature != null){
-                //                    $media = MediaUploader::fromSource($request->file('signature'))
-                //                        ->toDestination('uploads', 'signature-car-images')
-                //                        ->useHashForFilename()
-                //                        ->upload();
-                //
-                //                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
-                //                }else{
-                //                    return $this->response(false,'driver signature is required');
-                //                }
-                //
-                //                if($request->images != null){
-                //                    $media = MediaUploader::fromSource($request->file('signature'))
-                //                        ->toDestination('uploads', 'car-images')
-                //                        ->useHashForFilename()
-                //                        ->upload();
-                //
-                //                    $signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
-                //                }else{
-                //                    return $this->response(false,'driver signature is required');
-                //                }
+                if ($request->hasFile('images')) {
+                    $images = is_array($request->file('images')) ? $request->file('images') : [$request->file('images')];
+                    foreach ($images as $image) {
+                        $media = \MediaUploader::fromSource($image)
+                            ->toDestination('uploads', 'car-images')
+                            ->useHashForFilename()
+                            ->upload();
+                        $car->attachMedia($media, 'images');
+                    }
+                }
 
                 return $this->response(true,'success');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            \Log::error('Error uploading car photos: ' . $e->getMessage());
+            return $this->response(false,'system error');
+        }
+    }
+
+    public function getCarPhotos(Request $request)
+    {
+        try {
+            $data = $request->only(['car_id']);
+            $rules = [
+                'car_id'   => 'required',
+            ];
+            $validator = Validator::make($data, $rules);
+            if ($validator->fails()) {
+                return $this->response(false,$this->validationHandle($validator->messages()));
+            } else {
+
+                $car = Car::find($request->car_id);
+                if (!$car) {
+                    return $this->response(false, 'Car not found');
+                }
+
+                $images = [];
+                $carImages = $car->getMedia('images');
+                foreach ($carImages as $media) {
+                    // Try to get a valid absolute URL for the frontend
+                    $url = $media->getUrl();
+                    if (!preg_match('/^https?:\/\//', $url)) {
+                        $url = url($url);
+                    }
+                    $images[] = [
+                        'id' => $media->id,
+                        'url' => $url
+                    ];
+                }
+
+                $signature = null;
+                $carSignature = $car->firstMedia('signature');
+                if ($carSignature) {
+                    $url = $carSignature->getUrl();
+                    if (!preg_match('/^https?:\/\//', $url)) {
+                        $url = url($url);
+                    }
+                    $signature = [
+                        'id' => $carSignature->id,
+                        'url' => $url
+                    ];
+                }
+
+                $data = [
+                    'signature' => $signature,
+                    'images' => $images
+                ];
+
+                return $this->response(true,'success', $data);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error fetching car photos: ' . $e->getMessage());
             return $this->response(false,'system error');
         }
     }
