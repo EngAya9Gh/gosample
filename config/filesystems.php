@@ -46,7 +46,7 @@ return [
         'uploads' => [
             'driver' => 'local',
             'root' => public_path(''),
-            'url' => 'http://localhost:8000',
+            'url' => env('APP_URL', 'http://localhost'),
         ],
 
         's3' => [
