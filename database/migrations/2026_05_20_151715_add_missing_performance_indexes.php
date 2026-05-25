@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('sample_tracking', function (Blueprint $table) {
-            $table->index('sample_id', 'sample_tracking_sample_id_idx');
-        });
+        if (Schema::hasTable('sample_tracking')) {
+            Schema::table('sample_tracking', function (Blueprint $table) {
+                $table->index('sample_id', 'sample_tracking_sample_id_idx');
+            });
+        }
 
         Schema::table('samples', function (Blueprint $table) {
             $table->index(['deleted_at', 'temperature_type'], 'samples_deleted_temperature_idx');
@@ -42,9 +44,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('sample_tracking', function (Blueprint $table) {
-            $table->dropIndex('sample_tracking_sample_id_idx');
-        });
+        if (Schema::hasTable('sample_tracking')) {
+            Schema::table('sample_tracking', function (Blueprint $table) {
+                $table->dropIndex('sample_tracking_sample_id_idx');
+            });
+        }
 
         Schema::table('samples', function (Blueprint $table) {
             $table->dropIndex('samples_deleted_temperature_idx');
