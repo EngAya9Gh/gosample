@@ -78,7 +78,8 @@ Route::post('shipments/details','App\Http\Controllers\ShipmentController@getShip
 Route::post('test','App\Http\Controllers\ShipmentController@test');
 
 Route::any('tasks/cache','App\Http\Controllers\DriverController@getTasksFromCache');
-Route::any('driver/car/images','App\Http\Controllers\DriverController@uploadPhotes');
+Route::post('driver/car/images','App\Http\Controllers\DriverController@uploadPhotos');
+Route::get('driver/car/images','App\Http\Controllers\DriverController@getCarPhotos');
 Route::any('driver/terms/accept','App\Http\Controllers\DriverController@acceptTerms');
 Route::any('driver/terms/get','App\Http\Controllers\DriverController@terms');
 Route::any('driver/schedule','App\Http\Controllers\ScheduleController@list');

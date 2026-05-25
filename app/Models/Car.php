@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
+use Plank\Mediable\Mediable;
 
 class Car extends Model
 {
     use SoftDeletes;
     use HasFactory;
     use Auditable;
+    use Mediable;
 
 
     public $table = 'cars';
