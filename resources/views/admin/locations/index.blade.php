@@ -106,12 +106,14 @@
                         <th>
                             {{ trans('cruds.location.fields.status') }}
                         </th>
-                        <th>
-                            Created By
-                        </th>
-                        <th>
-                            Updated By
-                        </th>
+                        @can('location_audit_access')
+                            <th>
+                                Created By
+                            </th>
+                            <th>
+                                Updated By
+                            </th>
+                        @endcan
                         <th>
                             &nbsp;
                         </th>
@@ -231,6 +233,7 @@
                         data: 'status',
                         name: 'status'
                     },
+                    @can('location_audit_access')
                     {
                         data: 'created_by',
                         name: 'createdBy.name'
@@ -239,6 +242,7 @@
                         data: 'updated_by',
                         name: 'updatedBy.name'
                     },
+                    @endcan
                     {
                         data: 'actions',
                         name: '{{ trans('global.actions') }}'
