@@ -106,22 +106,35 @@
                         @endif
                     </div>
 
-                    <div class="col-lg-6 mb-3">
-                        <label for="lat">{{ trans('translation.location.fields.lat') }}</label>
-                        <input class="form-control {{ $errors->has('lat') ? 'is-invalid' : '' }}" type="text"
-                            name="lat" id="lat" value="{{ old('lat', $location->lat) }}" placeholder="24.7117...">
-                        @if ($errors->has('lat'))
-                            <div class="invalid-feedback">{{ $errors->first('lat') }}</div>
-                        @endif
+                    <div class="col-lg-12">
+                        <div class="row">
+                            <div class="col-lg-6 mb-3">
+                                <label for="lat">{{ trans('translation.location.fields.lat') }}</label>
+                                <input class="form-control {{ $errors->has('lat') ? 'is-invalid' : '' }}" type="text"
+                                    name="lat" id="lat" value="{{ old('lat', $location->lat) }}" placeholder="24.7117...">
+                                @if ($errors->has('lat'))
+                                    <div class="invalid-feedback">{{ $errors->first('lat') }}</div>
+                                @endif
+                            </div>
+
+                            <div class="col-lg-6 mb-3">
+                                <label for="lng">{{ trans('translation.location.fields.lng') }}</label>
+                                <input class="form-control {{ $errors->has('lng') ? 'is-invalid' : '' }}" type="text"
+                                    name="lng" id="lng" value="{{ old('lng', $location->lng) }}" placeholder="46.6752...">
+                                @if ($errors->has('lng'))
+                                    <div class="invalid-feedback">{{ $errors->first('lng') }}</div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-6 mb-3">
-                        <label for="lng">{{ trans('translation.location.fields.lng') }}</label>
-                        <input class="form-control {{ $errors->has('lng') ? 'is-invalid' : '' }}" type="text"
-                            name="lng" id="lng" value="{{ old('lng', $location->lng) }}" placeholder="46.6752...">
-                        @if ($errors->has('lng'))
-                            <div class="invalid-feedback">{{ $errors->first('lng') }}</div>
-                        @endif
+                        <label>Created By</label>
+                        <input class="form-control" type="text" value="{{ $location->createdBy ? $location->createdBy->name : '' }}" disabled>
+                    </div>
+                    <div class="col-lg-6 mb-3">
+                        <label>Updated By</label>
+                        <input class="form-control" type="text" value="{{ $location->updatedBy ? $location->updatedBy->name : '' }}" disabled>
                     </div>
 
                     <div class="col-lg-6 mb-3">
