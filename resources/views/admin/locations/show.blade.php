@@ -121,6 +121,24 @@
                             {{ App\Models\Location::STATUS_SELECT[$location->status] ?? '' }}
                         </td>
                     </tr>
+                    @can('location_audit_access')
+                    <tr>
+                        <th>
+                            Created By
+                        </th>
+                        <td>
+                            {{ $location->createdBy ? $location->createdBy->name : '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Updated By
+                        </th>
+                        <td>
+                            {{ $location->updatedBy ? $location->updatedBy->name : '' }}
+                        </td>
+                    </tr>
+                    @endcan
                 </tbody>
             </table>
             <div class="form-group">

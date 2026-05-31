@@ -128,6 +128,7 @@
                         </div>
                     </div>
 
+                    @can('location_audit_access')
                     <div class="col-lg-6 mb-3">
                         <label>Created By</label>
                         <input class="form-control" type="text" value="{{ $location->createdBy ? $location->createdBy->name : '' }}" disabled>
@@ -136,6 +137,7 @@
                         <label>Updated By</label>
                         <input class="form-control" type="text" value="{{ $location->updatedBy ? $location->updatedBy->name : '' }}" disabled>
                     </div>
+                    @endcan
 
                     <div class="col-lg-6 mb-3">
                         <label for="pickup_waiting_time">{{ trans('translation.location.fields.pickup_waiting_time') }}</label>

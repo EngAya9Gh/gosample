@@ -510,6 +510,11 @@ class PermissionsTableSeeder extends Seeder
                 'guard_name' => 'web',
                 'name' => 'scheduled_task_mass_delete',
             ],
+            [
+                'id'    => 101,
+                'guard_name' => 'web',
+                'name' => 'location_audit_access',
+            ],
         ];
 
         Permission::insert($permissions);
