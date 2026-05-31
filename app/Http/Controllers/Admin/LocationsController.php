@@ -23,7 +23,8 @@ class LocationsController extends Controller
         
         if ($request->ajax()) {
             $query = Location::withoutGlobalScope('enabled')
-            ->select(sprintf('%s.*', (new Location)->getTable()));
+                ->with(['createdBy', 'updatedBy'])
+                ->select(sprintf('%s.*', (new Location)->getTable()));
 
             // Apply search criteria
             if ($request->filled('date_from') && $request->filled('date_to')) {
@@ -143,7 +144,15 @@ class LocationsController extends Controller
             });
            
 
-            $table->rawColumns(['actions', 'placeholder','coordinates', 'status']);
+            $table->addColumn('created_by', function ($row) {
+                return $row->createdBy ? $row->createdBy->name : '';
+            });
+
+            $table->addColumn('updated_by', function ($row) {
+                return $row->updatedBy ? $row->updatedBy->name : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder','coordinates', 'status', 'created_by', 'updated_by']);
 
             return $table->make(true);
         }

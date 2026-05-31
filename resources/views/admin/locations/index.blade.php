@@ -107,6 +107,12 @@
                             {{ trans('cruds.location.fields.status') }}
                         </th>
                         <th>
+                            Created By
+                        </th>
+                        <th>
+                            Updated By
+                        </th>
+                        <th>
                             &nbsp;
                         </th>
                     </tr>
@@ -224,6 +230,14 @@
                     {
                         data: 'status',
                         name: 'status'
+                    },
+                    {
+                        data: 'created_by',
+                        name: 'createdBy.name'
+                    },
+                    {
+                        data: 'updated_by',
+                        name: 'updatedBy.name'
                     },
                     {
                         data: 'actions',

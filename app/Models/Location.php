@@ -71,6 +71,8 @@ class Location extends Model
         'city',
         'neighborhood',
         'status',
+        'created_by_id',
+        'updated_by_id',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -82,11 +84,34 @@ class Location extends Model
         static::addGlobalScope('enabled', function (Builder $builder) {
             $builder->where('status', 1);
         });
+
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->created_by_id = auth()->id();
+                $model->updated_by_id = auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by_id = auth()->id();
+            }
+        });
     }
 
     public function locationsClients()
     {
         return $this->belongsToMany(Client::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by_id');
     }
 
     protected function serializeDate(DateTimeInterface $date)
