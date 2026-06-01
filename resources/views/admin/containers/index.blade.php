@@ -91,6 +91,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
+                                        <button type="button" onclick="printReport({{ $container->id }})" class="btn btn-soft-success btn-sm" title="Print Barcode">
+                                            <i class="mdi mdi-printer"></i>
+                                        </button>
+
                                         @can('container_show')
                                             <a class="btn btn-soft-info btn-sm"
                                                 href="{{ route('admin.containers.show', $container->id) }}"
@@ -120,6 +124,14 @@
                                             </form>
                                         @endcan
                                     </div>
+                                    <div class="d-none">
+                                        <div id="barcode_area_{{ $container->id }}">
+                                            <img src="{{ URL::asset('assets/img/logo_excel_2.jpg') }}" alt="" style="height: 200px;">
+                                            <h1>Type: {{ $container->type }}</h1>
+                                            <h1>Car Number: {{ $container->car->plate_number ?? '' }}</h1>
+                                            {!! DNS1D::getBarcodeSVG($container->id . '-container', 'C128', 5, 100) !!}
+                                        </div>
+                                    </div>
                                 </td>
 
                             </tr>
@@ -133,6 +145,23 @@
 @section('scripts')
     @parent
     <script>
+        function printReport(id) {
+            var prtContent = document.getElementById("barcode_area_" + id);
+            var WinPrint = window.open();
+            WinPrint.document.write(
+                `<div id='barcode_area' style='width:100%;margin-top:50px;margin:0 auto; text-align:center'>
+        <style>@page { margin: 0; } body  {
+    padding-top: 10rem;
+  }svg{margin-top:20px}</style>`
+                + prtContent.innerHTML +
+                `</div>`
+            );
+            WinPrint.document.close();
+            WinPrint.focus();
+            WinPrint.print();
+            WinPrint.close();
+        };
+
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
             @can('can-delete')
