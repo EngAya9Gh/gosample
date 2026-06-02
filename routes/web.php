@@ -243,3 +243,18 @@ Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'r
 Route::post('/emergency', [EmergencyController::class, 'emergencyBTN']);
 Route::get('/check-emergency', [EmergencyController::class, 'checkEmergency']);
 Route::post('/clear-emergency', [EmergencyController::class, 'clearEmergency']);
+
+Route::get('/test-fcm/{driver_id}', function ($driver_id) {
+    $driver = \App\Models\Driver::find($driver_id);
+    if (!$driver) return 'Driver not found';
+    if (!$driver->fcm_token) return 'Driver has no fcm_token';
+    
+    $fcm = new \App\Services\FcmService();
+    $result = $fcm->sendNotification('Test Notification', 'This is a test push from backend', [$driver->fcm_token], null, 'test_action');
+    
+    return response()->json([
+        'success' => true,
+        'driver_id' => $driver->id,
+        'fcm_response' => json_decode($result, true) ?? $result
+    ]);
+});
