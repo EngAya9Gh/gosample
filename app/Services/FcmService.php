@@ -22,6 +22,10 @@ class FcmService
 
         $data = [
             "registration_ids" => $FcmToken,
+            "notification" => [
+                "title" => $title,
+                "body" => $body,
+            ],
             "data" => [
                 "title" => $title,
                 "body" => $body,
