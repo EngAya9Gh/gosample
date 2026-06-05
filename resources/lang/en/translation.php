@@ -460,6 +460,7 @@ return [
     "datatables"=> "Datatables",
     "file-manager"=> "File Manager",
     "to-do"=> "To Do",
+    "driver_tracking"=> "Driver Tracking",
 
     'term' => [
         'title'          => 'Terms',

@@ -1929,11 +1929,8 @@ class TasksController extends Controller
                 $task->added_by = $logged_id_user->email;
                 $task->created_at = now();
                 
-                if ($driver) {
-                    $task->eta = $this->calcETA($driver, $from_location, $request->to_location);
-                } else {
-                    $task->eta = null;
-                }
+                // Set initial ETA to null, background job will calculate it immediately
+                $task->eta = null;
 
                 $task->save();
 
@@ -1944,6 +1941,10 @@ class TasksController extends Controller
             }
         }
 
+        // Dispatch background job to calculate ETA for all driver's tasks
+        if ($driver) {
+            dispatch(new \App\Jobs\CalculateDriverETAJob($driver->id));
+        }
 
         return redirect()->route('admin.tasks.index');
     }
@@ -2746,6 +2747,5 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
         return Excel::download(new TasksExport($tasks,$temperatures), 'report.xlsx');
     }
-
 
 }

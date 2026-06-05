@@ -23,6 +23,15 @@ class Task extends Model
         'YES' => 'YES',
     ];
 
+    protected static function booted()
+    {
+        static::saved(function ($task) {
+            if ($task->wasChanged('status') && $task->driver_id) {
+                dispatch(new \App\Jobs\CalculateDriverETAJob($task->driver_id))->afterResponse();
+            }
+        });
+    }
+
     public const AYENATI_SELECT = [
         'YES' => 'YES',
         'NO'  => 'NO',
@@ -88,6 +97,9 @@ class Task extends Model
         'cost',
         'confirmation_time',
         'eta',
+        'cumulative_eta',
+        'estimated_arrival_time',
+        'route_order',
         'close_hour',
         'box_count',
         'sample_count',

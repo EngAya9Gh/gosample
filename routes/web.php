@@ -56,6 +56,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     // Drivers
     Route::delete('drivers/destroy', 'DriversController@massDestroy')->name('drivers.massDestroy');
     Route::get('drivers/{id}/get-shifts', 'DriversController@getShifts')->name('drivers.getShifts');
+    Route::post('drivers/{driver}/tasks/reorder', '\App\Http\Controllers\DriverController@reorderTasks')->name('drivers.tasks.reorder');
+    Route::post('drivers/{driver}/tasks/smart-sort', '\App\Http\Controllers\DriverController@smartSortTasks')->name('drivers.tasks.smartSort');
     Route::resource('drivers', 'DriversController');
 
     // Cars
@@ -128,6 +130,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::post('swap-task-report', 'TaskSwapController@export')->name('swapReportExport');
 
     Route::get('scheduled-driver', 'ScheduledTaskController@indexSchedule')->name('tasks.indexSchedule');
+    
+    // Client Driver Tracking
+    Route::get('driver-tracking', 'DriverTrackingController@clientDashboard')->name('driver-tracking');
 
     Route::get('/export-excel', 'TasksController@exportExcelDetails')->name('tasks.export-excel');
     Route::get('/tasks/export-status/{token}', 'TasksController@exportStatus')->name('tasks.export.status');

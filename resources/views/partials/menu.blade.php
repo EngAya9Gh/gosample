@@ -213,6 +213,16 @@
                 </a>
             </li>
         @endcan
+        @can('driver_tracking_access')
+            <li class="c-sidebar-nav-item">
+                <a href="{{ route("admin.driver-tracking") }}" class="c-sidebar-nav-link {{ request()->is("admin/driver-tracking") ? "c-active" : "" }}">
+                    <i class="fa-fw fas fa-map-marked-alt c-sidebar-nav-icon">
+
+                    </i>
+                    تتبع السائقين (Driver Tracking)
+                </a>
+            </li>
+        @endcan
         @can('sample_access')
             <li class="c-sidebar-nav-item">
                 <a href="{{ route("admin.samples.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/samples") || request()->is("admin/samples/*") ? "c-active" : "" }}">
