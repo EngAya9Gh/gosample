@@ -515,8 +515,20 @@ class PermissionsTableSeeder extends Seeder
                 'guard_name' => 'web',
                 'name' => 'location_audit_access',
             ],
+            [
+                'id'    => 102,
+                'guard_name' => 'web',
+                'name' => 'driver_tracking_access',
+            ],
+            [
+                'id'    => 103,
+                'guard_name' => 'web',
+                'name' => 'task_status_test_update',
+            ],
         ];
 
-        Permission::insert($permissions);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['id' => $permission['id']], $permission);
+        }
     }
 }

@@ -112,6 +112,12 @@
                                     <a href="{{ url('admin/tasks') }}" class="nav-link"><i class="ri-task-line"></i>
                                         @lang('translation.tasks')</a>
                                 </li>
+                                @can('driver_tracking_access')
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.driver-tracking') }}" class="nav-link"><i class="ri-map-pin-user-line"></i>
+                                        @lang('translation.driver_tracking')</a>
+                                </li>
+                                @endcan
                             </ul>
 			    @can('scheduled_task_access')
                             <ul class="nav nav-sm flex-column">

@@ -1076,11 +1076,19 @@ class DriverController extends Controller
                         ->update(['poririty' => $item['priority']]);
                 }
 
-                // 2️⃣ إعادة حساب ETA
-                // $this->recalculateDriverTasksETA($driverId);
+                // 2️⃣ إعادة حساب ETA (في الخلفية)
+                dispatch(new \App\Jobs\CalculateDriverETAJob($driverId))->afterResponse();
             });
 
             return response()->json(['success' => true]);
+    }
+
+    public function smartSortTasks(Request $request, $driverId)
+    {
+        // 1️⃣ استدعاء خوارزمية الترتيب الذكي
+        app(\App\Services\DriverRouteService::class)->smartSortTasks($driverId);
+
+        return response()->json(['success' => true]);
     }
 
     protected function recalculateDriverTasksETA($driverId)
