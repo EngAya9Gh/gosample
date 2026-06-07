@@ -28,8 +28,8 @@ class DriverTrackingController extends Controller
             abort(403, 'This page is only accessible for clients.');
         }
 
-        // Get active tasks for this client today (or all if admin)
-        $clientTasksQuery = Task::whereDate('pickup_time', today())
+        // Get active tasks for this client today or future (or all if admin)
+        $clientTasksQuery = Task::whereDate('pickup_time',  today())
             ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES']);
             
         if ($clientId) {
