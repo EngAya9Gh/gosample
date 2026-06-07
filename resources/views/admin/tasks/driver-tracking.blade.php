@@ -111,7 +111,7 @@
                                                 @if($task->estimated_arrival_time)
                                                     <p class="mb-0 fs-11 mt-1 {{ $isNext ? 'text-primary fw-medium' : 'text-muted' }}">
                                                         <i class="ri-time-line align-middle me-1"></i>
-                                                        ETA: {{ \Carbon\Carbon::parse($task->estimated_arrival_time)->format('Y-m-d h:i A') }}
+                                                        ETA: {{ \Carbon\Carbon::parse($task->estimated_arrival_time)->format(' h:i A') }}
                                                     </p>
                                                 @endif
                                             </div>
