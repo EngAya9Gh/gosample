@@ -104,14 +104,14 @@
                                                 <div class="d-flex flex-wrap gap-2 mb-0 fs-11 mt-2 text-muted">
                                                     <span><i class="ri-hashtag align-middle me-1"></i>رقم: {{ $task->id }}</span>
                                                     @if($task->pickup_time)
-                                                        <span><i class="ri-calendar-event-line align-middle me-1"></i>{{ \Carbon\Carbon::parse($task->pickup_time)->format('Y-m-d H:i') }}</span>
+                                                        <span><i class="ri-calendar-event-line align-middle me-1"></i>{{ \Carbon\Carbon::parse($task->pickup_time)->format('Y-m-d h:i A') }}</span>
                                                     @endif
                                                 </div>
                                                 
                                                 @if($task->estimated_arrival_time)
                                                     <p class="mb-0 fs-11 mt-1 {{ $isNext ? 'text-primary fw-medium' : 'text-muted' }}">
                                                         <i class="ri-time-line align-middle me-1"></i>
-                                                        ETA: {{ \Carbon\Carbon::parse($task->estimated_arrival_time)->format('h:i A') }}
+                                                        ETA: {{ \Carbon\Carbon::parse($task->estimated_arrival_time)->format('Y-m-d h:i A') }}
                                                     </p>
                                                 @endif
                                             </div>

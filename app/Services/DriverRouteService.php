@@ -127,10 +127,10 @@ class DriverRouteService
             } else {
                 $timeToPickup = $this->getTravelTime($currentLocation, $pickupPoint);
                 $timeToDropoff = $this->getTravelTime($pickupPoint, $dropoffPoint);
-                
                 $arrivalTimeAtPickup = $currentBaseTime->copy()->addSeconds($timeToPickup);
                 
-                if ($arrivalTimeAtPickup->lt($taskPickupTime)) {
+                // If the driver arrives early AND the task is on a different day, they must wait.
+                if ($arrivalTimeAtPickup->lt($taskPickupTime) && !$arrivalTimeAtPickup->isSameDay($taskPickupTime)) {
                     $arrivalTimeAtPickup = $taskPickupTime->copy();
                 }
                 
@@ -198,25 +198,27 @@ class DriverRouteService
     {
         if (!$origin || !$destination) return 0;
 
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
-                'query' => [
-                    'origins' => $origin,
-                    'destinations' => $destination,
-                    'key' => 'AIzaSyCBu_5dYX7nfDtJ1mzrsumkMmhmymoDvN0',
-                    'mode' => 'driving',
-                ]
-            ]);
+        // try {
+        //     $client = new \GuzzleHttp\Client();
+        //     $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+        //         'query' => [
+        //             'origins' => $origin,
+        //             'destinations' => $destination,
+        //             'key' => 'AIzaSyCBu_5dYX7nfDtJ1mzrsumkMmhmymoDvN0',
+        //             'mode' => 'driving',
+        //         ]
+        //     ]);
 
-            $data = json_decode($response->getBody(), true);
+        //     $data = json_decode($response->getBody(), true);
 
-            if (!empty($data['rows'][0]['elements'][0]['duration']['value'])) {
-                return $data['rows'][0]['elements'][0]['duration']['value'];
-            }
-        } catch (\Exception $e) {
-            // Fallback to Haversine
-        }
+        //     if (!empty($data['rows'][0]['elements'][0]['duration']['value'])) {
+        //         return $data['rows'][0]['elements'][0]['duration']['value'];
+        //     } else {
+        //        // \Log::warning('Google Maps returned no duration, falling back to Haversine.', ['origin' => $origin, 'destination' => $destination, 'data' => $data]);
+        //     }
+        // } catch (\Exception $e) {
+        //    // \Log::warning('Google Maps API failed, falling back to Haversine.', ['origin' => $origin, 'destination' => $destination, 'error' => $e->getMessage()]);
+        // }
 
         // --- Fallback: Haversine distance ---
         list($lat1, $lon1) = explode(',', $origin);
