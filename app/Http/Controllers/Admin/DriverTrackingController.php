@@ -39,8 +39,16 @@ class DriverTrackingController extends Controller
         $clientTasks = $clientTasksQuery->get();
         $driverIds = $clientTasks->pluck('driver_id')->unique()->filter();
 
-        // Get drivers with their car tracking
-        $drivers = Driver::with(['car.carTracking'])->whereIn('id', $driverIds)->get();
+        $driversQuery = Driver::with(['car.carTracking'])->whereIn('id', $driverIds);
+        
+        if ($request->filled('driver_name')) {
+            $driversQuery->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->driver_name . '%')
+                  ->orWhere('username', 'like', '%' . $request->driver_name . '%');
+            });
+        }
+        
+        $drivers = $driversQuery->get();
 
         $driverData = [];
 

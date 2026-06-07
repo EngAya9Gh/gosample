@@ -12,8 +12,14 @@
         @endslot
     @endcomponent
 
-    <div class="row mb-3">
-        <div class="col-12 text-end">
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-6">
+            <div class="search-box" style="max-width: 300px;">
+                <input type="text" id="driverSearchInput" class="form-control form-control-sm" placeholder="بحث فورى باسم السائق...">
+                <i class="ri-search-line search-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
             <a href="{{ route('admin.driver-tracking') }}" class="btn btn-primary btn-sm">
                 <i class="ri-refresh-line align-middle me-1"></i> @lang('translation.refresh')
             </a>
@@ -29,7 +35,7 @@
                     return !in_array($task->status, ['COLLECTED', 'CLOSED']);
                 })->count();
             @endphp
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-4 col-md-6 driver-card-container" data-driver-name="{{ strtolower($driver->name . ' ' . ($driver->english_name ?? '') . ' ' . ($driver->username ?? '')) }}">
                 <div class="card card-height-100">
                     <div class="card-header align-items-center d-flex">
                         <h4 class="card-title mb-0 flex-grow-1">
@@ -91,10 +97,16 @@
                                                     <i class="ri-map-pin-user-line align-middle text-danger me-1"></i>
                                                     <span class="fw-medium">من:</span> {{ $task->from->name ?? 'غير محدد' }}
                                                 </p>
-                                                <p class="text-muted mb-0 fs-12">
+                                                <p class="text-muted mb-1 fs-12">
                                                     <i class="ri-map-pin-fill align-middle text-success me-1"></i>
                                                     <span class="fw-medium">إلى:</span> {{ $task->to->name ?? 'غير محدد' }}
                                                 </p>
+                                                <div class="d-flex flex-wrap gap-2 mb-0 fs-11 mt-2 text-muted">
+                                                    <span><i class="ri-hashtag align-middle me-1"></i>رقم: {{ $task->id }}</span>
+                                                    @if($task->pickup_time)
+                                                        <span><i class="ri-calendar-event-line align-middle me-1"></i>{{ \Carbon\Carbon::parse($task->pickup_time)->format('Y-m-d H:i') }}</span>
+                                                    @endif
+                                                </div>
                                                 
                                                 @if($task->estimated_arrival_time)
                                                     <p class="mb-0 fs-11 mt-1 {{ $isNext ? 'text-primary fw-medium' : 'text-muted' }}">
@@ -131,4 +143,22 @@
             </div>
         @endforelse
     </div>
+@endsection
+
+@section('script')
+<script>
+    document.getElementById('driverSearchInput').addEventListener('input', function(e) {
+        let searchTerm = e.target.value.toLowerCase();
+        let cards = document.querySelectorAll('.driver-card-container');
+        
+        cards.forEach(function(card) {
+            let driverName = card.getAttribute('data-driver-name');
+            if(driverName.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+</script>
 @endsection

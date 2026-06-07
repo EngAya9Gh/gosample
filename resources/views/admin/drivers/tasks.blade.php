@@ -68,11 +68,6 @@
                                                         <i class="ri-time-line align-middle me-1"></i>
                                                         {{ $task->eta }} دقيقة
                                                     </span>
-                                                @else
-                                                    <span class="badge bg-warning-subtle text-warning px-2 py-1 fs-12">
-                                                        <i class="ri-loader-4-line align-middle me-1 fs-12" style="animation: spin 2s linear infinite;"></i>
-                                                        جاري الحساب...
-                                                    </span>
                                                 @endif
                                             </div>
                                             <div class="col-sm-1 text-sm-end">
@@ -110,7 +105,8 @@
     @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
 $(function() {
     const $list = $('#driverTasksList');
@@ -148,37 +144,69 @@ $(function() {
                 order: order
             },
             success: function() {
-                alert('✅ تم حفظ الترتيب بنجاح!');
-                $btn.html('<i class="ri-save-line align-middle me-1"></i> حفظ الترتيب الجديد');
-                // Refresh to update priorities UI
-                location.reload();
+                Swal.fire({
+                    title: 'تم الحفظ!',
+                    text: 'تم حفظ الترتيب بنجاح',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
             },
             error: function(err) {
-                alert('❌ فشل في حفظ الترتيب.');
-                $btn.prop('disabled', false).html('<i class="ri-save-line align-middle me-1"></i> حفظ الترتيب الجديد');
+                Swal.fire('خطأ!', 'فشل في حفظ الترتيب.', 'error');
+                $btn.prop('disabled', false);
             }
         });
     });
 
     $('#smartSortTasks').on('click', function() {
-        if(!confirm('هل أنت متأكد من رغبتك في إعادة ترتيب مهام هذا السائق ذكياً حسب الأقرب؟ هذا سيلغي الترتيب الحالي.')) return;
+        Swal.fire({
+            title: 'الترتيب الذكي',
+            text: "هل أنت متأكد من رغبتك في إعادة ترتيب مهام هذا السائق ذكياً حسب الأقرب؟ هذا سيلغي الترتيب الحالي.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'نعم، رتب ذكياً!',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const $btn = $('#smartSortTasks');
+                $btn.prop('disabled', true);
 
-        const $btn = $(this);
-        $btn.prop('disabled', true).html('<i class="ri-loader-4-line align-middle me-1" style="animation: spin 1s linear infinite;"></i> جاري الحساب...');
+                Swal.fire({
+                    title: 'جاري الحساب...',
+                    text: 'نظام الذكاء الاصطناعي يقوم بترتيب المهام للحصول على أقصر مسار، الرجاء الانتظار.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
 
-        $.ajax({
-            url: "{{ route('admin.drivers.tasks.smartSort', $driver->id) }}",
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
-            success: function() {
-                alert('✅ تم ترتيب المهام ذكياً بنجاح! سيتم إعادة تحميل الصفحة.');
-                location.reload();
-            },
-            error: function(err) {
-                alert('❌ فشل في الترتيب الذكي.');
-                $btn.prop('disabled', false).html('<i class="ri-magic-line align-middle me-1"></i> الترتيب الذكي للأقرب');
+                $.ajax({
+                    url: "{{ route('admin.drivers.tasks.smartSort', $driver->id) }}",
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function() {
+                        Swal.fire({
+                            title: 'نجاح!',
+                            text: 'تم ترتيب المهام ذكياً بنجاح!',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(err) {
+                        Swal.fire('خطأ!', 'فشل في الترتيب الذكي. تأكد من توفر صلاحيات أو بيانات كافية.', 'error');
+                        $btn.prop('disabled', false);
+                    }
+                });
             }
         });
     });

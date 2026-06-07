@@ -93,8 +93,8 @@ class DriverRouteService
         if ($tasks->isEmpty()) return;
 
         $currentLocation = $this->getDriverCurrentLocation($driver);
+        $currentBaseTime = Carbon::now();
         $cumulativeSeconds = 0;
-        $now = Carbon::now();
 
         foreach ($tasks as $index => $task) {
             $fromLocation = Location::find($task->from_location);
@@ -113,25 +113,34 @@ class DriverRouteService
             $pickupPoint = $fromLocation->lat . ',' . $fromLocation->lng;
             $dropoffPoint = $toLocation->lat . ',' . $toLocation->lng;
 
+            $taskPickupTime = Carbon::parse($task->pickup_time);
+
             if (in_array($task->status, ['COLLECTED', 'IN_FREEZER', 'OUT_FREEZER'])) {
-                $timeToPickup = 0;
                 $timeToDropoff = $this->getTravelTime($currentLocation, $dropoffPoint);
                 
-                $cumulativeSeconds += $timeToDropoff;
-                $cumulativeEtaMinutes = (int) ceil($cumulativeSeconds / 60);
-                $estimatedArrivalTime = $now->copy()->addSeconds($cumulativeSeconds);
+                $arrivalTimeAtDropoff = $currentBaseTime->copy()->addSeconds($timeToDropoff);
+                $estimatedArrivalTime = $arrivalTimeAtDropoff;
+                
+                $currentBaseTime = $arrivalTimeAtDropoff;
+                $cumulativeEtaMinutes = (int) ceil($currentBaseTime->diffInSeconds(Carbon::now()) / 60);
                 $individualEtaMinutes = (int) ceil($timeToDropoff / 60);
             } else {
                 $timeToPickup = $this->getTravelTime($currentLocation, $pickupPoint);
                 $timeToDropoff = $this->getTravelTime($pickupPoint, $dropoffPoint);
                 
-                $cumulativeSeconds += $timeToPickup;
-                $cumulativeEtaMinutes = (int) ceil($cumulativeSeconds / 60);
-                $estimatedArrivalTime = $now->copy()->addSeconds($cumulativeSeconds);
-                $individualEtaMinutes = (int) ceil($timeToPickup / 60);
+                $arrivalTimeAtPickup = $currentBaseTime->copy()->addSeconds($timeToPickup);
                 
-                // Add the time it takes to go from pickup to dropoff so the next task starts after dropoff
-                $cumulativeSeconds += $timeToDropoff;
+                if ($arrivalTimeAtPickup->lt($taskPickupTime)) {
+                    $arrivalTimeAtPickup = $taskPickupTime->copy();
+                }
+                
+                $estimatedArrivalTime = $arrivalTimeAtPickup;
+                
+                $arrivalTimeAtDropoff = $arrivalTimeAtPickup->copy()->addSeconds($timeToDropoff);
+                $currentBaseTime = $arrivalTimeAtDropoff;
+                
+                $cumulativeEtaMinutes = (int) ceil($currentBaseTime->diffInSeconds(Carbon::now()) / 60);
+                $individualEtaMinutes = (int) ceil($timeToPickup / 60);
             }
 
             $task->update([
