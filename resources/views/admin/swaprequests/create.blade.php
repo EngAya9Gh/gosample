@@ -153,7 +153,7 @@
                             if (taskCount > 0) {
                                 $.each(response.data, function (index, item) {
                                     $tasks.append(
-                                        '<option value="' + item.id + '">' + item.id + ' ' + item.from.name + '</option>'
+                                        '<option value="' + item.id + '">' + item.id + ' ' + item.from.name + ' - (' + item.status + ')</option>'
                                     );
                                 });
                                 // Tell Select2 the underlying options changed

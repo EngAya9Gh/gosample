@@ -21,7 +21,7 @@
                 <i class="ri-edit-2-fill"></i>
             </a>
         @endcan
-        @can('can-delete')
+        @can($deleteGate)
             <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
                 onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                 <input type="hidden" name="_method" value="DELETE">
@@ -51,7 +51,7 @@
                         {{ trans('global.edit') }}</a>
                 </li>
             @endcan
-            @can('can-delete')
+            @can($deleteGate)
                 <li>
                     <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
                         onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">

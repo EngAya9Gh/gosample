@@ -63,6 +63,7 @@ class SwapController extends Controller
          ->leftJoin('shipment','shipment.task_id','=','tasks.id')
         ->where('tasks.driver_id',$request->driver_id)
         ->where('tasks.status','<>','CLOSED')
+        ->where('tasks.status','<>','NEW')
             ->select('tasks.*','shipment.dropoff_otp')->get();
 
          return $this->response(true,'success',$tasks);
@@ -87,18 +88,11 @@ class SwapController extends Controller
                     return $this->response(false,'invalid driver');
                 }
 
-                 // Calculate the start and end of the current day
-                $startOfDay = now()->startOfDay();
-                $endOfDay = now()->endOfDay();
-
                 $swaps = Swap::where('driver_id',$request->driver_id)
                 ->where('status','new')
                 ->with('task')
                 ->with('task.driver')
                 ->with('task.samples')
-                ->whereHas('task', function ($query) use ($startOfDay, $endOfDay) {
-                    $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
-                })
                 ->get();
 
 
@@ -142,18 +136,11 @@ class SwapController extends Controller
                     return $this->response(false,'invalid driver');
                 }
 
-                // Calculate the start and end of the current day
-                $startOfDay = now()->startOfDay();
-                $endOfDay = now()->endOfDay();
-
                 $swaps = Swap::where('driver_id',$request->driver_id)
                     ->where('status','new')
                     ->with('task')
                     ->with('task.driver')
                     ->with('task.samples')
-                    ->whereHas('task', function ($query) use ($startOfDay, $endOfDay) {
-                        $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
-                    })
                     ->get();
                 $groupedSwaps = $swaps->groupBy(function ($swap) {
                     return $swap->driver_a;
