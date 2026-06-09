@@ -84,6 +84,7 @@
 @endsection
 @section('scripts')
     @parent
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
@@ -94,37 +95,69 @@
                     url: "{{ route('admin.swaprequests.massDestroy') }}",
                     className: 'btn-danger',
                     action: function(e, dt, node, config) {
-                        var ids = $.map(dt.rows({
-                            selected: true
-                        }).data(), function(entry) {
-                            return entry.id
+                        var selectedData = dt.rows('.selected').data().toArray();
+                        
+                        if (selectedData.length === 0) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ trans('global.datatables.zero_selected') }}',
+                                text: 'Please select at least one row by checking the checkbox in the first column.',
+                                showConfirmButton: true,
+                            });
+                            return;
+                        }
+
+                        var ids = selectedData.map(function(entry) { return entry.id; });
+                        var taskIds = selectedData.map(function(entry) { return entry.task_id; });
+                        
+                        var displayTasks = taskIds.slice(0, 10).join(' - ');
+                        if (taskIds.length > 10) {
+                            displayTasks += ' ... and ' + (taskIds.length - 10) + ' more';
+                        }
+
+                        Swal.fire({
+                            title: '{{ trans('global.areYouSure') }}',
+                            html: 'Are you sure you want to delete the swap requests for the following Tasks?<br><br><b style="color:#d33;">' + displayTasks + '</b>',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete them!',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajax({
+                                        headers: {
+                                            'x-csrf-token': _token
+                                        },
+                                        method: 'POST',
+                                        url: config.url,
+                                        data: {
+                                            ids: ids,
+                                            _method: 'DELETE'
+                                        }
+                                    })
+                                    .done(function() {
+                                        Swal.fire(
+                                            'Deleted!',
+                                            'The selected swap requests have been deleted.',
+                                            'success'
+                                        ).then(() => {
+                                            location.reload();
+                                        });
+                                    })
+                                    .fail(function() {
+                                        Swal.fire(
+                                            'Error!',
+                                            'An error occurred while deleting the requests.',
+                                            'error'
+                                        );
+                                    });
+                            }
                         });
-
-                        if (ids.length === 0) {
-                            alert('{{ trans('global.datatables.zero_selected') }}')
-
-                            return
-                        }
-
-                        if (confirm('{{ trans('global.areYouSure') }}')) {
-                            $.ajax({
-                                    headers: {
-                                        'x-csrf-token': _token
-                                    },
-                                    method: 'POST',
-                                    url: config.url,
-                                    data: {
-                                        ids: ids,
-                                        _method: 'DELETE'
-                                    }
-                                })
-                                .done(function() {
-                                    location.reload()
-                                })
-                        }
                     }
                 }
-                // dtButtons.push(deleteButton)
+                dtButtons.push(deleteButton)
             @endcan
 
             let dtOverrideGlobals = {
@@ -133,6 +166,22 @@
                 serverSide: true,
                 retrieve: true,
                 aaSorting: [],
+                select: {
+                    style: 'multi+shift',
+                    selector: 'td:first-child'
+                },
+                columnDefs: [
+                    {
+                        orderable: false,
+                        className: 'select-checkbox',
+                        targets: 0
+                    },
+                    {
+                        orderable: false,
+                        searchable: false,
+                        targets: -1
+                    }
+                ],
                 // ajax: "{{ route('admin.swaprequests.index') }}",
 
                 ajax: {
