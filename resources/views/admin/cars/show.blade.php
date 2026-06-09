@@ -139,7 +139,7 @@
     </div>
 
 
-    {{-- <div class="card">
+    <div class="card">
         <ul class="nav nav-pills nav-justified mb-3" role="tablist">
 
             <li class="nav-item">
@@ -157,6 +157,11 @@
                     {{ trans('translation.carTracking') }}
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#car_delivery_photos" role="tab" data-toggle="tab">
+                    Delivery Photos (Images & Signature)
+                </a>
+            </li>
 
         </ul>
 
@@ -172,8 +177,31 @@
             <div class="tab-pane" role="tabpanel" id="carTracking">
                 @includeIf('admin.cars.relationships.carTracking', ['carTracking' => $car->carTracking])
             </div>
+            <div class="tab-pane active" role="tabpanel" id="car_delivery_photos">
+                <div class="row p-3">
+                    @php
+                        $directions = ['signature', 'image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'];
+                    @endphp
+                    @foreach($directions as $dir)
+                        @if($car->hasMedia($dir))
+                            @php
+                                $media = $car->firstMedia($dir);
+                                $url = ltrim($media->getUrl(), '/');
+                                if (!preg_match('/^https?:\/\//', $url)) {
+                                    $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
+                                }
+                            @endphp
+                            <div class="col-md-3 mb-4 text-center">
+                                <h5>{{ ucfirst(str_replace('_', ' ', $dir)) }}</h5>
+                                <a href="{{ $url }}" target="_blank">
+                                    <img src="{{ $url }}" class="img-fluid img-thumbnail" style="height: 150px; object-fit: cover;" alt="{{ $dir }}">
+                                </a>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
         </div>
 
-
-    </div> --}}
+    </div>
 @endsection
