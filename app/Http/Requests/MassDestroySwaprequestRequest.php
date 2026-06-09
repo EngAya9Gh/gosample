@@ -19,7 +19,7 @@ class MassDestroySwaprequestRequest extends FormRequest
     {
         return [
             'ids'   => 'required|array',
-            'ids.*' => 'exists:swaprequests,id',
+            'ids.*' => 'exists:swap_requests,id',
         ];
     }
 }
