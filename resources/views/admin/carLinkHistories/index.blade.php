@@ -1,14 +1,6 @@
-@extends('layouts.admin')
+@extends('layouts.master')
 @section('content')
-@can('car_link_history_create')
-    <div style="margin-bottom: 10px;" class="row">
-        <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route('admin.car-link-histories.create') }}">
-                {{ trans('translation.add') }} {{ trans('cruds.carLinkHistory.title_singular') }}
-            </a>
-        </div>
-    </div>
-@endcan
+
 <div class="card">
     <div class="card-header">
         {{ trans('cruds.carLinkHistory.title_singular') }} {{ trans('translation.list') }}
@@ -65,21 +57,7 @@
                                         </a>
                                     @endcan
 
-                                    @can('car_link_history_edit')
-                                        <a class="btn btn-soft-primary btn-sm" href="{{ route('admin.car-link-histories.edit', $carLinkHistory->id) }}" title="{{ trans('translation.edit') }}">
-                                            <i class="ri-edit-2-fill"></i>
-                                        </a>
-                                    @endcan
 
-                                    @can('can-delete')
-                                        <form action="{{ route('admin.car-link-histories.destroy', $carLinkHistory->id) }}" method="POST" onsubmit="return confirm('{{ trans('translation.areYouSure') }}');" style="display: inline-block;">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('translation.delete') }}">
-                                                <i class="ri-delete-bin-fill"></i>
-                                            </button>
-                                        </form>
-                                    @endcan
                                 </div>
                             </td>
 
@@ -99,35 +77,7 @@
 <script>
     $(function () {
   let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-@can('can-delete')
-  let deleteButtonTrans = '{{ trans('translation.datatables.delete') }}'
-  let deleteButton = {
-    text: deleteButtonTrans,
-    url: "{{ route('admin.car-link-histories.massDestroy') }}",
-    className: 'btn-danger',
-    action: function (e, dt, node, config) {
-      var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
-          return $(entry).data('entry-id')
-      });
 
-      if (ids.length === 0) {
-        alert('{{ trans('translation.datatables.zero_selected') }}')
-
-        return
-      }
-
-      if (confirm('{{ trans('translation.areYouSure') }}')) {
-        $.ajax({
-          headers: {'x-csrf-token': _token},
-          method: 'POST',
-          url: config.url,
-          data: { ids: ids, _method: 'DELETE' }})
-          .done(function () { location.reload() })
-      }
-    }
-  }
-  dtButtons.push(deleteButton)
-@endcan
 
   $.extend(true, $.fn.dataTable.defaults, {
     orderCellsTop: true,

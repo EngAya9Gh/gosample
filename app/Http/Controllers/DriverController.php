@@ -777,7 +777,10 @@ class DriverController extends Controller
     public function uploadPhotos(Request $request)
     {
         try {
-            $data = $request->only(['driver_id','images','signature','car_id']);
+            $data = $request->only([
+                'driver_id', 'car_id', 'images', 'signature',
+                'image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'
+            ]);
             $rules = [
                 'driver_id'   => 'required',
                 'car_id'      => 'required',
@@ -806,7 +809,7 @@ class DriverController extends Controller
                         ->toDestination('uploads', 'signature-car-images')
                         ->useHashForFilename()
                         ->upload();
-                    $car->attachMedia($media, 'signature');
+                    $car->syncMedia($media, 'signature');
                 }
 
                 $directions = ['image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'];
@@ -816,19 +819,23 @@ class DriverController extends Controller
                             ->toDestination('uploads', 'car-images')
                             ->useHashForFilename()
                             ->upload();
-                        $car->attachMedia($media, $dir);
+                        $car->syncMedia($media, $dir);
                     }
                 }
 
                 // Fallback for old multi-image upload
                 if ($request->hasFile('images')) {
                     $images = is_array($request->file('images')) ? $request->file('images') : [$request->file('images')];
+                    $mediaCollection = [];
                     foreach ($images as $image) {
                         $media = \MediaUploader::fromSource($image)
                             ->toDestination('uploads', 'car-images')
                             ->useHashForFilename()
                             ->upload();
-                        $car->attachMedia($media, 'images');
+                        $mediaCollection[] = $media;
+                    }
+                    if (count($mediaCollection) > 0) {
+                        $car->syncMedia($mediaCollection, 'images');
                     }
                 }
 

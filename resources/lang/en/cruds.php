@@ -472,6 +472,12 @@ return [
     'carLinkHistory' => [
         'title'          => 'Car Link History',
         'title_singular' => 'Car Link History',
+        'fields'         => [
+            'id'     => 'ID',
+            'driver' => 'Driver',
+            'car'    => 'Car',
+            'action' => 'Action',
+        ],
     ],
     'swaprequest' => [
         'title'          => 'Swap Requests',

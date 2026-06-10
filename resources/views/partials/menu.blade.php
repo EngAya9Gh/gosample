@@ -77,6 +77,16 @@
                 </a>
             </li>
         @endcan
+        @can('car_link_history_access')
+            <li class="c-sidebar-nav-item">
+                <a href="{{ route("admin.car-link-histories.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/car-link-histories") || request()->is("admin/car-link-histories/*") ? "c-active" : "" }}">
+                    <i class="fa-fw fas fa-history c-sidebar-nav-icon">
+
+                    </i>
+                    {{ trans('cruds.carLinkHistory.title') }}
+                </a>
+            </li>
+        @endcan
         @can('car_access')
             <li class="c-sidebar-nav-item">
                 <a href="{{ route("admin.cars.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/cars") || request()->is("admin/cars/*") ? "c-active" : "" }}">
@@ -133,16 +143,7 @@
                 </a>
             </li>
         @endcan
-        @can('car_link_history_access')
-            <li class="c-sidebar-nav-item">
-                <a href="{{ route("admin.car-link-histories.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/car-link-histories") || request()->is("admin/car-link-histories/*") ? "c-active" : "" }}">
-                    <i class="fa-fw fas fa-cogs c-sidebar-nav-icon">
 
-                    </i>
-                    {{ trans('cruds.carLinkHistory.title') }}
-                </a>
-            </li>
-        @endcan
         @can('client_access')
             <li class="c-sidebar-nav-item">
                 <a href="{{ route("admin.clients.index") }}" class="c-sidebar-nav-link {{ request()->is("admin/clients") || request()->is("admin/clients/*") ? "c-active" : "" }}">
