@@ -142,6 +142,8 @@ class CarsController extends Controller
     public function update(UpdateCarRequest $request, $id)
     {
         $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
+        $oldDriverId = $car->driver_id;
+        $newDriverId = $request->driver_id;
 
         $existing = Car::withoutGlobalScope('enabled')->withTrashed()
             ->where('imei', $request->imei)
@@ -154,6 +156,32 @@ class CarsController extends Controller
         }
 
         $car->update($request->all());
+
+        if ($oldDriverId != $newDriverId) {
+            $message = '';
+            if ($oldDriverId) {
+                \App\Models\CarLinkHistory::create([
+                    'car_id' => $car->id,
+                    'driver_id' => $oldDriverId,
+                    'action' => 2 // 2 = Unlink
+                ]);
+                $oldDriver = \App\Models\Driver::find($oldDriverId);
+                $oldDriverName = $oldDriver ? $oldDriver->name : 'غير معروف';
+                $message .= 'تم فصل الارتباط تلقائياً عن السائق السابق: (' . $oldDriverName . '). ';
+            }
+            if ($newDriverId) {
+                \App\Models\CarLinkHistory::create([
+                    'car_id' => $car->id,
+                    'driver_id' => $newDriverId,
+                    'action' => 1 // 1 = Link
+                ]);
+                $message .= 'تم ربط السيارة بالسائق الجديد بنجاح.';
+            }
+
+            if ($message) {
+                return redirect()->route('admin.cars.index')->with('success', $message);
+            }
+        }
 
         return redirect()->route('admin.cars.index');
     }
