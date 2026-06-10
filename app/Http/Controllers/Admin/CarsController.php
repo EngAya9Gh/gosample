@@ -163,7 +163,7 @@ class CarsController extends Controller
                 \App\Models\CarLinkHistory::create([
                     'car_id' => $car->id,
                     'driver_id' => $oldDriverId,
-                    'action' => 2 // 2 = Unlink
+                    'action' => 'unlinked'
                 ]);
                 $oldDriver = \App\Models\Driver::find($oldDriverId);
                 $oldDriverName = $oldDriver ? $oldDriver->name : 'غير معروف';
@@ -173,7 +173,7 @@ class CarsController extends Controller
                 \App\Models\CarLinkHistory::create([
                     'car_id' => $car->id,
                     'driver_id' => $newDriverId,
-                    'action' => 1 // 1 = Link
+                    'action' => 'linked'
                 ]);
                 $message .= 'تم ربط السيارة بالسائق الجديد بنجاح.';
             }

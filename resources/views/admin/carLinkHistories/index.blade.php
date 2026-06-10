@@ -27,6 +27,9 @@
                             {{ trans('cruds.carLinkHistory.fields.action') }}
                         </th>
                         <th>
+                            {{ trans('cruds.carLinkHistory.fields.created_at') ?? 'Date' }}
+                        </th>
+                        <th>
                             &nbsp;
                         </th>
                     </tr>
@@ -47,7 +50,10 @@
                                 {{ $carLinkHistory->car->imei ?? '' }}
                             </td>
                             <td>
-                                {{ App\Models\CarLinkHistory::ACTION_SELECT[$carLinkHistory->action] ?? '' }}
+                                {{ App\Models\CarLinkHistory::ACTION_SELECT[$carLinkHistory->action] ?? $carLinkHistory->action }}
+                            </td>
+                            <td>
+                                {{ $carLinkHistory->created_at ?? '' }}
                             </td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center">
