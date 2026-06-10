@@ -227,6 +227,14 @@
                                     </li>
                                 </ul>
                             @endcan
+                            @can('car_link_history_access')
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ url('admin/car-link-histories') }}" class="nav-link"><i class="ri-history-line"></i>
+                                            @lang('cruds.carLinkHistory.title')</a>
+                                    </li>
+                                </ul>
+                            @endcan
                             @can('container_access')
                                 <ul class="nav nav-sm flex-column">
                                     <li class="nav-item">

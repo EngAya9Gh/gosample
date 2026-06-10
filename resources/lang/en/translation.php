@@ -118,6 +118,7 @@ return [
     "attendance.fields.checkin_time"=>"Checkin Time",
     "attendance.fields.checkout_time"=>"Checkout Time",
 
+    "carLinkHistory"=>"Car Link History",
     "carLinkHistory.fields.id"=>"Id",
     "carLinkHistory.fields.driver"=>"Driver",
     "carLinkHistory.fields.car"=>"Car",
