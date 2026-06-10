@@ -863,10 +863,7 @@ class DriverController extends Controller
                 foreach ($directions as $dir) {
                     $media = $car->firstMedia($dir);
                     if ($media) {
-                        $url = ltrim($media->getUrl(), '/');
-                        if (!preg_match('/^https?:\/\//', $url)) {
-                            $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
-                        }
+                        $url = asset($media->getDiskPath());
                         $images[$dir] = [
                             'id' => $media->id,
                             'url' => $url
@@ -878,10 +875,7 @@ class DriverController extends Controller
                 $oldImages = [];
                 $carImages = $car->getMedia('images');
                 foreach ($carImages as $media) {
-                    $url = ltrim($media->getUrl(), '/');
-                    if (!preg_match('/^https?:\/\//', $url)) {
-                        $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
-                    }
+                    $url = asset($media->getDiskPath());
                     $oldImages[] = [
                         'id' => $media->id,
                         'url' => $url
@@ -895,10 +889,7 @@ class DriverController extends Controller
                 $signature = null;
                 $carSignature = $car->firstMedia('signature');
                 if ($carSignature) {
-                    $url = ltrim($carSignature->getUrl(), '/');
-                    if (!preg_match('/^https?:\/\//', $url)) {
-                        $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
-                    }
+                    $url = asset($carSignature->getDiskPath());
                     $signature = [
                         'id' => $carSignature->id,
                         'url' => $url

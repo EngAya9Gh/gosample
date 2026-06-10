@@ -469,6 +469,10 @@ return [
             'deleted_at_helper'     => ' ',
         ],
     ],
+    'carLinkHistory' => [
+        'title'          => 'Car Link History',
+        'title_singular' => 'Car Link History',
+    ],
     'swaprequest' => [
         'title'          => 'Swap Requests',
         'title_singular' => 'Swap Request',

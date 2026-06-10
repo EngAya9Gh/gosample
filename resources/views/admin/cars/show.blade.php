@@ -186,10 +186,7 @@
                         @if($car->hasMedia($dir))
                             @php
                                 $media = $car->firstMedia($dir);
-                                $url = ltrim($media->getUrl(), '/');
-                                if (!preg_match('/^https?:\/\//', $url)) {
-                                    $url = rtrim(env('APP_URL', url('/')), '/') . '/' . $url;
-                                }
+                                $url = asset($media->getDiskPath());
                             @endphp
                             <div class="col-md-3 mb-4 text-center">
                                 <h5>{{ ucfirst(str_replace('_', ' ', $dir)) }}</h5>
