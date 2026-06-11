@@ -159,6 +159,28 @@ class CarsController extends Controller
 
         if ($oldDriverId != $newDriverId) {
             $message = '';
+
+            if ($newDriverId) {
+                $previousCars = Car::withoutGlobalScope('enabled')
+                    ->where('driver_id', $newDriverId)
+                    ->where('id', '!=', $car->id)
+                    ->get();
+
+                foreach ($previousCars as $prevCar) {
+                    $prevCar->driver_id = null;
+                    $prevCar->save();
+
+                    \App\Models\CarLinkHistory::create([
+                        'car_id' => $prevCar->id,
+                        'driver_id' => $newDriverId,
+                        'action' => 'unlinked'
+                    ]);
+
+                    $identifier = $prevCar->imei ?? $prevCar->plate_number ?? $prevCar->id;
+                    $message .= "تم فصل ارتباط السائق بسيارته السابقة ($identifier) تلقائياً. ";
+                }
+            }
+
             if ($oldDriverId) {
                 \App\Models\CarLinkHistory::create([
                     'car_id' => $car->id,
