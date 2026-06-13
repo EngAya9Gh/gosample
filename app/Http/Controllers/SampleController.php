@@ -2247,11 +2247,31 @@ class SampleController extends Controller
 
     public function startTaskByDriver(Request $request)
     {
+        $data = $request->only(['task_id','driver_id','lat','lng']);
+        $rules = [
+            'task_id'   => 'required',
+            'driver_id' => 'required',
+            'lat'       => 'required',
+            'lng'       => 'required',
+        ];
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->response(false,$this->validationHandle($validator->messages()));
+        }
+
         $task = Task::find($request->task_id);
         if($task == null)
         {
             return $this->response(false,'task not found');
         }
+
+        if ($task->from) {
+            $distance = parent::distance($request->lat, $request->lng, $task->from->lat, $task->from->lng, "K");
+            if ($distance > 0.5) {
+                return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع. يرجى الاقتراب أولاً.');
+            }
+        }
+
         $task->driver_start_date = now();
         $task->save();
 
@@ -2284,6 +2304,14 @@ class SampleController extends Controller
                 {
                     return $this->response(false,'task not found');
                 }
+
+                if ($task->from) {
+                    $distance = parent::distance($request->lat, $request->lng, $task->from->lat, $task->from->lng, "K");
+                    if ($distance > 0.5) {
+                        return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع.');
+                    }
+                }
+
                 // Perform the task confirmation logic here
                 $task->driver_confirm_from_location = true;
                 $task->from_location_confirmation_timestamp = now();
@@ -2317,6 +2345,14 @@ class SampleController extends Controller
                     if ($task == null) {
                         return $this->response(false, 'Task not found for ID ' . $task_id);
                     }
+
+                    if ($task->to) {
+                        $distance = parent::distance($request->lat, $request->lng, $task->to->lat, $task->to->lng, "K");
+                        if ($distance > 0.5) {
+                            return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع لمهمة رقم ' . $task_id);
+                        }
+                    }
+
                     // Perform the task confirmation logic here for each task
                     $task->driver_confirm_to_location = true;
                     $task->to_location_confirmation_timestamp = now();
