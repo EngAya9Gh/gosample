@@ -608,7 +608,7 @@ class SampleController extends Controller
     public function closeTasks(Request $request)
     {
         try {
-            $data = $request->only(['tasks','deliver_signature','deliver_confirmationCode']);
+            $data = $request->only(['tasks','deliver_signature','deliver_confirmationCode', 'lat', 'lng']);
             $rules = [
                 'tasks'   => 'required',
 //                'deliver_signature'   => 'required',
@@ -622,19 +622,7 @@ class SampleController extends Controller
 
                 $deliver_signature = '';
                 $deliver_confirmationCode = '';
-                // if($request->deliver_signature != null){
-                //     $media = MediaUploader::fromSource($request->file('deliver_signature'))
-                //         ->toDestination('uploads', 'signature-images')
-                //         ->useHashForFilename()
-                //         ->upload();
-
-                //     $deliver_signature = '/'.$media->directory .'/'.$media->filename.'.'.$media->extension;
-                // }
-                // if($request->deliver_confirmationCode != null)
-                // {
-                //     // we have to compare here
-                //     $deliver_confirmationCode = $request->deliver_confirmationCode;
-                // }
+                
                 // check tasks
                 $tasks = Task::whereIn('id',$tasksParam)->with(['driver', 'from', 'to'])->get();
                 if($tasks->isEmpty())
@@ -643,8 +631,8 @@ class SampleController extends Controller
                 } else {
                     $ldate = date('Y-m-d H:i:s');
                     $driver = $tasks->first()->driver;
-                    $lat = $driver->lat;
-                    $lng = $driver->lng;
+                    $lat = $request->lat ?? $driver->lat;
+                    $lng = $request->lng ?? $driver->lng;
 
                     // Update attendance once for the driver
                     $attendance = Attendance::where('driver_id', $driver->id)
