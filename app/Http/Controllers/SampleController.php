@@ -192,7 +192,7 @@ class SampleController extends Controller
     public function collect(Request $request)
     {
         try {
-            $data = $request->only(['task_id','image','confirmationCode','box_count','sample_count']);
+            $data = $request->only(['task_id','image','confirmationCode','box_count','sample_count', 'lat', 'lng']);
             $rules = [
                 'task_id'   => 'required',
 //                'image'   => 'required',
@@ -237,8 +237,8 @@ class SampleController extends Controller
                     // get driver
                     $driver = $task->driver;
                     // save location of driver
-                    $lat = $driver->lat;
-                    $lng = $driver->lng;
+                    $lat = $request->lat ?? $driver->lat;
+                    $lng = $request->lng ?? $driver->lng;
                     $from_location = $task->from;
                     $distance = parent::distance($lat, $lng, $from_location->lat, $from_location->lng, "K");
                     // if($driver->id != 54)
