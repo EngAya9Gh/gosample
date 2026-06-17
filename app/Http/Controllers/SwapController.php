@@ -224,6 +224,17 @@ class SwapController extends Controller
                     $data->driver_request = $driver_from;
                     $data->driver_name = $driver_from->name ?? '';
 
+                    $firstSwap = $group->first();
+                    if ($firstSwap && $firstSwap->task) {
+                        $data->from_location_name = $firstSwap->task->from_location_name ?? '';
+                        $data->to_location_name = $firstSwap->task->to_location_name ?? '';
+                        $data->task_status = $firstSwap->task->status ?? '';
+                    } else {
+                        $data->from_location_name = '';
+                        $data->to_location_name = '';
+                        $data->task_status = '';
+                    }
+
                     $allData[] = $data;
                 }
                 \Log::info($allData);
