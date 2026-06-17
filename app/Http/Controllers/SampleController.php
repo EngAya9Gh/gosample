@@ -1379,15 +1379,41 @@ class SampleController extends Controller
             if ($validator->fails()) {
                 return $this->response(false,$this->validationHandle($validator->messages()));
             } else {
-                // check task
-                $task = Task::find($request->task_id);
-                if($task == null)
+                $taskIds = is_array($request->task_id) ? $request->task_id : [$request->task_id];
+                
+                // check tasks
+                $tasksCount = Task::whereIn('id', $taskIds)->count();
+                if($tasksCount == 0)
                 {
                     return $this->response(false,'task is not found');
                 }
 
-                Sample::where('task_id',$request->task_id)->where('container_id',$request->container_id)->where('bag_code',$request->bag_code)->update(['container_id'=> null]);
-                return $this->response(true,'success');
+                $bagCodes = is_array($request->bag_code) ? $request->bag_code : [$request->bag_code];
+
+                // Find which bags actually exist in the container
+                $existingBags = Sample::whereIn('task_id', $taskIds)
+                    ->where('container_id', $request->container_id)
+                    ->whereIn('bag_code', $bagCodes)
+                    ->pluck('bag_code')
+                    ->toArray();
+
+                // Failed bags are the ones requested but not found
+                $failedBags = array_values(array_diff($bagCodes, $existingBags));
+
+                // Update only the existing bags
+                if (!empty($existingBags)) {
+                    Sample::whereIn('task_id', $taskIds)
+                        ->where('container_id', $request->container_id)
+                        ->whereIn('bag_code', $existingBags)
+                        ->update(['container_id'=> null]);
+                }
+
+                $responseData = [
+                    'removed_bags' => $existingBags,
+                    'failed_bags' => $failedBags
+                ];
+
+                return $this->response(true,'success', $responseData);
             }
         } catch (Exception $e) {
             return $this->response(false,'system error');
