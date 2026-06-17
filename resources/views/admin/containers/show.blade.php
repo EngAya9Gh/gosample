@@ -86,6 +86,34 @@
                         Print Barcode</button>
 
                 </div>
+
+                @can('view_bag_container_details')
+                @if(isset($bags) && count($bags) > 0)
+                <div class="mt-5">
+                    <h4>Bags in this Container</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Bag Code</th>
+                                <th>Total Samples</th>
+                                <th>Sample Type</th>
+                                <th>Temperature Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($bags as $key => $bag)
+                                <tr>
+                                    <td>{{ $key }}</td>
+                                    <td>{{ count($bag) }}</td>
+                                    <td>{{ $bag[0]->sample_type ?? '' }}</td>
+                                    <td>{{ $bag[0]->temperature_type ?? '' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+                @endcan
             </div>
         </div>
     </div>

@@ -357,10 +357,10 @@
                                             <div class="col-2 textContent">
                                                 <h5>Bag Code</h5>
                                             </div>
-                                            <div class="col-2 textContent">
+                                            <div class="col-1 textContent">
                                                 <h5>BAGS #</h5>
                                             </div>
-                                            <div class="col-4 textContent">
+                                            <div class="col-3 textContent">
                                                 <h5>SAMPLE #</h5>
                                             </div>
                                             <div class="col-2 textContent">
@@ -369,14 +369,19 @@
                                             <div class="col-2 textContent">
                                                 <h5>TEMPERATURE</h5>
                                             </div>
+                                            @can('view_bag_container_details')
+                                            <div class="col-2 textContent">
+                                                <h5>CONTAINER</h5>
+                                            </div>
+                                            @endcan
                                             @foreach ($bags as $key => $bag)
                                                 <div class="col-2 textContent">
                                                     <p>{{ $key }}</p>
                                                 </div>
-                                                <div class="col-2 textContent">
+                                                <div class="col-1 textContent">
                                                     <p>{{ $loop->iteration }}</p>
                                                 </div>
-                                                <div class="col-4 textContent">
+                                                <div class="col-3 textContent">
                                                     <p>
                                                         {{ count($bag) }}
                                                         @foreach ($bag as $sample)
@@ -434,6 +439,11 @@
                                                         @endif
                                                     </p>
                                                 </div>
+                                                @can('view_bag_container_details')
+                                                <div class="col-2 textContent">
+                                                    <p>{{ $bag[0]->container ? $bag[0]->container->id . ' - ' . App\Models\Container::TYPE_SELECT[$bag[0]->container->type] : 'N/A' }}</p>
+                                                </div>
+                                                @endcan
                                             @endforeach
                                         </div>
                                     </div>
