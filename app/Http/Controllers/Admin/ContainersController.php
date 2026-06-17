@@ -63,7 +63,13 @@ class ContainersController extends Controller
 
         $container->load('car');
 
-        return view('admin.containers.show', compact('container'));
+        $bags = collect();
+        if (Gate::allows('view_bag_container_details')) {
+            $samples = \App\Models\Sample::where('container_id', $container->id)->get();
+            $bags = $samples->groupBy('bag_code');
+        }
+
+        return view('admin.containers.show', compact('container', 'bags'));
     }
 
     public function destroy(Container $container)

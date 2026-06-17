@@ -2253,7 +2253,7 @@ class TasksController extends Controller
         abort_if(Gate::denies('task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $task->load('from', 'to', 'client', 'driver', 'car');
-        $bags = Sample::where('task_id',$task->id)->get()->groupBy('bag_code');
+        $bags = Sample::with('container')->where('task_id',$task->id)->get()->groupBy('bag_code');
         $bag_count = Sample::where('task_id',$task->id)->distinct('bag_code')->count('bag_code');
         $sample_count = Sample::where('task_id',$task->id)->count();
 	 $carTracking = DB::table('car_tracking')
@@ -2287,7 +2287,7 @@ $temp3 = $temperatureReadings->pluck('temp7');
         abort_if(Gate::denies('task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $task = Task::where('id', $id)->first();
         $task->load('from', 'to', 'client', 'driver', 'car');
-        $bags = Sample::where('task_id',$task->id)->get()->groupBy('bag_code');
+        $bags = Sample::with('container')->where('task_id',$task->id)->get()->groupBy('bag_code');
         $bag_count = Sample::where('task_id',$task->id)->distinct('bag_code')->count('bag_code');
         $sample_count = Sample::where('task_id',$task->id)->count();
 	 $carTracking = DB::table('car_tracking')
