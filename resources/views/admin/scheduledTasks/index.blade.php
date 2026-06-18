@@ -264,23 +264,23 @@
                         if (ids.length === 0) {
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'تنبيه',
+                                title: '{{ trans('global.areYouSure') }}',
                                 text: '{{ trans('global.datatables.zero_selected') }}',
                                 confirmButtonColor: '#3085d6',
-                                confirmButtonText: 'حسناً'
+                                confirmButtonText: '{{ trans('global.yes') }}'
                             });
                             return;
                         }
 
                         Swal.fire({
-                            title: 'تأكيد الحذف',
-                            html: 'أنت على وشك حذف المهام بالأرقام المعرفة التالية:<br><strong style="color:red;">' + ids.join(' ، ') + '</strong><br><br>هل أنت متأكد من المتابعة؟',
+                            title: '{{ trans('global.areYouSure') }}',
+                            html: '{{ trans('global.areYouSure') }}<br><strong style="color:red;">' + ids.join(' , ') + '</strong>',
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: '#d33',
                             cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'نعم، قم بالحذف!',
-                            cancelButtonText: 'إلغاء'
+                            confirmButtonText: '{{ trans('global.yes') }}',
+                            cancelButtonText: '{{ trans('global.cancel') }}'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 $.ajax({
@@ -296,8 +296,8 @@
                                 })
                                 .done(function() {
                                     Swal.fire(
-                                        'تم الحذف!',
-                                        'تمت عملية الحذف بنجاح.',
+                                        '{{ trans('global.delete_success') }}',
+                                        '',
                                         'success'
                                     ).then(() => {
                                         location.reload();
@@ -305,8 +305,8 @@
                                 })
                                 .fail(function(xhr) {
                                     Swal.fire(
-                                        'خطأ!',
-                                        'حدث خطأ أثناء محاولة الحذف. يرجى التأكد من الصلاحيات.',
+                                        '{{ trans('global.whoops') }}',
+                                        '{{ trans('global.there_were_problems_with_input') }}',
                                         'error'
                                     );
                                 });
@@ -318,14 +318,14 @@
             @endcan
 
             let selectAllButton = {
-                text: 'تحديد الكل',
+                text: '{{ trans('global.select_all') }}',
                 className: 'btn-primary',
                 action: function(e, dt, node, config) {
                     dt.rows({ page: 'current' }).nodes().to$().addClass('selected');
                 }
             };
             let selectNoneButton = {
-                text: 'إلغاء تحديد الكل',
+                text: '{{ trans('global.deselect_all') }}',
                 className: 'btn-primary',
                 action: function(e, dt, node, config) {
                     dt.rows({ page: 'current' }).nodes().to$().removeClass('selected');
