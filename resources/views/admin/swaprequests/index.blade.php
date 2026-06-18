@@ -211,7 +211,7 @@
                     },
                     {
                         data: 'driverA',
-                        name: 'driverA'
+                        name: 'driverA.name'
                     },
                     {
                         data: 'driver_name',
