@@ -154,10 +154,10 @@ class SwaprequestController extends Controller
     {
         abort_if(Gate::denies('swaprequest_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $tasks = Task::pluck('id', 'id')
-        ->where('status','<>','NO_SAMPLES')->where('status','<>','CLOSED')
-        // ->where('created_at', '>=', Carbon::now()->subWeek())
-        ->prepend(trans('translation.pleaseSelect'), '');
+        $tasks = [];
+        if ($swaprequest->task_id) {
+            $tasks[$swaprequest->task_id] = $swaprequest->task_id;
+        }
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
