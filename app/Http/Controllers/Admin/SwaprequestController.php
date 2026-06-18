@@ -21,7 +21,7 @@ class SwaprequestController extends Controller
         abort_if(Gate::denies('swaprequest_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Swap::with(['task', 'driver'])->select(sprintf('%s.*', (new Swap)->table));
+            $query = Swap::with(['task', 'driver', 'driverA'])->select(sprintf('%s.*', (new Swap)->table));
             // Apply search criteria
             if ($request->filled('date_from') && $request->filled('date_to')) {
                 $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
