@@ -1721,9 +1721,7 @@ class SampleController extends Controller
                     if(count($results) == 0)
                     {
                         //  mark task as confirmed by client
-                        $task->confirmed_by_client = 'YES';
-                        $task->confirmation_time = Carbon::now()->toDateTimeString();
-                        $task->save();
+                        $this->updateTaskConfirmationStatus($task->id);
 
                         return $this->response(true,'success');
                     }
@@ -2387,5 +2385,40 @@ class SampleController extends Controller
             return $this->response(false, 'System error');
         }
     }
+    private function updateTaskConfirmationStatus($taskId)
+    {
+        $task = \App\Models\Task::find($taskId);
+        if (!$task) return;
 
+        // Optimized single SQL query to aggregate all counts quickly
+        $stats = \Illuminate\Support\Facades\DB::table('samples')
+            ->where('task_id', $taskId)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN confirmed_by_client = "YES" THEN 1 ELSE 0 END) as yes_count,
+                SUM(CASE WHEN confirmed_by_client = "LOST" THEN 1 ELSE 0 END) as lost_count,
+                SUM(CASE WHEN confirmed_by_client = "NO" THEN 1 ELSE 0 END) as no_count
+            ')->first();
+
+        if (!$stats || $stats->total == 0) return;
+
+        $total = (int) $stats->total;
+        $yesCount = (int) $stats->yes_count;
+        $lostCount = (int) $stats->lost_count;
+        $noCount = (int) $stats->no_count;
+
+        if ($yesCount == $total) {
+            $task->confirmed_by_client = 'YES';
+        } elseif ($yesCount > 0 || $lostCount > 0) {
+            $task->confirmed_by_client = 'PARTIAL';
+        } else {
+            $task->confirmed_by_client = 'NO';
+        }
+
+        if (($yesCount > 0 || $lostCount > 0) && is_null($task->confirmation_time)) {
+            $task->confirmation_time = \Carbon\Carbon::now()->toDateTimeString();
+        }
+
+        $task->save();
+    }
 }
