@@ -262,7 +262,7 @@
                                         <div class="col-6">
                                             <div class="info-row">
                                                 <span class="info-label">Arrival of Pick Up Location</span>
-                                                <span class="info-value">{{ $task->from_location_arrival_time ?? '—' }}</span>
+                                                <span class="info-value">{{ $task->from_location_confirmation_timestamp ?? '—' }}</span>
                                             </div>
                                         </div>
                                         <div class="col-6">
@@ -273,7 +273,11 @@
                                             <div class="info-row">
                                                 <span class="info-label">Duration of Pick Up</span>
                                                 <span class="info-value">
-                                                    <span class="duration-badge">{{ round((strtotime($task->collection_date) - strtotime($task->from_location_arrival_time)) / 60) }} min</span>
+                                                    @if($task->from_location_confirmation_timestamp && $task->collection_date)
+                                                        <span class="duration-badge">{{ round((strtotime($task->collection_date) - strtotime($task->from_location_confirmation_timestamp)) / 60) }} min</span>
+                                                    @else
+                                                        <span class="duration-badge bg-light text-muted">—</span>
+                                                    @endif
                                                 </span>
                                             </div>
                                         </div>
