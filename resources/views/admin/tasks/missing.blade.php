@@ -208,6 +208,7 @@
         });
     });
 
+    const canCheckDetailsAdvanced = @json(auth()->user() ? auth()->user()->can('check_receiving_details_advanced') : false);
     $("#get_details").on("click", function() {
         console.log('get')
         $.ajax({
@@ -222,14 +223,28 @@
         }).done(function(response) {
             if (response.status) {
                 var data = response.data || {};
-                showResult('info', 'Sample details', {
+                var detailsObj = {
                     'Barcode ID':           data.barcode_id,
                     'Task ID':              data.task_id,
                     'Temperature Type':     data.temperature_type,
                     'Confirmed By':         data.confirmed_by,
                     'Confirmed By Client':  data.confirmed_by_client,
                     'Sample Type':          data.sample_type
-                });
+                };
+
+                if (canCheckDetailsAdvanced) {
+                    detailsObj['Action Date'] = data.updated_at ? new Date(data.updated_at).toLocaleString('en-GB') : 'N/A';
+                    
+                    var methodLabel = 'Unknown';
+                    if (data.confirmation_method === 'SCAN') methodLabel = 'Scanner / Batch Scan';
+                    else if (data.confirmation_method === 'MARK_CONFIRMED') methodLabel = 'Mark As Confirmed Button';
+                    else if (data.confirmation_method === 'CONFIRM_ALL') methodLabel = 'Confirm All Button';
+                    else if (data.confirmation_method === 'MARK_LOST') methodLabel = 'Mark As Lost Button';
+                    
+                    detailsObj['Action Method'] = data.confirmation_method ? methodLabel : 'Legacy (Unknown)';
+                }
+
+                showResult('info', 'Sample details', detailsObj);
             } else {
                 showResult('error', response.data || response.message || 'No details found');
             }
@@ -246,7 +261,8 @@
             url: "/api/client/samples/confirm",
             data: JSON.stringify({
                 'samples': BatchSamples,
-                'confirmed_by': authUserName
+                'confirmed_by': authUserName,
+                'method': 'MARK_CONFIRMED'
             }),
             dataType: 'json',
             contentType: "application/json; charset=utf-8",

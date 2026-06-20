@@ -43,8 +43,9 @@ class Task extends Model
     ];
 
     public const CONFIRMED_BY_CLIENT_SELECT = [
-        'YES' => 'YES',
-        'NO'  => 'NO',
+        'YES'     => 'YES',
+        'NO'      => 'NO',
+        'PARTIAL' => 'PARTIAL',
     ];
 
     public const TYPE_SELECT = [
