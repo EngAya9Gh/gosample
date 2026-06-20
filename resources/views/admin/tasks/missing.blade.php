@@ -229,12 +229,11 @@
                     'Temperature Type':     data.temperature_type,
                     'Confirmed By':         data.confirmed_by,
                     'Confirmed By Client':  data.confirmed_by_client,
-                    'Sample Type':          data.sample_type
+                    'Sample Type':          data.sample_type,
+                    'Action Date':          data.updated_at ? new Date(data.updated_at).toLocaleString('en-GB') : 'N/A'
                 };
 
                 if (canCheckDetailsAdvanced) {
-                    detailsObj['Action Date'] = data.updated_at ? new Date(data.updated_at).toLocaleString('en-GB') : 'N/A';
-                    
                     var methodLabel = 'Unknown';
                     if (data.confirmation_method === 'SCAN') methodLabel = 'Scanner / Batch Scan';
                     else if (data.confirmation_method === 'MARK_CONFIRMED') methodLabel = 'Mark As Confirmed Button';
