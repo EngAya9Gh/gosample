@@ -1889,17 +1889,16 @@ class SampleController extends Controller
 
                 if($taskId != null)
                 {
+                    $method = $request->has('method') ? $request->method : 'SCAN';
+                    
                     Sample::whereIn('barcode_id',$request->samples)
                     ->update([
                         'confirmed_by_client' => 'YES',
-                        'confirmed_by' => $request->confirmed_by ]);
+                        'confirmed_by' => $request->confirmed_by,
+                        'confirmation_method' => $method
+                    ]);
 
-                    Task::where('id',$taskId->task_id)
-                    ->update(
-                        [
-                            'confirmed_by_client' => 'YES',
-                            'confirmation_time' => Carbon::now()->toDateTimeString(),
-                        ]);
+                    $this->updateTaskConfirmationStatus($taskId->task_id);
                         return $this->response(true,'success');
                 } else{
 
@@ -1964,7 +1963,10 @@ class SampleController extends Controller
                     }
                     $sample->confirmed_by_client = 'LOST';
                     $sample->confirmed_by = $request->marked_by;
+                    $sample->confirmation_method = 'MARK_LOST';
                     $sample->save();
+                    
+                    $this->updateTaskConfirmationStatus($sample->task_id);
                     return $this->response(true,'success');
                 }
 
@@ -2005,16 +2007,25 @@ class SampleController extends Controller
                 ->first()->client_id;
                 $to_location = $request->to_location;
                 // check sample
+                $taskIds = Sample::join('tasks','tasks.id','=','samples.task_id')
+                    ->where('samples.confirmed_by_client','NO')
+                    ->where('tasks.driver_id',$request->driver_id)
+                    ->where('tasks.to_location',$to_location)
+                    ->pluck('tasks.id')->unique();
+
                 $result= $samples = Sample::join('tasks','tasks.id','=','samples.task_id')
                     ->where('samples.confirmed_by_client','NO')
                     ->where('tasks.driver_id',$request->driver_id)
                     ->where('tasks.to_location',$to_location)
-                    // ->where('tasks.billing_client',$billing_client)
-//                    ->update(['samples.confirmed_by_client' => 'YES']);
                     ->update([
                         'samples.confirmed_by_client' => 'YES',
-                        'samples.confirmed_by' => $request->confirm_by
+                        'samples.confirmed_by' => $request->confirm_by,
+                        'samples.confirmation_method' => 'CONFIRM_ALL'
                     ]);
+
+                foreach($taskIds as $tid) {
+                    $this->updateTaskConfirmationStatus($tid);
+                }
                 // return $this->response(true,'success',$samples);
 
 
@@ -2163,16 +2174,16 @@ class SampleController extends Controller
         try {
             $data = $request->only(['from','to']);
             $rules = [
-                'from' => 'required',
-                'to' => 'required',
+                'from' => 'nullable',
+                'to' => 'nullable',
             ];
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
                 return $this->response(false,$this->validationHandle($validator->messages()));
             } else {
 
-                $from = date($request->from);
-                $to = date($request->to);
+                $from = \Carbon\Carbon::parse($request->from)->startOfDay()->format('Y-m-d H:i:s');
+                $to = \Carbon\Carbon::parse($request->to)->endOfDay()->format('Y-m-d H:i:s');
 /*
                 \Log::alert($from);
                 \Log::alert($to);
@@ -2182,22 +2193,19 @@ class SampleController extends Controller
                 ->orderBy('total','desc')
                 ->get();
 */
-                $logged_id_user = auth()->user();
+                $query = Sample::select('samples.temperature_type',DB::raw('count(*) as total'));
                 
                 if(isset($logged_id_user->client_id) && $logged_id_user->client_id != null) {
-                    $data = Sample::select('samples.temperature_type',DB::raw('count(*) as total'))
-                    ->join('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id)
-                    // ->whereBetween('created_at', [$from, $to])
-                    ->groupby('temperature_type')
-                    ->orderBy('total','desc')
-                    ->get();
-                } else {
-                    $data = Sample::select('samples.temperature_type',DB::raw('count(*) as total'))
-                    // ->whereBetween('created_at', [$from, $to])
-                    ->groupby('temperature_type')
-                    ->orderBy('total','desc')
-                    ->get();
+                    $query->join('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id);
                 }
+
+                if ($request->filled('from') && $request->filled('to')) {
+                    $from = \Carbon\Carbon::parse($request->from)->startOfDay()->format('Y-m-d H:i:s');
+                    $to = \Carbon\Carbon::parse($request->to)->endOfDay()->format('Y-m-d H:i:s');
+                    $query->whereBetween('samples.created_at', [$from, $to]);
+                }
+
+                $data = $query->groupby('temperature_type')->orderBy('total','desc')->get();
                 
                 $results = new Sample();
                 $labels = $data->pluck('temperature_type');
@@ -2329,6 +2337,7 @@ class SampleController extends Controller
                 // Perform the task confirmation logic here
                 $task->driver_confirm_from_location = true;
                 $task->from_location_confirmation_timestamp = now();
+                $task->from_location_arrival_time = now(); // Added for backwards compatibility with reporting and Dashboard
                 $task->save();
 
                 return $this->response(true,'success');

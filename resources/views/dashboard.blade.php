@@ -35,10 +35,7 @@
                                         <div class="col-sm-auto">
                                             <div class="input-group">
                                                 <input type="text" id="daterange"
-                                                    class="form-control border-0 dash-filter-picker shadow"
-                                                    data-provider="flatpickr" data-range-date="true"
-                                                    data-date-format="d-m-Y"
-                                                    data-deafult-date="01 Jan 2021 to 29 June 2021">
+                                                    class="form-control border-0 custom-daterange-picker shadow">
                                                 <div class="input-group-text bg-primary border-primary text-white">
                                                     <i class="ri-calendar-2-line"></i>
                                                 </div>
@@ -486,76 +483,74 @@
         }
 
 
-        $(document).ready(function() {
+        var sampleChart = null;
 
-            var daterange = $('#daterange').val();
-            var from = daterange.split('to')[0];
-            var to = daterange.split('to')[1];
-            console.log(daterange);
-            console.log(from);
-$.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    }
-});
+        function fetchSamplesReport(from, to) {
             $.ajax({
                 type: "POST",
                 url: "/samples/types/report",
                 data: JSON.stringify({
                     'from': from,
-                    'to': to,
-                    'user_id': to,
+                    'to': to
                 }),
                 dataType: 'json',
                 contentType: "application/json; charset=utf-8",
             }).done(function(data, textStatus, xhr) {
-                console.log(data);
-                // notify(data.message);
                 if (data.status) {
-                    // sample temperature types
                     var chartDonutBasicColors = getChartColorsArray("sample-source");
-
                     if (chartDonutBasicColors) {
-                        var options = {
-                            series: data.data.values,
-                            labels: data.data.labels,
-                            chart: {
-                                height: 333,
-                                type: "donut"
-                            },
-                            legend: {
-                                position: "bottom"
-                            },
-                            stroke: {
-                                show: false
-                            },
-                            dataLabels: {
-                                dropShadow: {
-                                    enabled: false
-                                }
-                            },
-                            colors: chartDonutBasicColors
-                        };
-                        var chart = new ApexCharts(document.querySelector("#sample-source"), options);
-                        chart.render();
+                        if (sampleChart !== null) {
+                            sampleChart.updateOptions({
+                                labels: data.data.labels,
+                                colors: chartDonutBasicColors
+                            });
+                            sampleChart.updateSeries(data.data.values);
+                        } else {
+                            var options = {
+                                series: data.data.values,
+                                labels: data.data.labels,
+                                chart: {
+                                    height: 333,
+                                    type: "donut"
+                                },
+                                legend: { position: "bottom" },
+                                stroke: { show: false },
+                                dataLabels: { dropShadow: { enabled: false } },
+                                colors: chartDonutBasicColors
+                            };
+                            sampleChart = new ApexCharts(document.querySelector("#sample-source"), options);
+                            sampleChart.render();
+                        }
                     }
-                } else {}
+                }
             }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR.responseJSON.errorMessage);
+                console.log(jqXHR.responseJSON?.errorMessage || "Error fetching report");
+            });
+        }
 
+        $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
+            // Initialize Flatpickr manually to have full control over onChange
+            flatpickr("#daterange", {
+                mode: "range",
+                dateFormat: "Y-m-d", // standard format for backend
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Only fetch when both dates are selected
+                    if (selectedDates.length === 2) {
+                        var from = instance.formatDate(selectedDates[0], "Y-m-d");
+                        var to = instance.formatDate(selectedDates[1], "Y-m-d");
+                        fetchSamplesReport(from, to);
+                    }
+                }
+            });
 
-
-
-        });
-
-        $('#daterange').change(function(value) {
-            var daterange = $('#daterange').val();
-            var from = daterange.split('to')[0];
-            var to = daterange.split('to')[1];
-            console.log(daterange);
-            console.log(from);
+            // Initial fetch (empty dates to test performance)
+            fetchSamplesReport('', '');
         });
     </script>
     <!-- apexcharts -->
