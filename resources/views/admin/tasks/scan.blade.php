@@ -257,7 +257,7 @@
                         <button type="button" class="scan-way-option" data-value="manual">
                             <i class="ri-keyboard-line"></i> Manual
                         </button>
-                        <button type="button" class="scan-way-option" data-value="camera">
+                        <button type="button" class="scan-way-option" data-value="camera" style="display: none;">
                             <i class="ri-camera-line"></i> Camera
                         </button>
                     </div>
@@ -627,9 +627,35 @@
             if (e.detail.scanCode == undefined) return;
 
             var task = location.href.split('/')[6];
-            code = e.detail.scanCode;
-            console.log('code:' + code);
+            var code = e.detail.scanCode;
+            console.log('Raw scanned code:' + code);
 
+            // ==========================================
+            // Smart Matcher for RTL and spacing issues
+            // ==========================================
+            var matchedCode = null;
+            var normalizedCode = code.trim().toLowerCase();
+            var reversedCode = normalizedCode.split(' ').reverse().join(' ');
+            var noSpaceCode = normalizedCode.replace(/\s+/g, '');
+
+            for (var i = 0; i < BatchSamples.length; i++) {
+                var batchCode = BatchSamples[i];
+                var normalizedBatch = batchCode.trim().toLowerCase();
+                
+                if (
+                    normalizedBatch === normalizedCode || 
+                    normalizedBatch === reversedCode ||
+                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode
+                ) {
+                    matchedCode = batchCode; // Use the exact string from DB
+                    break;
+                }
+            }
+
+            if (matchedCode !== null) {
+                code = matchedCode; // Override code with the exact match from the database
+                console.log('Smart matched DB code:' + code);
+            }
 
             if (BatchSamples.includes(code)) {
                 $.ajax({
