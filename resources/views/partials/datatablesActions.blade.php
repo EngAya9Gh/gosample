@@ -23,7 +23,7 @@
         @endcan
         @can($deleteGate)
             <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
-                onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                onsubmit="event.preventDefault(); const form = this; if(typeof Swal !== 'undefined') { Swal.fire({title: '{{ trans('global.areYouSure') }}', text: 'هل أنت متأكد من رغبتك في إتمام عملية الحذف؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f06548', cancelButtonColor: '#878a99', confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء'}).then((result) => { if (result.isConfirmed) { form.submit(); } }); } else { if(confirm('{{ trans('global.areYouSure') }}')) { form.submit(); } }" style="display: inline-block;">
                 <input type="hidden" name="_method" value="DELETE">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-soft-danger btn-sm" title="{{ trans('global.delete') }}">
@@ -54,7 +54,7 @@
             @can($deleteGate)
                 <li>
                     <form action="{{ route('admin.' . $crudRoutePart . '.destroy', $row->id) }}" method="POST"
-                        onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                        onsubmit="event.preventDefault(); const form = this; if(typeof Swal !== 'undefined') { Swal.fire({title: '{{ trans('global.areYouSure') }}', text: 'هل أنت متأكد من رغبتك في إتمام عملية الحذف؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f06548', cancelButtonColor: '#878a99', confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء'}).then((result) => { if (result.isConfirmed) { form.submit(); } }); } else { if(confirm('{{ trans('global.areYouSure') }}')) { form.submit(); } }" style="display: inline-block;">
                         <input type="hidden" name="_method" value="DELETE">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <input type="submit" class="dropdown-item" value="{{ trans('global.delete') }}">

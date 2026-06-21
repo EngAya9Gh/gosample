@@ -39,6 +39,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('attendance:check-late')->everyMinute();
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); // Schedule the job to run daily at 8:00 PM
 
+        $schedule->command('notifications:cleanup')->weekly();
 
         // $schedule->call(function () {
         //     $scheduledTasks = ScheduledTask::where('status', 'enabled')->get();
