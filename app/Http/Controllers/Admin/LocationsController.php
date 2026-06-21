@@ -40,9 +40,9 @@ class LocationsController extends Controller
                 $query->where('city', $request->city);
             }
 
-            if ($logged_id_user->client_id !== null) {
-                $query = $query->whereHas('locationsClients', function ($q) use ($logged_id_user) {
-                    $q->where('clients.id', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query->whereHas('locationsClients', function ($q) use ($logged_id_user) {
+                    $q->whereIn('clients.id', $logged_id_user->assigned_client_ids);
                 });
             }
            
@@ -172,13 +172,13 @@ class LocationsController extends Controller
         $location = Location::create($request->all());
 
         $logged_id_user = auth()->user();
-        if ($logged_id_user->client_id !== null) {
-            $clientLocation = new ClientLocation();
-            $clientLocation->client_id = $logged_id_user->client_id;
-            $clientLocation->location_id = $location->id;
-            $clientLocation->created_at = now();
-            $clientLocation->updated_at = now();
-            $clientLocation->save();
+        if (!empty($logged_id_user->assigned_client_ids)) {
+            foreach ($logged_id_user->assigned_client_ids as $c_id) {
+                $clientLocation = new \App\Models\ClientLocation();
+                $clientLocation->client_id = $c_id;
+                $clientLocation->location_id = $location->id;
+                $clientLocation->save();
+            }
         }
 
         return redirect()->route('admin.locations.index');

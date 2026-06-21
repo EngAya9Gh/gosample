@@ -108,11 +108,11 @@ class ScheduledTaskController extends Controller
         }
 
 
-        if ($logged_id_user->client_id != null) {
-            $clients = Client::where('id', $logged_id_user->client_id)->get();
+        if (!empty($logged_id_user->assigned_client_ids)) {
+            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
             $locations = Location::select('locations.*')
                 ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-                ->where('client_location.client_id', $logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
             $drivers = Driver::all();
         } else {
@@ -514,11 +514,11 @@ class ScheduledTaskController extends Controller
 
         $schedule = $this->formatScheduleForCalendar($tasks);
 
-        if ($logged_id_user->client_id != null) {
-            $clients = Client::where('id', $logged_id_user->client_id)->get();
+        if (!empty($logged_id_user->assigned_client_ids)) {
+            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
             $locations = Location::select('locations.*')
                 ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-                ->where('client_location.client_id', $logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
             $drivers = Driver::all();
         } else {
@@ -593,9 +593,9 @@ class ScheduledTaskController extends Controller
         $query = Driver::query();
 
         // Filter by client if user is not admin
-        if ($logged_id_user->client_id != null) {
+        if (!empty($logged_id_user->assigned_client_ids)) {
             $query->leftJoin('client_driver', 'client_driver.driver_id', 'drivers.id')
-                ->where('client_driver.client_id', $logged_id_user->client_id)
+                ->whereIn('client_driver.client_id', $logged_id_user->assigned_client_ids)
                 ->select('drivers.*')
                 ->distinct();
         }
@@ -628,9 +628,9 @@ class ScheduledTaskController extends Controller
 
         $query = Location::select('locations.*');
 
-        if ($logged_id_user->client_id != null) {
+        if (!empty($logged_id_user->assigned_client_ids)) {
             $query->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-                ->where('client_location.client_id', $logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->distinct();
         }
 

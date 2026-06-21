@@ -257,7 +257,7 @@
                         <button type="button" class="scan-way-option" data-value="manual">
                             <i class="ri-keyboard-line"></i> Manual
                         </button>
-                        <button type="button" class="scan-way-option" data-value="camera">
+                        <button type="button" class="scan-way-option" data-value="camera" style="display: none;">
                             <i class="ri-camera-line"></i> Camera
                         </button>
                     </div>
@@ -291,7 +291,7 @@
             <div id="batch-created"></div>
 
             <div class="row">
-                <div class="col-lg-4 mb-3">
+                <div class="col-lg-12 mb-3">
                     <div class="batch-panel">
                         <div class="batch-panel__header">
                             <h6 class="batch-panel__title">
@@ -311,18 +311,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8 mb-3">
-                    <div class="scan-camera-wrap">
-                        <div id="scandit-barcode-picker"></div>
-                        <div class="scan-camera-placeholder" id="scan-camera-placeholder">
-                            <i class="ri-camera-off-line"></i>
-                            <div>Camera not active</div>
-                            <div style="font-size: 0.78rem; opacity: 0.7; margin-top: 4px;">
-                                Pick <strong>Camera</strong> scan mode and click Get Samples to start
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Hidden camera element to prevent JS errors if Scandit tries to initialize -->
+                <div id="scandit-barcode-picker" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -627,9 +617,35 @@
             if (e.detail.scanCode == undefined) return;
 
             var task = location.href.split('/')[6];
-            code = e.detail.scanCode;
-            console.log('code:' + code);
+            var code = e.detail.scanCode;
+            console.log('Raw scanned code:' + code);
 
+            // ==========================================
+            // Smart Matcher for RTL and spacing issues
+            // ==========================================
+            var matchedCode = null;
+            var normalizedCode = code.trim().toLowerCase();
+            var reversedCode = normalizedCode.split(' ').reverse().join(' ');
+            var noSpaceCode = normalizedCode.replace(/\s+/g, '');
+
+            for (var i = 0; i < BatchSamples.length; i++) {
+                var batchCode = BatchSamples[i];
+                var normalizedBatch = batchCode.trim().toLowerCase();
+                
+                if (
+                    normalizedBatch === normalizedCode || 
+                    normalizedBatch === reversedCode ||
+                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode
+                ) {
+                    matchedCode = batchCode; // Use the exact string from DB
+                    break;
+                }
+            }
+
+            if (matchedCode !== null) {
+                code = matchedCode; // Override code with the exact match from the database
+                console.log('Smart matched DB code:' + code);
+            }
 
             if (BatchSamples.includes(code)) {
                 $.ajax({

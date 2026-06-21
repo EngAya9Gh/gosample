@@ -2194,7 +2194,7 @@ class SampleController extends Controller
                 $query = Sample::select('samples.temperature_type',DB::raw('count(*) as total'));
                 
                 if(isset($logged_id_user->client_id) && $logged_id_user->client_id != null) {
-                    $query->join('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id);
+                    $query->join('tasks','tasks.id','task_id')->whereIn('tasks.billing_client', $logged_id_user->assigned_client_ids);
                 }
 
                 if ($request->filled('from') && $request->filled('to')) {

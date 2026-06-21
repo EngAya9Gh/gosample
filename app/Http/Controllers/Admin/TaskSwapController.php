@@ -51,9 +51,9 @@ class TaskSwapController extends Controller
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->where('tasks.is_swap',true)->select(sprintf('tasks.*', (new Task())->table));
 
-            if( $logged_id_user->client_id != null)
+            if (!empty($logged_id_user->assigned_client_ids))
             {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
 
                 if ($request->status !=null) {
@@ -256,12 +256,12 @@ class TaskSwapController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
         } else{
@@ -306,9 +306,9 @@ class TaskSwapController extends Controller
                 ->where('drivers.status', 1);
 
 
-            if( $logged_id_user->client_id != null)
+            if (!empty($logged_id_user->assigned_client_ids))
             {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
 
             if ($request->status !=null) {
@@ -360,12 +360,12 @@ class TaskSwapController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
-            $clients = Client::where('id', $logged_id_user->client_id)->get();
+            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
             $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
             $drivers = Driver::all();
         } else{
