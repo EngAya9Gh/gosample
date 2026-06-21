@@ -5,11 +5,8 @@ namespace App\Models;
 use \DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 class Sample extends Model
 {
-    use SoftDeletes;
     use HasFactory;
 
     public const STATUS_SELECT = [
@@ -28,7 +25,6 @@ class Sample extends Model
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     protected $fillable = [
@@ -54,7 +50,6 @@ class Sample extends Model
         'collection_hospital_name',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     public function location()

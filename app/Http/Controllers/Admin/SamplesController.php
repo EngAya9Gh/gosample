@@ -277,7 +277,7 @@ class SamplesController extends Controller
 
     public function destroy(Sample $sample)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('sample_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $sample->delete();
 
@@ -286,7 +286,7 @@ class SamplesController extends Controller
 
     public function massDestroy(MassDestroySampleRequest $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('sample_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         Sample::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
