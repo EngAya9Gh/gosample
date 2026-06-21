@@ -143,11 +143,11 @@ class ShipmentsController extends Controller
         abort_if(Gate::denies('task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $logged_id_user = auth()->user();
-        if($logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             $from_locations = Location::select('locations.*')
             ->leftJoin('client_location','client_location.location_id','locations.id')
-            ->where('client_location.client_id',$logged_id_user->client_id)
+            ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
             ->pluck('name', 'id');
             $to_locations = $from_locations;
 

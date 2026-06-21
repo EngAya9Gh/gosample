@@ -65,10 +65,10 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
     // public function index()
     // {
     //     $logged_id_user = auth()->user();
-    //     if($logged_id_user->client_id != null)
+    //     if (!empty($logged_id_user->assigned_client_ids))
     //     {
     //         $notifications = Notifications::with(['client','driver','fromLocation','toLocation'])
-    //         ->where('billing_client',$logged_id_user->client_id)
+    //         ->whereIn('billing_client', $logged_id_user->assigned_client_ids)
     //         ->orderBy('created_at','desc')
     //         ->paginate(10);
     
@@ -81,7 +81,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
     //         ->leftJoin('drivers','drivers.id','=','tasks.driver_id')
     //         ->leftJoin('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
     //         ->where('client_driver.client_id', $logged_id_user->client_id)
-    //         ->where('billing_client',$logged_id_user->client_id)
+    //         ->whereIn('billing_client', $logged_id_user->assigned_client_ids)
     //         ->groupby('driver_id','drivers.name')
     //         ->orderBy('total','desc')
     //         ->paginate(5);
@@ -92,11 +92,11 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
     //             $query->where('client_id', $client->client_id);
     //         })->count();
     //         $tasks = Task::where('billing_client', $client->client_id)->count();
-    //         $samples = Sample::leftJoin('tasks','tasks.id','task_id')->where('tasks.billing_client',$logged_id_user->client_id)->count();
+    //         $samples = Sample::leftJoin('tasks','tasks.id','task_id')->whereIn('tasks.billing_client', $logged_id_user->assigned_client_ids)->count();
     //         $drivers = Driver::count();
     //         $users = User::count();
     //         $locations = Location::leftJoin('client_location','client_location.location_id','locations.id')
-    //         ->where('client_location.client_id',$logged_id_user->client_id)->count();
+    //         ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)->count();
     //         $clients = 1;
     //         return view('dashboard',[
     //             'top_drivers' => $top_drivers,
@@ -256,8 +256,8 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             'toLocation:id,name'
         ])->orderBy('created_at', 'desc');
 
-        if ($loggedUser->client_id) {
-            $notificationsQuery->where('billing_client', $loggedUser->client_id);
+        if (!empty($loggedUser->assigned_client_ids)) {
+            $notificationsQuery->whereIn('billing_client', $loggedUser->assigned_client_ids);
         }
 
         $notifications = $notificationsQuery->limit(10)->get();
@@ -265,20 +265,20 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // =========================
         // Top Drivers
         // =========================
-        $cacheKeyTopDrivers = $loggedUser->client_id
-            ? "top_drivers_client_{$loggedUser->client_id}"
+        $cacheKeyTopDrivers = !empty($loggedUser->assigned_client_ids)
+            ? "top_drivers_clients_" . md5(implode(',', $loggedUser->assigned_client_ids))
             : 'top_drivers_admin';
 
         $t1 = microtime(true);
         $top_drivers = Cache::remember($cacheKeyTopDrivers, now()->addMinutes(30), function () use ($loggedUser) {
-            if ($loggedUser->client_id) {
+            if (!empty($loggedUser->assigned_client_ids)) {
                 // INNER JOIN مع الفهارس الجديدة على client_driver
                 return DB::table('tasks')
                     ->select('tasks.driver_id', 'drivers.name', DB::raw('COUNT(tasks.id) as total'))
                     ->join('drivers', 'drivers.id', '=', 'tasks.driver_id')
                     ->join('client_driver', 'client_driver.driver_id', '=', 'drivers.id')
-                    ->where('client_driver.client_id', $loggedUser->client_id)
-                    ->where('tasks.billing_client', $loggedUser->client_id)
+                    ->whereIn('client_driver.client_id', $loggedUser->assigned_client_ids)
+                    ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
                     ->where('drivers.status', 1)
                     ->whereNull('tasks.deleted_at')
                     ->groupBy('tasks.driver_id', 'drivers.name')
@@ -310,25 +310,25 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         // =========================
         // Statistics
         // =========================
-        $cacheKeyStats = $loggedUser->client_id
-            ? "dashboard_stats_client_{$loggedUser->client_id}"
+        $cacheKeyStats = !empty($loggedUser->assigned_client_ids)
+            ? "dashboard_stats_clients_" . md5(implode(',', $loggedUser->assigned_client_ids))
             : 'dashboard_stats_admin';
 
         $t3 = microtime(true);
-        if ($loggedUser->client_id) {
+        if (!empty($loggedUser->assigned_client_ids)) {
             $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () use ($loggedUser) {
                 return (object) [
                     'cars'      => Car::whereHas('driver.clientDrivers', function ($q) use ($loggedUser) {
-                                      $q->where('client_id', $loggedUser->client_id);
+                                      $q->whereIn('client_id', $loggedUser->assigned_client_ids);
                                   })->count(),
-                    'tasks'     => Task::where('billing_client', $loggedUser->client_id)->count(),
+                    'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
                     'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')
-                                      ->where('tasks.billing_client', $loggedUser->client_id)
+                                      ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
                                       ->count(),
                     'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
-                                      ->where('client_location.client_id', $loggedUser->client_id)
+                                      ->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)
                                       ->count(),
-                    'clients'   => 1,
+                    'clients'   => count($loggedUser->assigned_client_ids),
                 ];
             });
         } else {
@@ -494,7 +494,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             
     //     $clients = Client::all();
     //     $logged_id_user = auth()->user();
-    //     if($logged_id_user->client_id != null)
+    //     if (!empty($logged_id_user->assigned_client_ids))
     //     {
 
     //         $drivers = Driver::all();
@@ -576,7 +576,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
     {
         $logged_id_user = auth()->user();
 
-        if($logged_id_user->client_id != null) {
+        if (!empty($logged_id_user->assigned_client_ids)) {
             $drivers = Driver::leftJoin('client_driver','driver_id','drivers.id')
             ->where('client_driver.client_id',$logged_id_user->client_id)
             ->select('id','name')->get();
@@ -607,7 +607,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             }
         return view('map',compact('drivers', 'plateNumbers'));
         
-        if($logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // get driver of client
             $drivers = Driver::leftJoin('client_driver','driver_id','drivers.id')->get();
@@ -618,7 +618,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->whereNotNull('cars.lat')
             ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
-                $query->where('billing_client', $logged_id_user->client_id);
+                $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             
             ,'driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking'])
@@ -682,8 +682,8 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->where('cars.status', 1)
             ->with([
                 'driverActiveTasks' => function ($query) use ($logged_id_user) {
-                    if ($logged_id_user->client_id) {
-                        $query->where('billing_client', $logged_id_user->client_id);
+                    if (!empty($logged_id_user->assigned_client_ids)) {
+                        $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
                     }
                 },
                 'driverActiveDelayedTasks',
@@ -777,7 +777,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
 
 
         $logged_id_user = auth()->user();
-        if($logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // get driver of client
             $locations = Driver::select('drivers.*','imei','plate_number','model')
@@ -787,7 +787,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->whereNotNull('cars.lat')
             ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
-                $query->where('billing_client', $logged_id_user->client_id);
+                $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
 
             ,'driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking'])
@@ -832,7 +832,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
 
        
         $logged_id_user = auth()->user();
-        if($logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // get driver of client
             $drivers = Driver::leftJoin('client_driver','driver_id','drivers.id')->get();
@@ -843,7 +843,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             ->whereNotNull('cars.lat')
             ->where('cars.status', 1)
             ->with(['driverActiveTasks' =>function ($query) use ($logged_id_user) {
-                $query->where('billing_client', $logged_id_user->client_id);
+                $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             
             ,'driverActiveDelayedTasks','driverActiveTasks.from','driverActiveTasks.to','driverActiveTasks.samples','car','car.carTracking'])

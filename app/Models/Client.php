@@ -62,6 +62,11 @@ class Client extends Model
         return $this->belongsToMany(Driver::class, 'client_driver', 'client_id', 'driver_id');
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'client_user', 'client_id', 'user_id');
+    }
+
     public function generateApiToken()
     {
         $this->api_token = Str::random(60);

@@ -36,8 +36,17 @@ class UsersController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        $user = User::create($request->all());
+        // Extract clients logic
+        $data = $request->all();
+        $clients = $request->input('clients', []);
+        
+        // As per the gradual migration strategy, we move all selected clients to the pivot table
+        // and leave client_id as null.
+        $data['client_id'] = null;
+
+        $user = User::create($data);
         $user->roles()->sync($request->input('roles', []));
+        $user->clients()->sync($clients);
 
         return redirect()->route('admin.users.index');
     }
@@ -49,15 +58,22 @@ class UsersController extends Controller
         $roles = Role::pluck('name', 'id');
         $clients = Client::all();
 
-        $user->load('roles');
+        $user->load(['roles', 'clients']);
 
         return view('admin.users.edit', compact('roles', 'user', 'clients'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $user->update($request->all());
+        $data = $request->all();
+        $clients = $request->input('clients', []);
+
+        // Gradual migration: clear client_id and put all clients in the pivot table
+        $data['client_id'] = null;
+
+        $user->update($data);
         $user->roles()->sync($request->input('roles', []));
+        $user->clients()->sync($clients);
 
         return redirect()->route('admin.users.index');
     }

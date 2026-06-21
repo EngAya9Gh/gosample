@@ -36,13 +36,16 @@ class StoreUserRequest extends FormRequest
                 'required',
                 'array',
             ],
-            'client_id' => [
+            'clients' => [
                 Rule::requiredIf(function () {
                   $roles = array_map('intval', $this->input('roles', []));
                   return !in_array(1, $roles);
                 }),
+                'array',
                 'nullable',
-                'exists:clients,id',
+            ],
+            'clients.*' => [
+                'integer',
             ],
         ];
     }

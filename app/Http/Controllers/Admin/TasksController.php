@@ -63,8 +63,8 @@ class TasksController extends Controller
                 $logged_id_user->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
                 || method_exists($logged_id_user, 'getIsAdminAttribute') && $logged_id_user->is_admin
             );
-            if ($logged_id_user && $logged_id_user->client_id) {
-                $query->where('billing_client', $logged_id_user->client_id);
+            if ($logged_id_user && !empty($logged_id_user->assigned_client_ids)) {
+                $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
 
             // فلترة ذكية باستخدام when()
@@ -162,8 +162,8 @@ class TasksController extends Controller
     
             $totalCount = \Cache::remember('tasks_total_count_' . ($logged_id_user?->id ?? 'guest'), 600, function () use ($logged_id_user) {
                 $q = Task::query();
-                if ($logged_id_user && $logged_id_user->client_id) {
-                    $q->where('billing_client', $logged_id_user->client_id);
+                if ($logged_id_user && !empty($logged_id_user->assigned_client_ids)) {
+                    $q->whereIn('billing_client', $logged_id_user->assigned_client_ids);
                 }
                 return $q->count();
             });
@@ -257,15 +257,14 @@ class TasksController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
-        {
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+        if (!empty($logged_id_user->assigned_client_ids)) {
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
-                ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
-        } else{
+            } else{
             $clients = Client::all();
             $locations = Location::all();
             $drivers = Driver::all();
@@ -318,8 +317,8 @@ class TasksController extends Controller
     //             ->select('tasks.*');
 
     //         // فلترة حسب العميل في حال المستخدم مربوط بعميل
-    //         if ($logged_id_user->client_id) {
-    //             $query->where('billing_client', $logged_id_user->client_id);
+    //         if (!empty($logged_id_user->assigned_client_ids)) {
+    //             $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
     //         }
 
     //         // فلترة ديناميكية
@@ -390,11 +389,11 @@ class TasksController extends Controller
     //     }
 
     //     // لو مو Ajax (تحميل الصفحة عادي)
-    //     if ($logged_id_user->client_id != null) {
-    //         $clients = Client::where('id', $logged_id_user->client_id)->get();
+    //     if (!empty($logged_id_user->assigned_client_ids)) {
+    //         $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
     //         $locations = Location::select('locations.*')
     //             ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
-    //             ->where('client_location.client_id', $logged_id_user->client_id)
+    //             ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
     //             ->get();
     //         $drivers = Driver::all();
     //     } else {
@@ -444,8 +443,8 @@ class TasksController extends Controller
     //         ->leftJoin('cars', 'tasks.car_id', '=', 'cars.id');
 
     //         // فلتر حسب العميل إذا المستخدم مربوط بعميل
-    //         if ($logged_id_user->client_id) {
-    //             $query->where('billing_client', $logged_id_user->client_id);
+    //         if (!empty($logged_id_user->assigned_client_ids)) {
+    //             $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
     //         }
 
     //         // فلترة ذكية
@@ -524,11 +523,11 @@ class TasksController extends Controller
     //     }
 
     //     // البيانات للواجهة العادية
-    //     if ($logged_id_user->client_id != null) {
-    //         $clients = Client::where('id', $logged_id_user->client_id)->get();
+    //     if (!empty($logged_id_user->assigned_client_ids)) {
+    //         $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
     //         $locations = Location::select('locations.*')
     //             ->leftJoin('client_location','client_location.location_id','locations.id')
-    //             ->where('client_location.client_id',$logged_id_user->client_id)
+    //             ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
     //             ->get();
     //         $drivers = Driver::all();
     //     } else {
@@ -564,8 +563,8 @@ class TasksController extends Controller
     //             ->select('tasks.*');
 
     //         // فلتر حسب العميل إذا المستخدم مربوط بعميل
-    //         if ($logged_id_user->client_id) {
-    //             $query->where('billing_client', $logged_id_user->client_id);
+    //         if (!empty($logged_id_user->assigned_client_ids)) {
+    //             $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
     //         }
 
     //         // فلترة ذكية باستخدام when()
@@ -641,12 +640,12 @@ class TasksController extends Controller
     //         return $table->make(true);
     //     } 
 
-    //     if( $logged_id_user->client_id != null)
+    //     if (!empty($logged_id_user->assigned_client_ids))
     //     {
-    //             $clients = Client::where('id', $logged_id_user->client_id)->get();
+    //             $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
     //             $locations = Location::select('locations.*')
     //             ->leftJoin('client_location','client_location.location_id','locations.id')
-    //             ->where('client_location.client_id',$logged_id_user->client_id)
+    //             ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
     //             ->get();
     //             $drivers = Driver::all();
     //     } else{
@@ -681,8 +680,8 @@ class TasksController extends Controller
     //     $query = Task::with(['from', 'to', 'client', 'driver', 'car'])
     //                 ->select('tasks.*');
 
-    //     if ($logged_id_user->client_id) {
-    //         $query->where('billing_client', $logged_id_user->client_id);
+    //     if (!empty($logged_id_user->assigned_client_ids)) {
+    //         $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
     //     }
 
     //     // فلاتر
@@ -711,7 +710,7 @@ class TasksController extends Controller
     //     ->paginate(10); // paginate بدل limit
 
     //     $clients = $logged_id_user->client_id 
-    //         ? Client::where('id', $logged_id_user->client_id)->get()
+    //         ? Client::whereIn('id', $logged_id_user->assigned_client_ids)->get()
     //         : Client::all();
 
     //     $locations = $logged_id_user->client_id
@@ -732,9 +731,8 @@ class TasksController extends Controller
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
 
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             ;
 
@@ -922,15 +920,14 @@ class TasksController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
-        {
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+        if (!empty($logged_id_user->assigned_client_ids)) {
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
-                ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->leftJoin('client_location', 'client_location.location_id', 'locations.id')
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
-        } else{
+            } else{
             $clients = Client::all();
             $locations = Location::all();
             $drivers = Driver::all();
@@ -952,9 +949,8 @@ class TasksController extends Controller
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
 
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             // ->when(request('status'), function ($q) {
             //     return $q->where('status', request('status'));
@@ -1142,13 +1138,13 @@ class TasksController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // \Log::info("message");
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
         } else{
@@ -1173,9 +1169,8 @@ class TasksController extends Controller
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
 
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             // ->when(request('status'), function ($q) {
             //     return $q->where('status', request('status'));
@@ -1363,13 +1358,13 @@ class TasksController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // \Log::info("message");
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
         } else{
@@ -1394,9 +1389,8 @@ class TasksController extends Controller
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
 
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             // ->when(request('status'), function ($q) {
             //     return $q->where('status', request('status'));
@@ -1583,13 +1577,13 @@ class TasksController extends Controller
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // \Log::info("message");
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
         } else{
@@ -1806,12 +1800,12 @@ class TasksController extends Controller
 
 
         $logged_id_user = auth()->user();
-        if($logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             $from_locations = $this->buildLocationOptions(
                 Location::select('locations.*')
                     ->leftJoin('client_location','client_location.location_id','locations.id')
-                    ->where('client_location.client_id',$logged_id_user->client_id)
+                    ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
             );
             $to_locations = $from_locations;
 
@@ -1882,9 +1876,9 @@ class TasksController extends Controller
         abort_if(Gate::denies('task_scan'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $logged_id_user = auth()->user();
-        if($logged_id_user->client_id != null) {
+        if (!empty($logged_id_user->assigned_client_ids)) {
             $to_locations = Location::leftJoin('client_location','client_location.location_id','locations.id')
-            ->where('client_location.client_id',$logged_id_user->client_id)->orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+            ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)->orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         } else {
         $to_locations = Location::orderBy('name','asc')->pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         }
@@ -2340,9 +2334,8 @@ $temp3 = $temperatureReadings->pluck('temp7');
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         if ($request->ajax()) {
             $query = Task::with(['from', 'to', 'client', 'driver', 'car'])->select(sprintf('%s.*', (new Task())->table));
-            if( $logged_id_user->client_id != null)
-            {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
             $table = Datatables::of($query)
             ->filter(function ($query)  use ($request) {
@@ -2461,13 +2454,13 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
 
 
-        if( $logged_id_user->client_id != null)
+        if (!empty($logged_id_user->assigned_client_ids))
         {
             // \Log::info("message");
-                $clients = Client::where('id', $logged_id_user->client_id)->get();
+                $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
                 $locations = Location::select('locations.*')
                 ->leftJoin('client_location','client_location.location_id','locations.id')
-                ->where('client_location.client_id',$logged_id_user->client_id)
+                ->whereIn('client_location.client_id', $logged_id_user->assigned_client_ids)
                 ->get();
                 $drivers = Driver::all();
         } else{

@@ -21,7 +21,7 @@ class ClientsController extends Controller
 
         $logged_id_user = auth()->user();
         if ($logged_id_user->client_id !== null) {
-            $clients = Client::where('id', $logged_id_user->client_id)->get();
+            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
         } else {
             $clients = Client::all();
         }

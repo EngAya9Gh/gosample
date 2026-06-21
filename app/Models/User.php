@@ -81,6 +81,20 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
     }
 
+    public function clients()
+    {
+        return $this->belongsToMany(Client::class, 'client_user', 'user_id', 'client_id');
+    }
+
+    public function getAssignedClientIdsAttribute()
+    {
+        $ids = $this->clients->pluck('id')->toArray();
+        if ($this->client_id) {
+            $ids[] = $this->client_id;
+        }
+        return array_unique($ids);
+    }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

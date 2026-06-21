@@ -25,9 +25,9 @@ class SamplesController extends Controller
         if ($request->ajax()) {
             $query = Sample::with(['location', 'task', 'container','task.driver'])->leftJoin('tasks','tasks.id','samples.task_id')->select(sprintf('samples.*', (new Sample())->table));
             
-            if( $logged_id_user->client_id != null)
+            if( !empty($logged_id_user->assigned_client_ids) )
             {
-                $query = $query->where('billing_client', $logged_id_user->client_id);
+                $query = $query->whereIn('billing_client', $logged_id_user->assigned_client_ids);
             }
 
             // Apply search criteria
@@ -128,9 +128,9 @@ class SamplesController extends Controller
             $query = Sample::with(['location', 'task', 'container'])
             ->select('samples.*');
             $logged_id_user = auth()->user();
-            if($logged_id_user->client_id != null) {
+            if (!empty($logged_id_user->assigned_client_ids)) {
                 $query->join('tasks', 'samples.task_id', '=', 'tasks.id');
-                $query->where('tasks.billing_client',$logged_id_user->client_id);
+                $query->whereIn('tasks.billing_client', $logged_id_user->assigned_client_ids);
             }
             $query = $query->where('samples.confirmed_by_client','LOST');
             // Apply search criteria

@@ -6,6 +6,15 @@
         </div>
 
         <div class="card-body">
+            @if(count($errors) > 0)
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <form method="POST" action="{{ route('admin.users.update', [$user->id]) }}" enctype="multipart/form-data">
                 @method('PUT')
                 @csrf
@@ -34,28 +43,35 @@
 
                     <div class="col-lg-6 mb-3">
                         <label for="password">{{ trans('cruds.user.fields.password') }}</label>
-                        <input class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}" type="password"
-                            name="password" id="password" placeholder="Leave blank to keep current password">
+                        <div class="input-group">
+                            <input class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}" type="password"
+                                name="password" id="password" placeholder="Leave blank to keep current password">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="ri-eye-off-line" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
                         @if ($errors->has('password'))
-                            <div class="invalid-feedback">{{ $errors->first('password') }}</div>
+                            <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
                         @endif
                         <small class="help-block text-muted">{{ trans('cruds.user.fields.password_helper') }}</small>
                     </div>
 
                     <div class="col-lg-6 mb-3">
-                        <label for="client_id">{{ trans('translation.task.fields.billing_client') }}</label>
-                        <select class="form-control select2 {{ $errors->has('client_id') ? 'is-invalid' : '' }}"
-                            name="client_id" id="client_id" data-placeholder="Select client (optional)">
-                            <option value="">Select Client</option>
+                        <label for="clients">{{ trans('translation.task.fields.billing_client') }}</label>
+                        <select class="form-control select2 {{ $errors->has('clients') ? 'is-invalid' : '' }}"
+                            name="clients[]" id="clients" data-placeholder="Select client(s) (optional)" multiple>
+                            @php
+                                $assignedClients = old('clients', $user->assigned_client_ids ?? []);
+                            @endphp
                             @foreach ($clients as $id => $entry)
                                 <option value="{{ $entry->id }}"
-                                    {{ (string) $entry->id === (string) old('client_id', $user->client_id) ? 'selected' : '' }}>
+                                    {{ in_array($entry->id, $assignedClients) ? 'selected' : '' }}>
                                     {{ $entry->english_name }}
                                 </option>
                             @endforeach
                         </select>
-                        @if ($errors->has('client_id'))
-                            <div class="invalid-feedback">{{ $errors->first('client_id') }}</div>
+                        @if ($errors->has('clients'))
+                            <div class="invalid-feedback">{{ $errors->first('clients') }}</div>
                         @endif
                     </div>
 
@@ -116,6 +132,20 @@
                 $('#roles option').prop('selected', false);
                 $('#roles').trigger('change');
             });
+        });
+        
+        document.getElementById('togglePassword')?.addEventListener('click', function (e) {
+            const password = document.getElementById('password');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (password.type === 'password') {
+                password.type = 'text';
+                icon.classList.remove('ri-eye-off-line');
+                icon.classList.add('ri-eye-line');
+            } else {
+                password.type = 'password';
+                icon.classList.remove('ri-eye-line');
+                icon.classList.add('ri-eye-off-line');
+            }
         });
     </script>
 @endsection
