@@ -568,11 +568,11 @@
 
             var options = {
                 timeBeforeScanTest: 200,
-                avgTimeByChar: 60,
+                avgTimeByChar: 150,  // increased from 60 to handle hyphen + letters delay
                 minLength: 6,
                 scanButtonLongPressTime: 500,
                 singleScanQty: 1,
-
+                suffixKeyCodes: [13], // Enter key
             }
 
             try {
