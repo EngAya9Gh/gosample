@@ -625,27 +625,31 @@
             // ==========================================
             var matchedCode = null;
             var normalizedCode = code.trim().toLowerCase();
+            var noHyphenCode = normalizedCode.replace(/-/g, ''); // remove all hyphens
             var reversedCode = normalizedCode.split(' ').reverse().join(' ');
             var reversedHyphenCode = normalizedCode.split('-').reverse().join('-');
             var fullyReversedCode = normalizedCode.split('').reverse().join('');
             var noSpaceCode = normalizedCode.replace(/\s+/g, '');
 
             console.log('normalizedCode: ' + normalizedCode);
+            console.log('noHyphenCode: ' + noHyphenCode);
             console.log('reversedHyphenCode: ' + reversedHyphenCode);
             console.log('fullyReversedCode: ' + fullyReversedCode);
 
             for (var i = 0; i < BatchSamples.length; i++) {
                 var batchCode = BatchSamples[i];
                 var normalizedBatch = batchCode.trim().toLowerCase();
+                var noHyphenBatch = normalizedBatch.replace(/-/g, ''); // remove all hyphens
                 
                 if (
-                    normalizedBatch === normalizedCode || 
+                    normalizedBatch === normalizedCode ||
+                    noHyphenBatch === noHyphenCode ||           // ← الحل الرئيسي: مقارنة بدون شرطة
                     normalizedBatch === reversedCode ||
                     normalizedBatch === reversedHyphenCode ||
                     normalizedBatch === fullyReversedCode ||
                     normalizedBatch.replace(/\s+/g, '') === noSpaceCode ||
-                    normalizedBatch.startsWith(normalizedCode + '-') ||   // e.g scanned "2149264709" matches "2149264709-bag"
-                    normalizedCode.startsWith(normalizedBatch + '-')       // reverse case
+                    normalizedBatch.startsWith(normalizedCode + '-') ||
+                    normalizedCode.startsWith(normalizedBatch + '-')
                 ) {
                     matchedCode = batchCode; // Use the exact string from DB
                     break;
