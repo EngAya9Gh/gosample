@@ -568,11 +568,11 @@
 
             var options = {
                 timeBeforeScanTest: 200,
-                avgTimeByChar: 60,
+                avgTimeByChar: 150,  // increased from 60 to handle hyphen + letters delay
                 minLength: 6,
                 scanButtonLongPressTime: 500,
                 singleScanQty: 1,
-
+                suffixKeyCodes: [13], // Enter key
             }
 
             try {
@@ -643,7 +643,9 @@
                     normalizedBatch === reversedCode ||
                     normalizedBatch === reversedHyphenCode ||
                     normalizedBatch === fullyReversedCode ||
-                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode
+                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode ||
+                    normalizedBatch.startsWith(normalizedCode + '-') ||   // e.g scanned "2149264709" matches "2149264709-bag"
+                    normalizedCode.startsWith(normalizedBatch + '-')       // reverse case
                 ) {
                     matchedCode = batchCode; // Use the exact string from DB
                     break;
