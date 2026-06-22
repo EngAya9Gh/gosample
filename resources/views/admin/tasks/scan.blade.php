@@ -626,6 +626,7 @@
             var matchedCode = null;
             var normalizedCode = code.trim().toLowerCase();
             var reversedCode = normalizedCode.split(' ').reverse().join(' ');
+            var reversedHyphenCode = normalizedCode.split('-').reverse().join('-');
             var noSpaceCode = normalizedCode.replace(/\s+/g, '');
 
             for (var i = 0; i < BatchSamples.length; i++) {
@@ -635,6 +636,7 @@
                 if (
                     normalizedBatch === normalizedCode || 
                     normalizedBatch === reversedCode ||
+                    normalizedBatch === reversedHyphenCode ||
                     normalizedBatch.replace(/\s+/g, '') === noSpaceCode
                 ) {
                     matchedCode = batchCode; // Use the exact string from DB
