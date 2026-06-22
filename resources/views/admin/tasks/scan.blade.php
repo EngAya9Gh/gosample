@@ -131,7 +131,7 @@
             transition: background .15s ease, transform .12s ease;
         }
         #extracted-codes p::before {
-            content: "\\eb56"; /* ri-barcode-line */
+            content: "\eb56"; /* ri-barcode-line */
             font-family: 'remixicon';
             font-size: 1rem;
             opacity: 0.7;
