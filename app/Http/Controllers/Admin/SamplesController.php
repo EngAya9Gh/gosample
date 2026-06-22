@@ -46,8 +46,18 @@ class SamplesController extends Controller
             }
 
 
-            $table = Datatables::of($query);
+            // استخراج وتخزين العدد الإجمالي مؤقتاً لتسريع الـ DataTables (صلاحية 10 دقائق)
+            $cacheKey = 'samples_total_count_user_' . $logged_id_user->id;
+            $totalRecords = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($logged_id_user) {
+                $q = \App\Models\Sample::query();
+                if (!empty($logged_id_user->assigned_client_ids)) {
+                    $q->leftJoin('tasks', 'tasks.id', '=', 'samples.task_id')
+                      ->whereIn('tasks.billing_client', $logged_id_user->assigned_client_ids);
+                }
+                return $q->count();
+            });
 
+            $table = Datatables::of($query)->setTotalRecords($totalRecords);
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
 
