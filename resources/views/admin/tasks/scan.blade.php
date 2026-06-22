@@ -643,7 +643,9 @@
                     normalizedBatch === reversedCode ||
                     normalizedBatch === reversedHyphenCode ||
                     normalizedBatch === fullyReversedCode ||
-                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode
+                    normalizedBatch.replace(/\s+/g, '') === noSpaceCode ||
+                    normalizedBatch.startsWith(normalizedCode + '-') ||   // e.g scanned "2149264709" matches "2149264709-bag"
+                    normalizedCode.startsWith(normalizedBatch + '-')       // reverse case
                 ) {
                     matchedCode = batchCode; // Use the exact string from DB
                     break;
