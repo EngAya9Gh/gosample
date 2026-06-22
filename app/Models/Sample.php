@@ -5,9 +5,11 @@ namespace App\Models;
 use \DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
+
 class Sample extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     public const STATUS_SELECT = [
         '1' => 'enabled',
