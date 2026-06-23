@@ -159,7 +159,13 @@ public function handle()
                                 $carTracking->car_id = $car_id;
                                 $carTracking->task_id = $task->id;
                                 $carTracking->dts = $dts;
-                                $carTracking->save();
+                                
+                                try {
+                                    $carTracking->save();
+                                 //   \Log::info("✅ [Afaqi] New record saved for Car ID: $car_id (Temp Change)");
+                                } catch (\Exception $e) {
+                                    \Log::error("❌ [Afaqi] Failed to save record for Car ID: $car_id. Error: " . $e->getMessage());
+                                }
                             }
                         }else{
                             $carTracking = new CarTracking();
@@ -173,7 +179,13 @@ public function handle()
                             $carTracking->car_id = $car_id;
                             $carTracking->task_id = $task->id;
                             $carTracking->dts = $dts;
-                            $carTracking->save();
+                            
+                            try {
+                                $carTracking->save();
+                                \Log::info("✅ [Afaqi] New record saved for Car ID: $car_id (First Record)");
+                            } catch (\Exception $e) {
+                                \Log::error("❌ [Afaqi] Failed to save record for Car ID: $car_id. Error: " . $e->getMessage());
+                            }
                         }
                     }
                 }
