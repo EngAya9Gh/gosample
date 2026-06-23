@@ -558,15 +558,16 @@ class DriverController extends Controller
 
             $list->each(function ($item, $key) {
                 $item->agoArabic=parent::time_elapsed_stringArabic($item->created_at);
-                $task = $item->data['task'];
                 $item->arabicTitle= parent::getArabicNotificationTitle($item->type);
                 $item->title= parent::getEnglishNotificationTitle($item->type);
                 $item->description= parent::getArabicNotificationDescription($item->type,'');
                 $item->arabicDescription = parent::getEnglishNotificationDescription($item->type,'');
 
                 $item->ago=parent::time_elapsed_string($item->created_at);
-                $item->data = $task;
                 $item->taskType = parent::getNotificaitonType($item->type);
+                
+                // تنظيف الـ payload وحذف الداتا بالكامل بما أن الـ task_id موجود مسبقاً في الجدول
+                unset($item->data);
             });
 
 //            $driver->unreadNotifications->markAsRead();
