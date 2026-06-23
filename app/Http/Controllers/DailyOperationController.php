@@ -87,7 +87,10 @@ class DailyOperationController extends Controller
                 }
 
                 if ($request->task_date !=null) {
-                    $query->whereDate('tasks.created_at','=', $request->task_date );
+                    $query->whereBetween('tasks.created_at', [
+                        \Carbon\Carbon::parse($request->task_date)->startOfDay(),
+                        \Carbon\Carbon::parse($request->task_date)->endOfDay(),
+                    ]);
                 }
             });
             $table->addColumn('placeholder', '&nbsp;');
@@ -440,7 +443,10 @@ class DailyOperationController extends Controller
             ->when($driver_id, function  ($query) use ($driver_id) {
                 $query->where('driver_id', $driver_id);
             })
-            ->whereDate('tasks.created_at', date('Y-m-d'))
+            ->whereBetween('tasks.created_at', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
         ;
         $served_orginization = $condition->whereIn('tasks.status',['CLOSED','NO_SAMPLES'])
             ->distinct('from_location')->count('from_location');
@@ -480,7 +486,10 @@ class DailyOperationController extends Controller
             ->when($driver_id, function  ($query) use ($driver_id) {
                 $query->where('driver_id', $driver_id);
             })
-            ->whereDate('created_at', date('Y-m-d'))
+            ->whereBetween('created_at', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
 
             ->select('status','billing_client',DB::raw('count(*) as total'))->groupBy('status')->get();
 

@@ -2003,7 +2003,10 @@ class TasksController extends Controller
         }
 
         $lastTask = $driver->driverActiveTasks()
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->orderBy('poririty', 'desc')
             ->first();
 

@@ -23,9 +23,15 @@ class ReportsController extends Controller
         $date = $request->input('date', now()->toDateString());
         
         $drivers = Driver::with(['attendances' => function($q) use ($date) {
-            $q->whereDate('created_at', $date);
+            $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($date)->startOfDay(),
+                \Carbon\Carbon::parse($date)->endOfDay(),
+            ]);
         }, 'tasks' => function($q) use ($date) {
-            $q->whereDate('created_at', $date);
+            $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($date)->startOfDay(),
+                \Carbon\Carbon::parse($date)->endOfDay(),
+            ]);
         }])->get()->map(function($driver) {
             $driver->day_attendance = $driver->attendances->first();
             $driver->delayed_tasks_count = $driver->tasks->where('delayed_reason', '<>', '')->count();

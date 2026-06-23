@@ -80,7 +80,10 @@ class CheckAttendanceDelayCommand extends Command
             
             // Check if there is an attendance record for today and this shift
             $query = Attendance::where('driver_id', $driver->id)
-                ->whereDate('created_at', $now->toDateString())
+                ->whereBetween('created_at', [
+                    \Carbon\Carbon::parse($now->toDateString())->startOfDay(),
+                    \Carbon\Carbon::parse($now->toDateString())->endOfDay(),
+                ])
                 ->whereNotNull('checkin_time');
 
             if ($shift_id) {
@@ -94,7 +97,10 @@ class CheckAttendanceDelayCommand extends Command
             if (!$attendanceExists) {
                 // Check if we already created an auto-absence record to prevent multiple alerts
                 $absenceRecord = Attendance::where('driver_id', $driver->id)
-                    ->whereDate('created_at', $now->toDateString())
+                    ->whereBetween('created_at', [
+                        \Carbon\Carbon::parse($now->toDateString())->startOfDay(),
+                        \Carbon\Carbon::parse($now->toDateString())->endOfDay(),
+                    ])
                     ->where('source', 'auto')
                     ->where(function($q) use ($shift_id, $start_time_str) {
                         if ($shift_id) {

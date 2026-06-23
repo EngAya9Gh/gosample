@@ -29,7 +29,10 @@ class DriverTrackingController extends Controller
         }
 
         // Get active tasks for this client today or future (or all if admin)
-        $clientTasksQuery = Task::whereDate('pickup_time',  today())
+        $clientTasksQuery = Task::whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES']);
             
         if ($clientId) {
@@ -56,7 +59,10 @@ class DriverTrackingController extends Controller
             // Get all tasks for this driver to show the full route context
             $driverTasks = Task::with(['from', 'to', 'client'])
                 ->where('driver_id', $driver->id)
-                ->whereDate('pickup_time', today())
+                ->whereBetween('pickup_time', [
+                    \Carbon\Carbon::today()->startOfDay(),
+                    \Carbon\Carbon::today()->endOfDay(),
+                ])
                 ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES'])
                 ->orderBy('route_order', 'asc') // Sort by our new route_order
                 ->orderBy('poririty', 'asc')    // Fallback to old poririty
