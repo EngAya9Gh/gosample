@@ -252,7 +252,10 @@ class SampleController extends Controller
 
                     // save time to attendance of driver
                     $attendance =  Attendance::where('driver_id',$driver->id)
-                        ->whereDate('created_at', Carbon::today())
+                        ->whereBetween('created_at', [
+                            \Carbon\Carbon::today()->startOfDay(),
+                            \Carbon\Carbon::today()->endOfDay(),
+                        ])
                         ->first();
                     if($attendance == null)
                     {
@@ -636,7 +639,10 @@ class SampleController extends Controller
 
                     // Update attendance once for the driver
                     $attendance = Attendance::where('driver_id', $driver->id)
-                        ->whereDate('created_at', Carbon::today())
+                        ->whereBetween('created_at', [
+                            \Carbon\Carbon::today()->startOfDay(),
+                            \Carbon\Carbon::today()->endOfDay(),
+                        ])
                         ->first();
                     if($attendance != null)
                     {

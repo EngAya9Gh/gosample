@@ -20,7 +20,10 @@ class DriverRouteService
 
         // Get all active tasks for today that need sorting
         $tasks = Task::where('driver_id', $driverId)
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES'])
             ->get();
 
@@ -85,7 +88,10 @@ class DriverRouteService
         if (!$driver) return;
 
         $tasks = Task::where('driver_id', $driverId)
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES'])
             ->orderBy('poririty', 'asc')
             ->get();
@@ -168,7 +174,10 @@ class DriverRouteService
 
         // 2. Fallback to last CLOSED task's dropoff location
         $lastCompletedTask = Task::where('driver_id', $driver->id)
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->where('status', 'CLOSED')
             ->orderBy('updated_at', 'desc')
             ->first();
@@ -182,7 +191,10 @@ class DriverRouteService
 
         // 3. Fallback to driver's first task from_location
         $firstTask = Task::where('driver_id', $driver->id)
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->first();
 
         if ($firstTask) {

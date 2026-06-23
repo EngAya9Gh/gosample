@@ -246,7 +246,10 @@ class GenerateTaskReportJob implements ShouldQueue
             ->when($to_location,    function ($q) use ($to_location)    { $q->where('to_location', $to_location); })
             ->when($billing_client, function ($q) use ($billing_client) { $q->where('billing_client', $billing_client); })
             ->when($driver_id,      function ($q) use ($driver_id)      { $q->where('driver_id', $driver_id); })
-            ->whereDate('created_at', date('Y-m-d'))
+            ->whereBetween('created_at', [
+                \Carbon\Carbon::parse(date('Y-m-d'))->startOfDay(),
+                \Carbon\Carbon::parse(date('Y-m-d'))->endOfDay(),
+            ])
             ->select('status', 'billing_client', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();

@@ -52,7 +52,7 @@ class Kernel extends ConsoleKernel
         //                                 ->where('to_location', $scheduledTask->to_location_id)
         //                                 ->where('driver_id', $scheduledTask->driver_id)
         //                                 ->where('billing_client', $scheduledTask->client_id)
-        //                                 ->whereDate('created_at', Carbon::today())
+        //                                 ->whereBetween('created_at', [\Carbon\Carbon::today()->startOfDay(), \Carbon\Carbon::today()->endOfDay()])
         //                                 ->first();
 
         //             if (!$existingTask) {

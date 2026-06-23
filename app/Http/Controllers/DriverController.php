@@ -558,15 +558,16 @@ class DriverController extends Controller
 
             $list->each(function ($item, $key) {
                 $item->agoArabic=parent::time_elapsed_stringArabic($item->created_at);
-                $task = $item->data['task'];
                 $item->arabicTitle= parent::getArabicNotificationTitle($item->type);
                 $item->title= parent::getEnglishNotificationTitle($item->type);
                 $item->description= parent::getArabicNotificationDescription($item->type,'');
                 $item->arabicDescription = parent::getEnglishNotificationDescription($item->type,'');
 
                 $item->ago=parent::time_elapsed_string($item->created_at);
-                $item->data = $task;
                 $item->taskType = parent::getNotificaitonType($item->type);
+                
+                // تنظيف الـ payload وحذف الداتا بالكامل بما أن الـ task_id موجود مسبقاً في الجدول
+                unset($item->data);
             });
 
 //            $driver->unreadNotifications->markAsRead();
@@ -930,8 +931,8 @@ class DriverController extends Controller
 
         $scheduledTasks = ScheduledTask::where('driver_id', $driverId)
             ->where('status', 'enabled')
-            ->whereDate('start_date', '<=', Carbon::now())
-            ->whereDate('end_date', '>=', Carbon::now())
+            ->where('start_date', '<=', \Carbon\Carbon::now()->endOfDay())
+            ->where('end_date', '>=', \Carbon\Carbon::now()->startOfDay())
             ->where('day', 'like', '%' . strtolower($dayOfWeek) . '%')
             ->orderBy('start_date', 'asc')
             ->get();
@@ -1094,7 +1095,10 @@ class DriverController extends Controller
         $driver = Driver::with(['car.carTracking'])->findOrFail($driverId);
 
         $tasks = Task::where('driver_id', $driverId)
-            ->whereDate('pickup_time', today())
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->orderBy('poririty')
             ->get();
 
@@ -1132,7 +1136,10 @@ class DriverController extends Controller
         }
         
         $lastTask = $driver->driverActiveTasks()
-        ->whereDate('pickup_time', today())->orderBy('poririty', 'desc')->first();
+        ->whereBetween('pickup_time', [
+            \Carbon\Carbon::today()->startOfDay(),
+            \Carbon\Carbon::today()->endOfDay(),
+        ])->orderBy('poririty', 'desc')->first();
         // \Log::info($lastTask);
         if ($lastTask) {
             $lastToLocation = Location::find($lastTask->to_location);
@@ -1208,7 +1215,10 @@ class DriverController extends Controller
             
             // Check if already checked in today
             $existingAttendance = \App\Models\Attendance::where('driver_id', $driver->id)
-                ->whereDate('created_at', $now->toDateString())
+                ->whereBetween('created_at', [
+                    \Carbon\Carbon::parse($now->toDateString())->startOfDay(),
+                    \Carbon\Carbon::parse($now->toDateString())->endOfDay(),
+                ])
                 ->whereNotNull('checkin_time')
                 ->first();
 
@@ -1232,7 +1242,10 @@ class DriverController extends Controller
 
             // check if an auto record exists
             $attendance = \App\Models\Attendance::where('driver_id', $driver->id)
-                ->whereDate('created_at', $now->toDateString())
+                ->whereBetween('created_at', [
+                    \Carbon\Carbon::parse($now->toDateString())->startOfDay(),
+                    \Carbon\Carbon::parse($now->toDateString())->endOfDay(),
+                ])
                 ->where('source', 'auto')
                 ->first();
 
@@ -1288,7 +1301,10 @@ class DriverController extends Controller
             $now = Carbon::now();
 
             $attendance = \App\Models\Attendance::where('driver_id', $driver->id)
-                ->whereDate('created_at', $now->toDateString())
+                ->whereBetween('created_at', [
+                    \Carbon\Carbon::parse($now->toDateString())->startOfDay(),
+                    \Carbon\Carbon::parse($now->toDateString())->endOfDay(),
+                ])
                 ->whereNotNull('checkin_time')
                 ->whereNull('checkout_time')
                 ->first();

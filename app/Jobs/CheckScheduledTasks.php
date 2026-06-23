@@ -64,7 +64,10 @@ class CheckScheduledTasks implements ShouldQueue
             ->where('driver_id', $scheduledTask->driver_id)
             ->where('billing_client', $scheduledTask->client_id)
             ->where('pickup_time', $dateTime)
-            ->whereDate('created_at', Carbon::today())
+            ->whereBetween('created_at', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
             ->first();
 
             if (!$existingTask) {
