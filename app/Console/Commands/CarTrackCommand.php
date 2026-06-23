@@ -182,7 +182,7 @@ public function handle()
                             
                             try {
                                 $carTracking->save();
-                                \Log::info("✅ [Afaqi] New record saved for Car ID: $car_id (First Record)");
+                             //   \Log::info("✅ [Afaqi] New record saved for Car ID: $car_id (First Record)");
                             } catch (\Exception $e) {
                                 \Log::error("❌ [Afaqi] Failed to save record for Car ID: $car_id. Error: " . $e->getMessage());
                             }
