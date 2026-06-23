@@ -10,5 +10,4 @@ class CarTracking extends Model
     use HasFactory;
 
     public $table = 'car_tracking';
-
-}
+    const UPDATED_AT = null;}
