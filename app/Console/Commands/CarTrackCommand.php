@@ -145,7 +145,7 @@ public function handle()
 			if (!empty($temp1) && (!empty($temp2) || !empty($temp3)) && ($imei == $car_imei)) {
                         $lastrecord = CarTracking::where('car_id', $car_id)
                             ->where('task_id', $task->id)
-                            ->orderby('created_at', 'desc')->first();
+                            ->orderby('id', 'desc')->first();
                         if (isset($lastrecord->id)) {
                             if (isset($lastrecord->temp5) && $lastrecord->temp5 != "$temp1" || (!empty($temp2) && $lastrecord->temp6 != "$temp2") || (!empty($temp3) && $lastrecord->temp7 != "$temp3")) {
                                 $carTracking = new CarTracking();
