@@ -36,9 +36,9 @@ class Kernel extends ConsoleKernel
         // $schedule->command('afaqi:cron')->hourly();
         $schedule->command('cleanup:api-responses')->weeklyOn(0, '02:00'); // Run every Sunday at 2 AM
         // $schedule->command('cleanup:audit-logs')->weeklyOn(0, '02:30'); // Run every Sunday at 2:30 AM
-        $schedule->command('cleanup:deleted-tasks')->dailyAt('20:00');//weeklyOn(0, '03:00'); // Run every Sunday at 3:00 AM
+        $schedule->command('cleanup:deleted-tasks')->dailyAt('03:00');//weeklyOn(0, '03:00'); // Run every Sunday at 3:00 AM
         // $schedule->command('task:cron') ->everyTwoMinutes();
-        $schedule->command('daily-schedule:cron') ->everyTwoMinutes();§
+        $schedule->command('daily-schedule:cron') ->everyTwoMinutes();
         $schedule->command('attendance:check-late')->everyMinute();
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); // Schedule the job to run daily at 8:00 PM
 
