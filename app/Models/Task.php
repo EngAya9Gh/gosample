@@ -365,6 +365,32 @@ class Task extends Model
         return null;
     }
 
+    // Mutators لضمان عدم إرسال قيم نصية فارغة للأعمدة الرقمية أو الزمنية لتجنب أخطاء قاعدة البيانات
+    public function setCollectLatAttribute($value)
+    {
+        $this->attributes['collect_lat'] = $value === '' ? null : $value;
+    }
+
+    public function setCollectLngAttribute($value)
+    {
+        $this->attributes['collect_lng'] = $value === '' ? null : $value;
+    }
+
+    public function setCloseLatAttribute($value)
+    {
+        $this->attributes['close_lat'] = $value === '' ? null : $value;
+    }
+
+    public function setCloseLngAttribute($value)
+    {
+        $this->attributes['close_lng'] = $value === '' ? null : $value;
+    }
+
+    public function setConfirmationTimeAttribute($value)
+    {
+        $this->attributes['confirmation_time'] = $value === '' ? null : $value;
+    }
+
     public function getDelayedReasonLabelsAttribute()
     {
         if (!$this->delayed_reason) return '';

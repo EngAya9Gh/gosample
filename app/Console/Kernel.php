@@ -34,12 +34,14 @@ class Kernel extends ConsoleKernel
         $schedule->command('taskDelayed:cron')->everyMinute();
         $schedule->command('car-track:cron')->everyMinute(); // every minutes
         // $schedule->command('afaqi:cron')->hourly();
+        $schedule->command('cleanup:api-responses')->weeklyOn(0, '02:00'); // Run every Sunday at 2 AM
+        // $schedule->command('cleanup:audit-logs')->weeklyOn(0, '02:30'); // Run every Sunday at 2:30 AM
         // $schedule->command('task:cron') ->everyTwoMinutes();
         $schedule->command('daily-schedule:cron') ->everyTwoMinutes();
         $schedule->command('attendance:check-late')->everyMinute();
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); // Schedule the job to run daily at 8:00 PM
 
-        $schedule->command('notifications:cleanup')->dailyAt('20:00');
+        $schedule->command('notifications:cleanup')->weeklyOn(0, '02:00');
 
         // $schedule->call(function () {
         //     $scheduledTasks = ScheduledTask::where('status', 'enabled')->get();

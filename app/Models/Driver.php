@@ -20,6 +20,8 @@ class Driver extends Authenticatable  implements JWTSubject
     use Notifiable;
     use Auditable;
 
+    public $auditExclude = ['lat', 'lng', 'fcm_token', 'total_working_hours'];
+
 
     public const LANGUAGE_SELECT = [
         'en' => 'English',
