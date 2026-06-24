@@ -10,10 +10,14 @@ trait Auditable
     public static function bootAuditable()
     {
         static::created(function (Model $model) {
-            self::audit('audit:created', $model);
+            if (self::shouldAudit('created', $model)) {
+                self::audit('audit:created', $model);
+            }
         });
 
         static::updated(function (Model $model) {
+            if (!self::shouldAudit('updated', $model)) return;
+
             $changes = $model->getChanges();
             
             // تحقق مما إذا كان المودل يحتوي على أعمدة مستثناة من التدقيق الأمني
@@ -34,8 +38,18 @@ trait Auditable
         });
 
         static::deleted(function (Model $model) {
-            self::audit('audit:deleted', $model);
+            if (self::shouldAudit('deleted', $model)) {
+                self::audit('audit:deleted', $model);
+            }
         });
+    }
+
+    protected static function shouldAudit($event, $model)
+    {
+        if (property_exists($model, 'auditEvents')) {
+            return in_array($event, $model->auditEvents);
+        }
+        return true;
     }
 
     protected static function audit($description, $model)

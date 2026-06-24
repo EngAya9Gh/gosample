@@ -7,13 +7,16 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-// use App\Traits\Auditable;
+use App\Traits\Auditable;
 
 class Task extends Model
 {
     use SoftDeletes;
     use HasFactory;
-    // use Auditable;
+    use Auditable;
+
+    // المراقبة تقتصر على الحذف فقط (بناءً على طلبك)
+    public $auditEvents = ['deleted'];
 
     public $table = 'tasks';
     // public $table = 'tasks_new';
