@@ -57,9 +57,9 @@ class CalculateAutoAttendanceCommand extends Command
 
         // tasks.deleted_at exists where the Task model uses SoftDeletes, but it was
         // dropped on some branches. Only filter by it when the column is present.
-        if (Schema::hasColumn('tasks', 'deleted_at')) {
-            $query->whereNull('deleted_at');
-        }
+        // if (Schema::hasColumn('tasks', 'deleted_at')) {
+        //     $query->whereNull('deleted_at');
+        // }
 
         $groups = $query
             ->groupBy('driver_id', DB::raw('DATE(collection_date)'))
