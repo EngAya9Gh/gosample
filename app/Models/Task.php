@@ -11,7 +11,6 @@ use App\Traits\Auditable;
 
 class Task extends Model
 {
-    use SoftDeletes;
     use HasFactory;
     use Auditable;
 
