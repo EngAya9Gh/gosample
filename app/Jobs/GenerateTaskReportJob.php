@@ -136,7 +136,7 @@ class GenerateTaskReportJob implements ShouldQueue
                                     left join locations as from_location on from_location.ID = tasks.from_location
                                     left join locations as to_location on to_location.ID = tasks.to_location
                                     left join samples as samples on samples.task_id = tasks.id
-                                    WHERE tasks.deleted_at is null and tasks.id > 1 and drivers.status = 1';
+                                    WHERE tasks.id > 1 and drivers.status = 1';
 
         if ($billing_client) { $query .= ' and tasks.billing_client= ' . (int) $billing_client; }
         if ($from_location)  { $query .= ' and tasks.from_location= '  . (int) $from_location; }

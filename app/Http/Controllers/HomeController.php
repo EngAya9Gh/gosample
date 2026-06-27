@@ -280,7 +280,6 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                     ->whereIn('client_driver.client_id', $loggedUser->assigned_client_ids)
                     ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
                     ->where('drivers.status', 1)
-                    ->whereNull('tasks.deleted_at')
                     ->groupBy('tasks.driver_id', 'drivers.name')
                     ->orderByDesc('total')
                     ->limit(5)
@@ -290,7 +289,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 return DB::table(DB::raw('(
                     SELECT driver_id, COUNT(id) as total
                     FROM tasks
-                    WHERE deleted_at IS NULL AND driver_id IS NOT NULL
+                    WHERE driver_id IS NOT NULL
                     GROUP BY driver_id
                 ) t'))
                 ->select('t.driver_id', 'drivers.name', 't.total')
