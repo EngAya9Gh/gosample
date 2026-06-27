@@ -65,6 +65,15 @@ class CalculateAutoAttendanceCommand extends Command
             ->groupBy('driver_id', DB::raw('DATE(collection_date)'))
             ->get();
 
+        // [OPTIMIZATION]: Pre-fetch all existing attendances to eliminate the N+1 query problem inside the loop
+        $driverIds = $groups->pluck('driver_id')->unique()->toArray();
+        $existingAttendances = Attendance::whereIn('driver_id', $driverIds)
+            ->where('created_at', '>=', $lookbackStart)
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->driver_id . '_' . $item->created_at->format('Y-m-d');
+            });
+
         $created = 0;
         $updated = 0;
         $finalized = 0;
@@ -87,9 +96,8 @@ class CalculateAutoAttendanceCommand extends Command
                     $checkout = $lastClose;
                 }
 
-                $existing = Attendance::where('driver_id', $g->driver_id)
-                    ->whereDate('created_at', $g->work_date)
-                    ->first();
+                $cacheKey = $g->driver_id . '_' . $g->work_date;
+                $existing = $existingAttendances->get($cacheKey);
 
                 // Never overwrite explicit driver-app / admin records.
                 if ($existing && in_array($existing->source, ['app', 'manual'], true)) {

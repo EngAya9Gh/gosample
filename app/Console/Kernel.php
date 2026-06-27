@@ -41,7 +41,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('daily-schedule:cron') ->everyTwoMinutes();
         $schedule->command('attendance:check-late')->everyMinute();
         // Auto-derive driver check-in/check-out from task collection & drop-off activity.
-        $schedule->command('attendance:calc-auto')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('attendance:calc-auto')->hourly()->withoutOverlapping();
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); // Schedule the job to run daily at 8:00 PM
 
         $schedule->command('notifications:cleanup')->weeklyOn(0, '02:30');
