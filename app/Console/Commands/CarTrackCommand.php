@@ -109,10 +109,17 @@ public function handle()
                     continue;
                 }
                 
-                $targetIMEIs = ['869595061388210', '869595061614557'];
+                    $targetIMEIs = ['869595061388210', '869595061614557'];
                 if (in_array($car_imei ?? '', $targetIMEIs)) {
-                    \Log::info("=== AFAQY RESPONSE FOR TARGET CAR (IMEI: $car_imei) ===");
-                    \Log::info(json_encode($sensors));
+                    \Log::info("=== TEMPERATURE SENSORS FOR CAR $car_imei ===");
+                    if (isset($sensors['data'])) {
+                        foreach ($sensors['data'] as $vehicle) {
+                            $tempSensorsOnly = array_filter($vehicle['sensors'] ?? [], function ($s) {
+                                return isset($s['t']) && $s['t'] == 'temperature';
+                            });
+                            \Log::info(json_encode(array_values($tempSensorsOnly)));
+                        }
+                    }
                 }
 
                 // \Log::info("sensors");
