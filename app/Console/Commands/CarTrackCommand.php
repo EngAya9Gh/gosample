@@ -108,6 +108,12 @@ public function handle()
                     \Log::error("Afaqy API error for car $car_id: " . $e->getMessage());
                     continue;
                 }
+                
+                if (strpos($task->driver?->car?->name ?? '', '6959') !== false || strpos($car_imei ?? '', '6959') !== false || strpos($task->driver?->car?->name ?? '', '6090') !== false || strpos($car_imei ?? '', '6090') !== false) {
+                    \Log::info("=== AFAQY RESPONSE FOR CAR (IMEI: $car_imei) ===");
+                    \Log::info(json_encode($sensors));
+                }
+
                 // \Log::info("sensors");
                 // \Log::info($car_imei);
                 // \Log::info($sensors);
