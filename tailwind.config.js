@@ -23,9 +23,13 @@ module.exports = {
     darkMode: 'class', // dark theme toggled by AppShell via the `dark` class on <html>
     theme: {
         extend: {
+            spacing: require('./tailwind.material.js').spacing,
+            fontSize: require('./tailwind.material.js').fontSize,
             colors: {
+                ...require('./tailwind.material.js').colors,
                 // ---- Primary brand teal (#005D69) ----
                 primary: {
+                    DEFAULT: '#005D69',
                     50: '#e6f1f2',
                     100: '#c2dde0',
                     200: '#9ac6cb',
@@ -61,6 +65,7 @@ module.exports = {
                 ink: '#212529', // body text
             },
             fontFamily: {
+                ...require('./tailwind.material.js').fontFamily,
                 // Readex Pro carries Arabic glyphs Poppins lacks (RTL fallback)
                 sans: ['Poppins', 'Readex Pro', 'system-ui', 'sans-serif'],
                 serif: ['"Playfair Display"', 'Readex Pro', 'Georgia', 'serif'],

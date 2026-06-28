@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GoSample - Sign In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#0d7a7a",
+                      "tertiary-fixed": "#ffdad7",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-high": "#dce9ff",
+                      "tertiary-container": "#ca353a",
+                      "surface-dim": "#cbdbf5",
+                      "surface": "#f8f9ff",
+                      "on-tertiary-fixed": "#410005",
+                      "on-primary-fixed": "#002020",
+                      "surface-container-highest": "#d3e4fe",
+                      "secondary-fixed": "#dfe3e3",
+                      "surface-container-low": "#eff4ff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "outline": "#6e7979",
+                      "on-secondary-container": "#5f6364",
+                      "tertiary": "#a71a25",
+                      "inverse-surface": "#213145",
+                      "secondary": "#5a5f60",
+                      "on-tertiary-fixed-variant": "#920418",
+                      "surface-variant": "#d3e4fe",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#7dd5d4",
+                      "on-surface-variant": "#3e4948",
+                      "surface-container": "#e5eeff",
+                      "on-background": "#0b1c30",
+                      "surface-bright": "#f8f9ff",
+                      "secondary-container": "#dce0e0",
+                      "outline-variant": "#bdc9c8",
+                      "on-tertiary-container": "#ffedeb",
+                      "primary-fixed": "#99f1f1",
+                      "surface-tint": "#006a6a",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "on-secondary-fixed": "#181c1d",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed-variant": "#004f50",
+                      "inverse-on-surface": "#eaf1ff",
+                      "background": "#f8f9ff",
+                      "primary": "#005f60",
+                      "error": "#ba1a1a",
+                      "on-error-container": "#93000a",
+                      "on-surface": "#0b1c30",
+                      "primary-fixed-dim": "#7dd5d4",
+                      "secondary-fixed-dim": "#c3c7c7",
+                      "on-primary-container": "#affffe",
+                      "on-secondary-fixed-variant": "#434848"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "16px",
+                      "xs": "8px",
+                      "lg": "32px",
+                      "margin-desktop": "64px",
+                      "md": "24px",
+                      "xl": "48px",
+                      "gutter": "24px",
+                      "base": "4px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-sm": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "26px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .bg-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+      </style>
+</head>
+<body class="bg-background min-h-screen flex text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Split Screen Layout -->
+<div class="flex w-full min-h-screen relative">
+<!-- Left Side: Branding / Imagery (Hidden on Mobile) -->
+<div class="hidden lg:flex w-1/2 relative bg-primary overflow-hidden items-center justify-center flex-col p-margin-desktop">
+<!-- Background Image with Teal Overlay -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center mix-blend-overlay opacity-40" data-alt="A professional medical courier in uniform carefully loading a temperature-controlled biometric transport box into a modern delivery vehicle. The scene is brightly lit with cool, clinical lighting, conveying efficiency, safety, and modern healthcare logistics. The color palette emphasizes crisp whites, deep teals, and professional grays." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuASLNd0e7DXqT5o4BRjHi8i3Hmy8JGWGUJbsyViPoXlv4LZnAPV25bx8-f9Rce--arNLxLFiDWJgf59DT2hsDiUYDSKEAPRIN0D9JZlwrrrLLJBAuHqXEGpe3rSCgWad81XhIEtO9Ud5ShLAEVuNTsyVw8iV4n4jQa-i4TzV3600_3Qra3wX2v46waHl1_pblkoc47x_2VGhMowcluCUE6w7c2pirThcGyN0NDTLxrsdnoaYFjxfsg7KYuX0T5m-PTnhPTImxjv7ZTp')"></div>
+<div class="absolute inset-0 bg-primary/80 bg-pattern"></div>
+</div>
+<!-- Foreground Content -->
+<div class="relative z-10 w-full max-w-lg text-on-primary">
+<div class="flex items-center gap-sm mb-lg">
+<div class="w-12 h-12 bg-on-primary rounded-lg flex items-center justify-center text-primary shadow-lg">
+<span class="material-symbols-outlined text-[32px]">vaccines</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-primary">GoSample</h1>
+<p class="font-body-md text-body-md text-on-primary/80">Medical Logistics Platform</p>
+</div>
+</div>
+<div class="space-y-xl">
+<h2 class="font-display-lg text-display-lg text-on-primary leading-tight">
+                        Secure.<br/>Traceable.<br/>Mission-Critical.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-primary/90 max-w-md">
+                        Empowering couriers and clinical dispatchers with real-time tracking, temperature compliance, and intelligent routing.
+                    </p>
+<div class="grid grid-cols-2 gap-md pt-lg border-t border-on-primary/20">
+<div>
+<div class="font-headline-lg text-headline-lg mb-base">99.8%</div>
+<div class="font-body-sm text-body-sm text-on-primary/80">On-time Delivery Rate</div>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg mb-base">Zero</div>
+<div class="font-body-sm text-body-sm text-on-primary/80">Temperature Excursions</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Abstract decorative curve -->
+<svg class="absolute bottom-0 left-0 w-full h-64 text-primary-container/30 pointer-events-none" preserveaspectratio="none" viewbox="0 0 1440 320">
+<path d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,213.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="currentColor"></path>
+</svg>
+</div>
+<!-- Right Side: Login Form -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-margin-mobile lg:p-margin-desktop bg-surface relative">
+<!-- Mobile Header (Visible only on small screens) -->
+<div class="absolute top-0 left-0 w-full p-margin-mobile flex items-center gap-xs lg:hidden z-20">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">vaccines</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">GoSample</span>
+</div>
+<!-- Login Card -->
+<div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 p-lg sm:p-[40px] relative z-10 glass-panel">
+<div class="mb-lg text-center lg:text-left">
+<p class="font-body-md text-body-md text-on-surface-variant mb-base">Welcome back</p>
+<h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface">Sign in to continue</h2>
+</div>
+<form class="space-y-md">
+<!-- Mobile Number Field -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs uppercase" for="mobile">Mobile Number</label>
+<div class="relative flex items-center">
+<div class="absolute inset-y-0 left-0 flex items-center">
+<label class="sr-only" for="country">Country</label>
+<select class="h-full rounded-l-lg border-0 bg-transparent py-0 pl-sm pr-xs text-on-surface-variant font-body-md focus:ring-2 focus:ring-inset focus:ring-primary/20 sm:text-sm" id="country" name="country">
+<option>+966</option>
+<option>+971</option>
+<option>+1</option>
+</select>
+</div>
+<div class="absolute inset-y-0 left-[85px] flex items-center pointer-events-none text-on-surface-variant border-l border-outline-variant pl-xs">
+<span class="material-symbols-outlined text-[20px]">smartphone</span>
+</div>
+<input class="block w-full rounded-lg border-outline-variant py-3 pl-[120px] pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="mobile" name="mobile" placeholder="50 123 4567" type="tel"/>
+</div>
+</div>
+<!-- Password Field -->
+<div>
+<div class="flex justify-between items-center mb-xs">
+<label class="block font-label-md text-label-md text-on-surface uppercase" for="password">Password</label>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<input class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="absolute inset-y-0 right-0 pr-sm flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember & Forgot -->
+<div class="flex items-center justify-between pt-xs">
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant" for="remember-me">
+                                Remember me
+                            </label>
+</div>
+<div class="text-sm">
+<a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-sm">
+<button class="w-full flex justify-center items-center gap-xs py-3 px-4 border border-transparent rounded-lg shadow-sm font-headline-sm text-headline-sm text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98]" type="button">
+                            Sign In
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Footer Access -->
+<div class="mt-lg text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                        New courier? <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors" href="#">Request access</a>
+</p>
+</div>
+</div>
+<!-- Background Decoration for Right Side -->
+<div class="absolute bottom-0 right-0 w-64 h-64 bg-surface-variant rounded-tl-full opacity-50 pointer-events-none -z-10 blur-3xl"></div>
+<div class="absolute top-0 right-1/4 w-32 h-32 bg-primary-container rounded-full opacity-10 pointer-events-none -z-10 blur-2xl"></div>
+</div>
+</div>
+</body></html>

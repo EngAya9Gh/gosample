@@ -18,7 +18,7 @@ createInertiaApp({
         const importer = pages[`./views/${name}.vue`];
         if (!importer) throw new Error(`Inertia page not found: ${name}`);
         const page = (await importer()).default;
-        page.layout = page.layout ?? AppShell;
+        page.layout = page.layout === undefined ? AppShell : page.layout;
         return page;
     },
     setup({ el, App, props, plugin }) {
