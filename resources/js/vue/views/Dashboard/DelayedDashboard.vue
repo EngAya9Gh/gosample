@@ -56,23 +56,41 @@ const taskPanels = computed(() => [
   { key: 'closed',   title: 'Closed Delayed Tasks',   timeLabel: 'Freezer-out Time',rows: props.closed,         href: '/admin/outfreezerdelayed' },
 ]);
 
-/* ---- alarm: autoplay loop when delays exist, with gesture fallback ---- */
+/* ---- alarm: autoplay loop when delays exist (classic war-room behavior), but
+       mutable — the user can stop it and the choice is remembered. ---- */
 const audio = ref(null);
-const needGesture = ref(false);
-function tryPlay() {
-  if (!props.playSound || !audio.value) return;
-  audio.value.play().then(() => { needGesture.value = false; }).catch(() => { needGesture.value = true; });
+const playing = ref(false);
+const muted = ref(localStorage.getItem('mtc-alarm-muted') === '1');
+
+function startAlarm() {
+  if (!props.playSound || !audio.value || muted.value) return;
+  audio.value.play().then(() => { playing.value = true; }).catch(() => { playing.value = false; });
 }
-function enableSound() { tryPlay(); }
-onMounted(tryPlay);
-onBeforeUnmount(() => { if (audio.value) { audio.value.pause(); } });
+function toggleAlarm() {
+  if (!audio.value) return;
+  if (playing.value) {
+    audio.value.pause();
+    playing.value = false;
+    muted.value = true;
+    localStorage.setItem('mtc-alarm-muted', '1');
+  } else {
+    muted.value = false;
+    localStorage.setItem('mtc-alarm-muted', '0');
+    startAlarm();
+  }
+}
+onMounted(() => { if (props.playSound && !muted.value) startAlarm(); });
+onBeforeUnmount(() => { audio.value?.pause(); });
 </script>
 
 <template>
   <div>
     <Breadcrumb title="Delayed Tasks" :trail="[{ label: 'Dashboards' }, { label: 'Delayed Tasks' }]">
       <template #actions>
-        <BaseButton v-if="playSound && needGesture" variant="danger" icon="ri-volume-up-line" @click="enableSound">Enable alarm</BaseButton>
+        <BaseButton v-if="playSound" :variant="playing ? 'danger' : 'light'"
+          :icon="playing ? 'ri-volume-up-line' : 'ri-volume-mute-line'" @click="toggleAlarm">
+          {{ playing ? 'Mute alarm' : 'Play alarm' }}
+        </BaseButton>
       </template>
     </Breadcrumb>
 

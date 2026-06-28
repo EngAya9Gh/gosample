@@ -1,5 +1,17 @@
 # Car (Temperature) Dashboard — Frontend Migration Plan
 
+> **✅ Implemented (Inertia).** `App\Http\Controllers\App\CarDashboardController@index`
+> → `Inertia::render('Dashboard/CarDashboard')`. Keeps the real **`car-dashboard` Gate**
+> + identical IMEI selection, and **reuses the legacy controller's Afaqy code path**
+> (`generateAndSaveToken` + `getVehicleDataCustom` — hard-coded creds, TLS-off,
+> projection, temperature-only sensors) by instantiating it. Returns `available`+`cars`.
+> The page is a responsive grid of vehicle `BaseCard`s with temperature progress bars
+> (≥30 danger / ≥20 warning / else success, width clamped 0–100%), **polls every 15s**
+> via Inertia partial reload (replaces the `<meta refresh>`; interval cleared on unmount),
+> and shows a graceful **EmptyState** when Afaqy is down or no Afaqy vehicles exist.
+> NOTE: telemetry is **live-only** — locally (no reachable Afaqy / no `afaqi=1` cars) the
+> page renders the down/empty state, which is expected.
+
 > Read [`01-foundation.md`](01-foundation.md) first. Conforms to the shared SPA
 > architecture, the `/app/api` JSON layer, boot-payload permissions, and the
 > RTL/i18n bridge.

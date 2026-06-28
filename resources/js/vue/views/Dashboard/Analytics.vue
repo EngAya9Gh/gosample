@@ -65,15 +65,19 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: '
 const kpis = computed(() => {
   const s = props.stats || {};
   const list = [
-    { label: 'Tasks',   value: Number(s.tasks)   || 0, icon: 'ri-task-line',      tone: 'primary', href: '/app/admin/tasks' },
-    { label: 'Samples', value: Number(s.samples) || 0, icon: 'ri-test-tube-line', tone: 'info',    href: '/app/admin/samples' },
+    { label: 'Active Tasks',      value: Number(s.tasks)   || 0, icon: 'ri-task-line',      tone: 'primary', href: '/app/admin/tasks', featured: true },
+    { label: 'Samples Collected', value: Number(s.samples) || 0, icon: 'ri-test-tube-line', tone: 'success', href: '/app/admin/samples' },
   ];
   if (can('client_access')) {
-    list.push({ label: 'Clients', value: Number(s.clients) || 0, icon: 'ri-building-line', tone: 'success', href: '/app/admin/clients' });
+    list.push({ label: 'Active Clients', value: Number(s.clients) || 0, icon: 'ri-building-line', tone: 'info', href: '/app/admin/clients' });
   }
-  list.push({ label: 'Cars', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'warning', href: '/app/admin/cars' });
+  list.push({ label: 'Cars On Route', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'warning', href: '/app/admin/cars' });
   return list;
 });
+
+// "TUESDAY · 24 JUNE 2026" for the hero eyebrow line.
+const _d = new Date();
+const todayUpper = `${_d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()} · ${_d.getDate()} ${_d.toLocaleDateString('en-US', { month: 'long' }).toUpperCase()} ${_d.getFullYear()}`;
 
 // ---- Donut: samples by temperature ----
 const PALETTE = ['#299cdb', '#3577f1', '#f7b84b', '#0ab39c', '#0d9488', '#BD6BA7'];
@@ -147,20 +151,21 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
 
 <template>
   <div>
-    <!-- greeting header -->
-    <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-2xl font-bold text-ink dark:text-slate-50 tracking-tight">{{ greeting }}{{ firstName ? ', ' + firstName : '' }}! 👋</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ today }} · Here's your operations overview</p>
-      </div>
-      <div class="flex items-end gap-2">
-        <div class="w-64"><FormDate v-model="rangeStr" mode="range" label="Date Range" placeholder="Select date range" @range="onRange" /></div>
-        <button v-if="rangeStr" @click="clearRange"
-          class="grid place-items-center w-10 h-11 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/5 transition" title="Clear date range">
-          <i class="ri-close-circle-line text-lg"></i>
-        </button>
-        <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
-      </div>
+    <!-- top controls: date-range filter (samples donut) + create task — ABOVE the hero -->
+    <div class="flex flex-wrap items-end justify-end gap-2 mb-4">
+      <div class="w-64"><FormDate v-model="rangeStr" mode="range" label="Date Range" placeholder="Select date range" @range="onRange" /></div>
+      <button v-if="rangeStr" @click="clearRange"
+        class="grid place-items-center w-10 h-11 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/5 transition" title="Clear date range">
+        <i class="ri-close-circle-line text-lg"></i>
+      </button>
+      <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
+    </div>
+
+    <!-- greeting hero -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-700 via-primary-700 to-primary-500 text-white p-6 mb-5 shadow-card">
+      <p class="text-[11px] uppercase tracking-[.2em] text-white/70">{{ todayUpper }}</p>
+      <h1 class="text-2xl font-bold mt-1.5">{{ greeting }}{{ firstName ? ', ' + firstName : '' }} 👋</h1>
+      <p class="text-sm text-white/80 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · cold-chain overview</p>
     </div>
 
     <!-- KPI row -->

@@ -31,11 +31,15 @@ function toggleGroup(label) {
 function isActive(route) {
   return props.current === route || (route !== '/dashboard' && props.current.startsWith(route));
 }
+
+// Per-badge colours (matching the design): delayed = red, lost = pink/mauve, swap = blue.
+const BADGE_COLOR = { delayed: 'bg-red-500', lost: 'bg-danger', swap: 'bg-secondary' };
+function badgeColor(key) { return BADGE_COLOR[key] || 'bg-danger'; }
 </script>
 
 <template>
   <aside
-    class="flex flex-col h-full bg-primary-700 text-slate-300 transition-[width] duration-300 ease-out shrink-0"
+    class="flex flex-col h-full bg-gradient-to-b from-primary-700 to-primary-800 text-slate-300 transition-[width] duration-300 ease-out shrink-0"
     :class="collapsed ? 'w-[76px]' : 'w-[264px]'"
   >
     <!-- logo box — same brand logos as the classic panel -->
@@ -67,19 +71,19 @@ function isActive(route) {
             @click.prevent="$emit('navigate', it.route)"
             class="group relative flex items-center gap-3 px-2.5 h-10 rounded-xl text-sm transition-all duration-200"
             :class="isActive(it.route)
-              ? 'bg-primary-500/20 text-white font-medium shadow-[inset_0_0_0_1px_rgba(13,148,136,.4)]'
-              : 'text-slate-300/80 hover:bg-white/5 hover:text-white'"
+              ? 'bg-white/10 text-white font-semibold shadow-sm'
+              : 'text-slate-200/70 hover:bg-white/5 hover:text-white'"
             :title="collapsed ? it.label : ''"
           >
-            <span v-if="isActive(it.route)" class="absolute inset-inline-start-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-primary-400" style="inset-inline-start:0"></span>
-            <i :class="[it.icon, 'text-lg shrink-0', isActive(it.route) ? 'text-primary-300' : 'text-slate-400 group-hover:text-primary-300']"></i>
+            <span v-if="isActive(it.route)" class="absolute inset-inline-start-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-full bg-amber-400" style="inset-inline-start:0"></span>
+            <i :class="[it.icon, 'text-lg shrink-0', isActive(it.route) ? 'text-white' : 'text-slate-300/70 group-hover:text-white']"></i>
             <span v-if="!collapsed" class="truncate flex-1">{{ it.label }}</span>
             <span v-if="!collapsed && it.badge && badges[it.badge]"
-              class="inline-grid place-items-center min-w-5 h-5 px-1 rounded-full text-[10px] font-bold bg-danger text-white">
+              :class="['inline-grid place-items-center min-w-5 h-5 px-1 rounded-full text-[10px] font-bold text-white', badgeColor(it.badge)]">
               {{ badges[it.badge] }}
             </span>
             <!-- collapsed badge dot -->
-            <span v-if="collapsed && it.badge && badges[it.badge]" class="absolute top-1.5 inset-inline-end-1.5 w-2 h-2 rounded-full bg-danger" style="inset-inline-end:.375rem"></span>
+            <span v-if="collapsed && it.badge && badges[it.badge]" :class="['absolute top-1.5 inset-inline-end-1.5 w-2 h-2 rounded-full', badgeColor(it.badge)]" style="inset-inline-end:.375rem"></span>
           </a>
         </div>
       </div>

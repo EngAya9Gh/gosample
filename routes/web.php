@@ -14,6 +14,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('/', fn () => redirect('/app/dashboard'));
     Route::get('dashboard', [\App\Http\Controllers\App\DashboardController::class, 'index'])->name('app.dashboard');
     Route::get('delayeddashboard', [\App\Http\Controllers\App\DelayedDashboardController::class, 'index'])->name('app.delayeddashboard');
+    Route::get('car-dashboard', [\App\Http\Controllers\App\CarDashboardController::class, 'index'])->name('app.car-dashboard');
 
     // Tasks (plan 08-tasks.md)
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');

@@ -49,7 +49,7 @@ GoSample admin frontend (currently Velzon + Bootstrap + Blade) into the new
 |---|---|---|---|---|
 | 02 | [02-dashboard-analytics.md](02-dashboard-analytics.md) | Main analytics dashboard | `HomeController@index` | ✅ (Inertia; emergency-banner = global, deferred) |
 | 03 | [03-dashboard-delayed.md](03-dashboard-delayed.md) | Delayed (alerts) dashboard | `DelayedDashboardController` | ✅ (Inertia; KPI cross-wiring preserved) |
-| 04 | [04-dashboard-car.md](04-dashboard-car.md) | Car (temperature) dashboard | `CarDashboardController` | ⬜ |
+| 04 | [04-dashboard-car.md](04-dashboard-car.md) | Car (temperature) dashboard | `CarDashboardController` | ✅ (Inertia; reuses Afaqy path; 15s poll; data live-only) |
 | 05 | [05-dashboard-tasks.md](05-dashboard-tasks.md) | Tasks dashboard | `HomeController@tasksdashboard` | ⬜ |
 | 06 | [06-daily-operation.md](06-daily-operation.md) | Daily operation | `DailyOperationController` | ⬜ |
 | 07 | [07-map.md](07-map.md) | Live map | `HomeController@map/filterMap` | ⬜ |
