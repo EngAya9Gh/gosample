@@ -1,5 +1,6 @@
 const vite = require("vite");
 import laravel from "laravel-vite-plugin";
+import vue from "@vitejs/plugin-vue";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 const lodash = require("lodash");
 
@@ -31,9 +32,12 @@ export default vite.defineConfig({
                 "resources/js/app.js",
                 "resources/scss/app.rtl.scss",
                 "resources/scss/custom.scss",
+                // New Vue 3 + Tailwind SPA entry (frontend migration)
+                "resources/js/vue/main.js",
             ],
             refresh: true,
         }),
+        vue(),
         viteStaticCopy({
             targets: [
                 {

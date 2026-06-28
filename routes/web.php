@@ -6,6 +6,24 @@ use App\Http\Controllers\DriverController;
 
 use App\Http\Controllers\EmergencyController;
 
+// New Vue 3 + Tailwind front-end (Inertia.js). Served under /app, alongside the
+// classic Velzon panel. Each screen is a Laravel route returning an Inertia page;
+// data comes through Inertia props (no separate JSON API). Migrated screens are
+// added here one module at a time; everything else falls back to a ComingSoon page.
+Route::middleware(['auth'])->prefix('app')->group(function () {
+    Route::get('/', fn () => redirect('/app/dashboard'));
+    Route::get('dashboard', [\App\Http\Controllers\App\DashboardController::class, 'index'])->name('app.dashboard');
+    Route::get('delayeddashboard', [\App\Http\Controllers\App\DelayedDashboardController::class, 'index'])->name('app.delayeddashboard');
+
+    // Tasks (plan 08-tasks.md)
+    Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');
+
+    // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
+    // stays fully navigable. Specific routes above take precedence.
+    Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
+        ->where('any', '.*')->name('app.fallback');
+});
+
 Route::redirect('/', '/login');
 // Route::redirect('/login', '/login');
 Route::get('/home', function () {
