@@ -141,11 +141,12 @@ public function handle()
                         foreach ($tempSensors as $temp) {
                 //\Log::info($temp);
                             $value = $temp['last_val']['value_calibrated'] ?? null;
-                            if ($temp['n'] == 'Refrigeration' && isset($temp['last_val']['value'])) {
+                            $sensorName = trim($temp['n'] ?? '');
+                            if ($sensorName == 'Refrigeration' && isset($temp['last_val']['value'])) {
                                 $temp1 = $value;
-                            } elseif ($temp['n'] == 'Freezing' && isset($temp['last_val']['value'])) {
+                            } elseif ($sensorName == 'Freezing' && isset($temp['last_val']['value'])) {
                                 $temp2 = $value;
-                            } elseif ($temp['n'] == "Room Temp" && isset($temp['last_val']['value'])) {
+                            } elseif ($sensorName == "Room Temp" && isset($temp['last_val']['value'])) {
                                 $temp3 = $value;
                             }
                         }
@@ -156,7 +157,7 @@ public function handle()
                     }
                     // \Log::info( $res->getBody());
                     // \Log::info($sensors);
-			if (!empty($temp1) && (!empty($temp2) || !empty($temp3)) && ($imei == $car_imei)) {
+			if (($temp1 !== null) && ($temp2 !== null || $temp3 !== null) && ($imei == $car_imei)) {
                         $lastrecord = CarTracking::where('car_id', $car_id)
                             ->where('task_id', $task->id)
                             ->orderby('id', 'desc')->first();
