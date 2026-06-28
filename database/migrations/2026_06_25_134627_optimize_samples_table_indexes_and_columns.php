@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('samples', function (Blueprint $table) {
-            // Drop redundant indexes to save space and improve insert performance
-            $table->dropIndex('samples_task_deleted_idx'); // Duplicate of idx_samples_task_status
-            $table->dropIndex('idx_samples_created_at');   // Covered by samples_dashboard_index
-
-         
-        });
+        // Index drops moved to 2026_06_27_135036_drop_status_column_from_samples_table.php 
+        // to avoid Foreign Key constraint errors (Error 1553) during deployment.
     }
 
     /**
@@ -25,10 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('samples', function (Blueprint $table) {
-             
-            $table->index('task_id', 'samples_task_deleted_idx');
-            $table->index('created_at', 'idx_samples_created_at');
-        });
+        // Kept empty
     }
 };
