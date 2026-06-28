@@ -109,8 +109,9 @@ public function handle()
                     continue;
                 }
                 
-                if (strpos($task->driver?->car?->name ?? '', '6959') !== false || strpos($car_imei ?? '', '6959') !== false || strpos($task->driver?->car?->name ?? '', '6090') !== false || strpos($car_imei ?? '', '6090') !== false) {
-                    \Log::info("=== AFAQY RESPONSE FOR CAR (IMEI: $car_imei) ===");
+                $targetIMEIs = ['869595061388210', '869595061614557'];
+                if (in_array($car_imei ?? '', $targetIMEIs)) {
+                    \Log::info("=== AFAQY RESPONSE FOR TARGET CAR (IMEI: $car_imei) ===");
                     \Log::info(json_encode($sensors));
                 }
 
