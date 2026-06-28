@@ -16,10 +16,16 @@ return new class extends Migration
         // we first fetch the existing indexes natively.
         $existingIndexes = collect(DB::select('SHOW INDEX FROM samples'))->pluck('Key_name')->unique()->toArray();
 
+        $existingFks = collect(DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'FOREIGN KEY'"))->pluck('CONSTRAINT_NAME')->toArray();
+
         // Step 1: Drop foreign keys safely
-        Schema::table('samples', function (Blueprint $table) {
-            $table->dropForeign('samples_new_task_fk');
-            $table->dropForeign('samples_new_location_fk');
+        Schema::table('samples', function (Blueprint $table) use ($existingFks) {
+            if (in_array('samples_new_task_fk', $existingFks)) {
+                $table->dropForeign('samples_new_task_fk');
+            }
+            if (in_array('samples_new_location_fk', $existingFks)) {
+                $table->dropForeign('samples_new_location_fk');
+            }
         });
 
         // Step 2: Drop indexes ONLY if they exist on this specific server
@@ -58,9 +64,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('samples', function (Blueprint $table) {
-            $table->dropForeign('samples_new_task_fk');
-            $table->dropForeign('samples_new_location_fk');
+        $existingFks = collect(DB::select("SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'FOREIGN KEY'"))->pluck('CONSTRAINT_NAME')->toArray();
+
+        Schema::table('samples', function (Blueprint $table) use ($existingFks) {
+            if (in_array('samples_new_task_fk', $existingFks)) {
+                $table->dropForeign('samples_new_task_fk');
+            }
+            if (in_array('samples_new_location_fk', $existingFks)) {
+                $table->dropForeign('samples_new_location_fk');
+            }
 
             $table->dropIndex('idx_samples_location_id');
 
