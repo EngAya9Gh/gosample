@@ -19,7 +19,13 @@ export default vite.defineConfig({
                         return "icons/" + css.name;
                     }
                 },
-                entryFileNames: "js/" + `[name]` + `.js`,
+                entryFileNames: (chunkInfo) => {
+                    // Add hash to Vue main.js for cache busting, keep legacy files unhashed
+                    if (chunkInfo.name === 'main') {
+                        return "js/[name]-[hash].js";
+                    }
+                    return "js/[name].js";
+                },
             },
         },
     },
