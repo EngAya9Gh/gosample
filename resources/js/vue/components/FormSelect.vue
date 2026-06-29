@@ -54,7 +54,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
 
 <template>
   <div class="w-full" ref="root">
-    <label v-if="label" class="block text-[13px] font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+    <label v-if="label" class="block text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-1.5">
       {{ label }} <span v-if="required" class="text-danger">*</span>
     </label>
 

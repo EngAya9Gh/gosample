@@ -160,7 +160,7 @@ function stickyCls(c) {
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
-          <tr class="bg-surface-muted/60 dark:bg-white/5 text-slate-500 dark:text-slate-400">
+          <tr class="bg-surface-muted/60 dark:bg-white/5 text-slate-800 dark:text-slate-200">
             <th v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-surface-muted/60 dark:bg-slate-800 z-[2]">
               <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/20'">
                 <i v-if="allOnPage" class="ri-check-line text-xs"></i>

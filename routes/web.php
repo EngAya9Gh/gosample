@@ -19,6 +19,19 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     // Tasks (plan 08-tasks.md)
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');
 
+    // Drivers
+    Route::get('admin/drivers', [\App\Http\Controllers\App\DriversController::class, 'index'])->name('app.admin.drivers.index');
+    Route::get('admin/drivers/create', [\App\Http\Controllers\App\DriversController::class, 'create'])->name('app.admin.drivers.create');
+    Route::post('admin/drivers', [\App\Http\Controllers\App\DriversController::class, 'store'])->name('app.admin.drivers.store');
+    Route::get('admin/drivers/{driver}', [\App\Http\Controllers\App\DriversController::class, 'show'])->name('app.admin.drivers.show');
+    Route::get('admin/drivers/{driver}/edit', [\App\Http\Controllers\App\DriversController::class, 'edit'])->name('app.admin.drivers.edit');
+    Route::put('admin/drivers/{driver}', [\App\Http\Controllers\App\DriversController::class, 'update'])->name('app.admin.drivers.update');
+    Route::delete('admin/drivers/massDestroy', [\App\Http\Controllers\App\DriversController::class, 'massDestroy'])->name('app.admin.drivers.massDestroy');
+    Route::delete('admin/drivers/{driver}', [\App\Http\Controllers\App\DriversController::class, 'destroy'])->name('app.admin.drivers.destroy');
+    Route::get('admin/drivers/{driver}/tasks', [\App\Http\Controllers\App\DriversController::class, 'showTasks'])->name('app.admin.drivers.tasks');
+    Route::post('admin/drivers/{driver}/tasks/reorder', [\App\Http\Controllers\App\DriversController::class, 'reorderTasks'])->name('app.admin.drivers.tasks.reorder');
+    Route::post('admin/drivers/{driver}/tasks/smartSort', [\App\Http\Controllers\App\DriversController::class, 'smartSortTasks'])->name('app.admin.drivers.tasks.smartSort');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
