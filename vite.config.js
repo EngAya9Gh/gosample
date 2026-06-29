@@ -14,6 +14,10 @@ export default vite.defineConfig({
             output: {
                 assetFileNames: (css) => {
                     if (css.name.split(".").pop() == "css") {
+                        // Add hash to Vue main CSS for cache busting, keep legacy files unhashed
+                        if (css.name === 'main.css' || css.name === 'main.min.css') {
+                            return "css/[name]-[hash].min.css";
+                        }
                         return "css/" + `[name]` + ".min." + "css";
                     } else {
                         return "icons/" + css.name;
