@@ -54,13 +54,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
 
 <template>
   <div class="w-full" ref="root">
-    <label v-if="label" class="block text-[13px] font-medium text-slate-600 dark:text-slate-300 mb-1.5">
+    <label v-if="label" class="block text-[13px] font-bold text-slate-700 dark:text-slate-200 mb-1.5">
       {{ label }} <span v-if="required" class="text-danger">*</span>
     </label>
 
     <button
       type="button" @click="open = !open"
-      class="w-full min-h-11 px-3.5 py-1.5 flex items-center gap-1.5 flex-wrap text-start bg-surface dark:bg-slate-900/40 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+      class="w-full min-h-11 px-3.5 py-1.5 flex items-center gap-1.5 flex-wrap text-start bg-surface dark:bg-white/5 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500/40"
       :class="error ? 'border-danger/60' : 'border-slate-200 dark:border-white/10'"
     >
       <template v-if="multiple && selectedArr.length">

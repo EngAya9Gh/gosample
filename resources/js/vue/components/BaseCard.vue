@@ -22,11 +22,11 @@ defineProps({
     >
       <slot name="header">
         <div class="flex items-center gap-2.5 min-w-0">
-          <span v-if="icon" class="grid place-items-center w-9 h-9 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 shrink-0">
+          <span v-if="icon" class="grid place-items-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#0ea5a4] to-[#005D69] text-white shadow-card shrink-0">
             <i :class="[icon, 'text-lg']"></i>
           </span>
           <div class="min-w-0">
-            <h3 class="font-semibold text-ink dark:text-slate-100 text-[15px] truncate">{{ title }}</h3>
+            <h3 class="font-bold text-ink dark:text-slate-100 text-[15px] truncate">{{ title }}</h3>
             <p v-if="subtitle" class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ subtitle }}</p>
           </div>
         </div>

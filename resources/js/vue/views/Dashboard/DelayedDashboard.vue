@@ -8,7 +8,7 @@
  * ⚠️ KPI cross-wiring is preserved from the classic Blade (parity): the
  * "Collected Delayed" card shows the DELIVERED count and vice-versa.
  */
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import StatCard from '../../components/StatCard.vue';
 import BaseCard from '../../components/BaseCard.vue';
@@ -29,11 +29,11 @@ const kpis = computed(() => {
   const c = props.counts || {};
   return [
     { label: 'Lost Samples',     value: Number(c.lost_samples) || 0,     icon: 'ri-flask-line',          tone: 'danger' },
-    { label: 'Pickup Delayed',   value: Number(c.pickup_delayed) || 0,   icon: 'ri-time-line',           tone: 'danger' },
+    { label: 'Pickup Delayed',   value: Number(c.pickup_delayed) || 0,   icon: 'ri-time-line',           tone: 'warning' },
     // cross-wired (see header note): card labelled Collected shows the delivered count
-    { label: 'Collected Delayed', value: Number(c.in_freezer_card) || 0, icon: 'ri-archive-2-line',      tone: 'danger' },
-    { label: 'Closed Delayed',   value: Number(c.delivered_card) || 0,   icon: 'ri-checkbox-circle-line', tone: 'danger' },
-    { label: 'Drop-off Delayed', value: Number(c.drop_off_delayed) || 0, icon: 'ri-map-pin-line',        tone: 'danger' },
+    { label: 'Collected Delayed', value: Number(c.in_freezer_card) || 0, icon: 'ri-archive-2-line',      tone: 'info' },
+    { label: 'Closed Delayed',   value: Number(c.delivered_card) || 0,   icon: 'ri-checkbox-circle-line', tone: 'success' },
+    { label: 'Drop-off Delayed', value: Number(c.drop_off_delayed) || 0, icon: 'ri-map-pin-line',        tone: 'primary' },
   ];
 });
 
@@ -44,7 +44,8 @@ function tile(dt) {
   return {
     day: String(d.getDate()).padStart(2, '0'),
     weekday: d.toLocaleDateString('en-US', { weekday: 'long' }),
-    time: dt.split(' ')[1] || '',
+    month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+    time: (dt.split(' ')[1] || '').slice(0, 5),
   };
 }
 
@@ -55,47 +56,11 @@ const taskPanels = computed(() => [
   { key: 'collected',title: 'Collected Delayed Tasks',timeLabel: 'Collection Time', rows: props.collected,      href: '/admin/collectedDelayed' },
   { key: 'closed',   title: 'Closed Delayed Tasks',   timeLabel: 'Freezer-out Time',rows: props.closed,         href: '/admin/outfreezerdelayed' },
 ]);
-
-/* ---- alarm: autoplay loop when delays exist (classic war-room behavior), but
-       mutable — the user can stop it and the choice is remembered. ---- */
-const audio = ref(null);
-const playing = ref(false);
-const muted = ref(localStorage.getItem('mtc-alarm-muted') === '1');
-
-function startAlarm() {
-  if (!props.playSound || !audio.value || muted.value) return;
-  audio.value.play().then(() => { playing.value = true; }).catch(() => { playing.value = false; });
-}
-function toggleAlarm() {
-  if (!audio.value) return;
-  if (playing.value) {
-    audio.value.pause();
-    playing.value = false;
-    muted.value = true;
-    localStorage.setItem('mtc-alarm-muted', '1');
-  } else {
-    muted.value = false;
-    localStorage.setItem('mtc-alarm-muted', '0');
-    startAlarm();
-  }
-}
-onMounted(() => { if (props.playSound && !muted.value) startAlarm(); });
-onBeforeUnmount(() => { audio.value?.pause(); });
 </script>
 
 <template>
   <div>
-    <Breadcrumb title="Delayed Tasks" :trail="[{ label: 'Dashboards' }, { label: 'Delayed Tasks' }]">
-      <template #actions>
-        <BaseButton v-if="playSound" :variant="playing ? 'danger' : 'light'"
-          :icon="playing ? 'ri-volume-up-line' : 'ri-volume-mute-line'" @click="toggleAlarm">
-          {{ playing ? 'Mute alarm' : 'Play alarm' }}
-        </BaseButton>
-      </template>
-    </Breadcrumb>
-
-    <!-- alarm (autoplay loop when pickup/drop-off delays exist) -->
-    <audio v-if="playSound" ref="audio" loop src="/emergency-alarm.mp3" class="hidden"></audio>
+    <Breadcrumb title="Delayed Tasks" :trail="[{ label: 'Dashboards' }, { label: 'Delayed Tasks' }]" />
 
     <!-- KPI row -->
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
@@ -111,10 +76,10 @@ onBeforeUnmount(() => { audio.value?.pause(); });
           <a href="/admin/lost"><BaseButton variant="light" size="sm" icon="ri-external-link-line">View all</BaseButton></a>
         </template>
         <div v-if="lostSamples.length" class="max-h-[360px] overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-          <div v-for="s in lostSamples" :key="s.id" class="flex items-center gap-4 px-5 py-3">
+          <div v-for="s in lostSamples" :key="s.id" class="flex items-center gap-4 px-5 py-3 hover:bg-surface-muted dark:hover:bg-white/5 transition-colors">
             <div class="text-center shrink-0 w-12">
               <div class="text-lg font-bold text-ink dark:text-slate-100">{{ tile(s.updated_at).day }}</div>
-              <div class="text-[10px] text-slate-400">{{ tile(s.updated_at).weekday }}</div>
+              <div class="text-[10px] font-semibold text-slate-400">{{ tile(s.updated_at).month }}</div>
             </div>
             <div class="min-w-0 flex-1 text-[13px]">
               <p class="text-slate-500">Update at: <span class="text-ink dark:text-slate-200">{{ tile(s.updated_at).time }}</span></p>
@@ -133,10 +98,10 @@ onBeforeUnmount(() => { audio.value?.pause(); });
           <a :href="taskPanels[0].href"><BaseButton variant="light" size="sm" icon="ri-external-link-line">View all</BaseButton></a>
         </template>
         <div v-if="taskPanels[0].rows.length" class="max-h-[360px] overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-          <div v-for="t in taskPanels[0].rows" :key="t.id" class="flex items-center gap-4 px-5 py-3">
+          <div v-for="t in taskPanels[0].rows" :key="t.id" class="flex items-center gap-4 px-5 py-3 hover:bg-surface-muted dark:hover:bg-white/5 transition-colors">
             <div class="text-center shrink-0 w-12">
               <div class="text-lg font-bold text-ink dark:text-slate-100">{{ tile(t.date).day }}</div>
-              <div class="text-[10px] text-slate-400">{{ tile(t.date).weekday }}</div>
+              <div class="text-[10px] font-semibold text-slate-400">{{ tile(t.date).month }}</div>
             </div>
             <div class="min-w-0 flex-1 text-[13px]">
               <p class="text-slate-500">{{ taskPanels[0].timeLabel }}: <span class="text-ink dark:text-slate-200">{{ tile(t.date).time }}</span></p>
@@ -157,10 +122,10 @@ onBeforeUnmount(() => { audio.value?.pause(); });
           <a :href="p.href"><BaseButton variant="light" size="sm" icon="ri-external-link-line">View</BaseButton></a>
         </template>
         <div v-if="p.rows.length" class="max-h-[360px] overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-          <div v-for="t in p.rows" :key="t.id" class="flex items-center gap-4 px-5 py-3">
+          <div v-for="t in p.rows" :key="t.id" class="flex items-center gap-4 px-5 py-3 hover:bg-surface-muted dark:hover:bg-white/5 transition-colors">
             <div class="text-center shrink-0 w-12">
               <div class="text-lg font-bold text-ink dark:text-slate-100">{{ tile(t.date).day }}</div>
-              <div class="text-[10px] text-slate-400">{{ tile(t.date).weekday }}</div>
+              <div class="text-[10px] font-semibold text-slate-400">{{ tile(t.date).month }}</div>
             </div>
             <div class="min-w-0 flex-1 text-[13px]">
               <p class="text-slate-500">{{ p.timeLabel }}: <span class="text-ink dark:text-slate-200">{{ tile(t.date).time }}</span></p>

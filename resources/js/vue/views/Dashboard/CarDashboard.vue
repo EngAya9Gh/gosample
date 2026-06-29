@@ -21,11 +21,18 @@ function tempVal(s) {
   const v = parseFloat(s?.last_val?.value_full);
   return Number.isFinite(v) ? v : null;
 }
-function barColor(v) {
-  if (v == null) return 'bg-slate-300';
-  if (v >= 30) return 'bg-danger';
-  if (v >= 20) return 'bg-warning';
-  return 'bg-success';
+// Temperature tone → bar + value colors (matches theme: cold green, warm amber, hot red).
+const TEMP = {
+  cold: { bar: 'bg-success',   text: 'text-success' },
+  warn: { bar: 'bg-amber-500', text: 'text-amber-500' },
+  hot:  { bar: 'bg-red-500',   text: 'text-red-500' },
+  none: { bar: 'bg-slate-300', text: 'text-slate-400' },
+};
+function tempTone(v) {
+  if (v == null) return 'none';
+  if (v >= 30) return 'hot';   // ≥30 danger
+  if (v >= 20) return 'warn';  // ≥20 warning
+  return 'cold';
 }
 function barWidth(v) {
   if (v == null) return '0%';
@@ -34,9 +41,8 @@ function barWidth(v) {
 function profileRows(p) {
   if (!p) return [];
   return [
-    ['Vehicle Type', p.vehicle_type],
-    ['Plate Number', p.plate_number],
-    ['Max Capacity', p.max_capacity],
+    ['Plate', p.plate_number],
+    ['Capacity', p.max_capacity],
     ['Seats', p.seats],
   ].filter(([, v]) => v !== undefined && v !== null && v !== '');
 }
@@ -62,11 +68,11 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
       <BaseCard v-for="(car, idx) in cars" :key="car.id ?? idx" :title="car.name || 'Vehicle'" icon="ri-car-line">
         <p class="text-xs text-slate-500 mb-3">IMEI: <span class="font-mono text-ink dark:text-slate-200" style="direction:ltr">{{ car.i }}</span></p>
 
-        <!-- profile -->
-        <div v-if="profileRows(car.profile).length" class="space-y-1 mb-4">
-          <div v-for="[k, v] in profileRows(car.profile)" :key="k" class="flex justify-between text-[13px]">
-            <span class="text-slate-400">{{ k }}</span>
-            <span class="text-ink dark:text-slate-200 font-medium">{{ v }}</span>
+        <!-- profile stat tiles -->
+        <div v-if="profileRows(car.profile).length" class="grid grid-cols-3 gap-2 mb-4">
+          <div v-for="[k, v] in profileRows(car.profile)" :key="k" class="rounded-xl bg-surface-muted dark:bg-white/5 px-3 py-2 min-w-0">
+            <div class="text-[11px] text-slate-400 dark:text-slate-500">{{ k }}</div>
+            <div class="text-sm font-bold text-ink dark:text-slate-100 truncate" style="direction:ltr">{{ v }}</div>
           </div>
         </div>
 
@@ -75,10 +81,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
           <div v-for="(s, si) in car.sensors" :key="si">
             <div class="flex justify-between text-[13px] mb-1">
               <span class="text-slate-600 dark:text-slate-300 truncate">{{ s.n || 'Temperature' }}</span>
-              <span class="font-semibold text-ink dark:text-slate-100" style="direction:ltr">{{ tempVal(s) != null ? tempVal(s) + ' °C' : '—' }}</span>
+              <span class="font-bold" :class="TEMP[tempTone(tempVal(s))].text" style="direction:ltr">{{ tempVal(s) != null ? tempVal(s) + ' °C' : '—' }}</span>
             </div>
             <div class="h-2 rounded-full bg-surface-muted dark:bg-white/10 overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500" :class="barColor(tempVal(s))" :style="{ width: barWidth(tempVal(s)) }"></div>
+              <div class="h-full rounded-full transition-all duration-500" :class="TEMP[tempTone(tempVal(s))].bar" :style="{ width: barWidth(tempVal(s)) }"></div>
             </div>
           </div>
         </div>

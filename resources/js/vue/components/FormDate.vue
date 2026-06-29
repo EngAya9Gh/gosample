@@ -41,7 +41,7 @@ const altFmt = computed(() =>
 );
 
 const field =
-  'w-full h-11 bg-surface dark:bg-slate-900/40 text-ink dark:text-slate-100 ' +
+  'w-full h-11 bg-surface dark:bg-white/5 text-ink dark:text-slate-100 ' +
   'border rounded-xl text-sm transition-all duration-200 placeholder:text-slate-400 ps-10 pe-3.5 ' +
   'focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 cursor-pointer ' +
   'disabled:opacity-60 disabled:cursor-not-allowed';
@@ -144,7 +144,7 @@ onBeforeUnmount(() => { fp?.destroy(); fp = null; });
 
 <template>
   <div class="w-full">
-    <label v-if="label" class="block text-[13px] font-medium text-slate-600 dark:text-slate-300 mb-1.5">
+    <label v-if="label" class="block text-[13px] font-bold text-slate-700 dark:text-slate-200 mb-1.5">
       {{ label }} <span v-if="required" class="text-danger">*</span>
     </label>
     <div class="relative">

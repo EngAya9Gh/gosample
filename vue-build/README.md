@@ -4,10 +4,10 @@ Production source for the MTC redesign, built to the **DELIVERY CONTRACT**: Vue 
 `<script setup>` SFCs, Tailwind-only styling, locked brand tokens, `ri-*` icons,
 RTL-first with logical utilities, mock data (no API calls).
 
-This is **Build Order step 1** (app shell + the full reusable component library)
-plus the two named showcase screens (Analytics dashboard, Tasks list). Every
-remaining screen in the handoff is built by composing these same components — see
-"Building the rest" below.
+**This package now contains the COMPLETE screen inventory** — every screen in the
+handoff (Section 5.A → 5.AA) is present as a real `.vue` view: ~150 routes across
+dashboards, reports, tasks, drivers, cars, clients, users, settings, auth and
+errors. They are wired in `routes.config.js` and browsable via `preview.html`.
 
 ---
 
@@ -107,18 +107,46 @@ annotated in comments:
 
 ---
 
-## Building the rest of the screens
+## Screen inventory (all present)
 
-Every remaining list/show/form in the handoff is a thin composition:
+Every route is mapped in `routes.config.js` → `views/<Module>/<Screen>.vue`:
 
-- **List screen** = `Breadcrumb` + `FilterBar` (drop in the screen's filters) +
-  `DataTable` (define `columns`, pass `rows`, slot custom cells + row actions) +
-  `BaseModal` delete-confirm. Copy `views/Tasks/TasksList.vue` and change the
-  column/filter config — that's the pattern for all ~40 list screens.
+- **Dashboard/** — Analytics, DelayedDashboard, CarDashboard, TasksDashboard, LiveMap, SystemCalendar
+- **Reports/** — ReportsIndex, DailyReport, WeeklyReport, MonthlyReport (leaderboard), PerformanceDashboard
+- **Tasks/** — TasksList, TaskCreate, TaskEdit, TaskShow (printable journey report + timeline + temp chart), ScanSamples, MissingSamples, ExportPending, DriverTracking, DailyOperation, UnusedTasks, SwapTasks, ScheduleLogs, CollectedDelayed, DropoffDelayed, PickupDelayed, OutFreezerDelayed
+- **Scheduled/** — ScheduledTasksList, ScheduledTaskCreate, ScheduledTaskQuickCreate, ScheduledTaskShow
+- **Swap/** — SwapRequests List/Create/Edit/Show
+- **Samples/** — SamplesList, SamplesShow, LostSamplesList
+- **Shipments/** · **Containers/** · **Barcodes/** (+ GenerateBarcodes print sheet) · **Money/** — List/Create/Edit/Show each
+- **Drivers/** — DriversList, DriverCreate, DriverEdit (shift scheduler), DriverShow (profile w/ tabs + KPI bars), DriverRoute (drag-drop), Attendances ·, ShiftTemplates ·, DriverSchedules · CRUD
+- **Cars/** — CarsList, Create/Edit, CarShow (tabs + delivery-photo gallery + tracking), CarDrivers ·, CarLinkHistories · CRUD
+- **Zones/** — List + Create/Edit/Show with polygon-draw map
+- **Clients/** — Clients, ClientAccounts, ClientDrivers, ClientLocations, Contacts · CRUD
+- **Locations/** — List + Create/Edit (Places map picker) + Show (with barcode)
+- **Users/** — Users CRUD, Roles (card grid + toggle-switch permission editor), Permissions CRUD
+- **Settings/** — AuditLogs (+ old/new diff Show), Terms, Notifications (read-only), ElmNotifications, ApiAyenati, UserAlerts, DeletePermissions
+- **Auth/** — Login, Register, TwoStepVerify, ForgotPassword, ResetPassword, ConfirmPassword, ChangePassword, Profile
+- **Errors/** — Error404, Error500, ErrorAfaqy
+
+**Generated vs hand-built:** standard CRUD list/create/edit/show views were
+produced from a column/field spec (faithful to the handoff's columns, fields and
+filters, with realistic mock rows); the showcase/special screens (dashboards,
+reports, task report, scan, driver profile/route, car gallery, maps, roles,
+barcodes, audit diff, auth, errors) are hand-built. All compose the same shared
+components, so visual language is uniform. Refine any generated screen by editing
+its column/field arrays.
+
+---
+
+## Recomposition patterns
+
+Every screen is a thin composition you can clone and adjust:
+
+- **List** = `Breadcrumb` + `FilterBar` + `DataTable` (define `columns`, pass
+  `rows`, slot custom cells + row actions) + `BaseModal` delete-confirm.
 - **Create/Edit** = `BaseCard` + two-column grid of `FormInput`/`FormSelect`/
   `FormToggle` + `BaseButton` Save/Cancel.
-- **Show** = `BaseCard` + `TabGroup` + definition rows (+ `Timeline` for the task
-  report, `BaseAvatar` for driver/user profiles).
+- **Show** = `BaseCard` + `TabGroup` + definition rows (+ `Timeline`, `BaseAvatar`).
 - **Dashboards** = `StatCard` grid + `BaseCard`-wrapped charts.
 
 Set `serverSide` on `DataTable` for the big lists (Tasks, Daily Operation,

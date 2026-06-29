@@ -63,7 +63,7 @@ const cardCls = computed(() => (props.featured
       </span>
     </div>
     <div class="mt-4">
-      <div class="text-3xl font-bold tabular-nums tracking-tight" :class="featured ? 'text-white' : 'text-ink dark:text-slate-50'">
+      <div class="text-3xl font-extrabold tabular-nums tracking-tight" :class="featured ? 'text-white' : 'text-ink dark:text-slate-50'">
         {{ prefix }}{{ display.toLocaleString() }}{{ suffix }}
       </div>
       <div class="text-sm mt-0.5" :class="featured ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'">{{ label }}</div>

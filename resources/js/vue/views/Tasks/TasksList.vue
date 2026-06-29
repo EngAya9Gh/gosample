@@ -249,10 +249,10 @@ async function bulkDelete(ids) {
         <button
           v-for="s in statusPills" :key="s.value" type="button"
           @click="toggleStatus(s.value)"
-          class="inline-flex items-center gap-2 ps-3 pe-3.5 h-9 rounded-full border text-sm font-medium transition"
+          class="inline-flex items-center gap-2 ps-3 pe-3.5 h-9 rounded-full border text-sm font-bold transition"
           :class="filters.status === s.value
             ? s.active
-            : 'bg-surface dark:bg-slate-800/40 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'"
+            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'"
         >
           <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
           {{ s.label }}
@@ -269,7 +269,7 @@ async function bulkDelete(ids) {
       @query="onQuery" @bulk-delete="bulkDelete" @export="onExport"
     >
       <template #cell-id="{ value }">
-        <span class="font-bold text-primary-500 dark:text-primary-300">#{{ value }}</span>
+        <span class="font-black text-primary-500 dark:text-primary-300">#{{ value }}</span>
       </template>
       <template #cell-client="{ value }">
         <span class="font-semibold text-ink dark:text-slate-100">{{ value || '—' }}</span>

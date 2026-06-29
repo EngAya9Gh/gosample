@@ -39,7 +39,7 @@ function badgeColor(key) { return BADGE_COLOR[key] || 'bg-danger'; }
 
 <template>
   <aside
-    class="flex flex-col h-full bg-gradient-to-b from-primary-700 to-primary-800 text-slate-300 transition-[width] duration-300 ease-out shrink-0"
+    class="flex flex-col h-full bg-gradient-to-b from-primary-700 to-primary-800 dark:from-primary-900 dark:to-primary-900 text-slate-300 transition-[width] duration-300 ease-out shrink-0"
     :class="collapsed ? 'w-[76px]' : 'w-[264px]'"
   >
     <!-- logo box — same brand logos as the classic panel -->
