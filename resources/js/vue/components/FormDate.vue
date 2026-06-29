@@ -32,6 +32,13 @@ const ph = computed(() =>
   props.placeholder ||
   (props.mode === 'time' ? 'hh:mm' : props.mode === 'datetime' ? 'dd/mm/yyyy, hh:mm' : 'dd/mm/yyyy')
 );
+// Friendly, theme-style display of the selected value (e.g. "01 Jun 2026, 9:00 AM").
+// flatpickr's altInput shows this while the real input keeps the raw Y-m-d H:i value.
+const altFmt = computed(() =>
+  props.mode === 'time' ? 'h:i K'
+  : props.mode === 'datetime' ? 'd M Y, h:i K'
+  : 'd M Y'
+);
 
 const field =
   'w-full h-11 bg-surface dark:bg-slate-900/40 text-ink dark:text-slate-100 ' +
@@ -50,6 +57,11 @@ function buildConfig() {
     // with the SPA's inner scroll container and never gets "stuck".
     static: true,
     disableMobile: true,                 // always the branded picker, never native mobile UI
+    // Show a friendly formatted value (altInput) while the real input keeps the
+    // raw Y-m-d H:i string the backend filters expect.
+    altInput: true,
+    altFormat: altFmt.value,
+    altInputClass: `${field} ${borderCls.value}`,
     defaultHour: 9,
     locale: { firstDayOfWeek: 0 },       // Sunday-first, matching the classic Create Task picker
     onChange: (selectedDates, str, inst) => {
@@ -136,7 +148,7 @@ onBeforeUnmount(() => { fp?.destroy(); fp = null; });
       {{ label }} <span v-if="required" class="text-danger">*</span>
     </label>
     <div class="relative">
-      <i :class="[icon, 'absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-slate-400 pointer-events-none z-[1]']" style="inset-inline-start:.75rem"></i>
+      <i :class="[icon, 'absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-primary-600 pointer-events-none z-[1]']" style="inset-inline-start:.75rem"></i>
       <input
         ref="el" type="text" readonly :placeholder="ph" :disabled="disabled"
         :class="[field, borderCls]"

@@ -40,14 +40,17 @@ const sizes = {
 };
 
 const variants = {
-  // Matches the classic system's signature CTA: bright teal gradient (#0ea5a4 → #0d9488).
-  primary: 'bg-gradient-to-br from-[#0ea5a4] to-[#0d9488] text-white shadow-card hover:brightness-105 hover:shadow-card-hover',
+  // Theme CTA: brand teal gradient (#0d9488 → #005D69, the dark brand core).
+  primary: 'bg-gradient-to-br from-[#0d9488] to-[#005D69] text-white shadow-card hover:brightness-110 hover:shadow-card-hover',
   accent:  'bg-primary-500 text-white shadow-card hover:bg-primary-600',
   light:   'bg-surface-muted text-ink hover:bg-slate-200/70 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20',
   success: 'bg-success text-white hover:brightness-95',
   info:    'bg-info text-white hover:brightness-95',
   danger:  'bg-danger text-white hover:brightness-95',
   ghost:   'text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-white/10',
+  // Soft file-export tints (PDF red, Excel green) — colored but on-theme.
+  pdf:     'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20',
+  excel:   'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-500/10 dark:text-green-300 dark:hover:bg-green-500/20',
 };
 
 const cls = computed(() => [

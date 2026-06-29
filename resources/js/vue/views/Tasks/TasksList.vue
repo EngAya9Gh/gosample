@@ -42,14 +42,39 @@ const DEFAULT_FILTERS = {
 };
 const filters = reactive({ ...DEFAULT_FILTERS, ...props.filters });
 
-const statusOpts = [
-  { value: 'NEW',         label: 'NEW' },
-  { value: 'COLLECTED',   label: 'COLLECTED' },
-  { value: 'IN_FREEZER',  label: 'IN CONTAINER' },
-  { value: 'OUT_FREEZER', label: 'OUT CONTAINER' },
-  { value: 'CLOSED',      label: 'CLOSED' },
-  { value: 'NO_SAMPLES',  label: 'NO_SAMPLES' },
+// Single date-range field (replaces Date From/To). The picker emits {from,to};
+// we mirror those into the existing date_from/date_to backend filters.
+const datePart = (s) => (s ? String(s).slice(0, 10) : '');
+const dateRange = ref(filters.date_from ? `${datePart(filters.date_from)} to ${datePart(filters.date_to)}` : '');
+function onDateRange({ from, to }) {
+  filters.date_from = from || '';
+  filters.date_to = to || '';
+}
+
+// Status as colored pills (toggle-select) — same status tokens StatusBadge uses.
+// Class strings are static literals so Tailwind's scanner keeps them.
+const statusPills = [
+  { value: 'NEW',         label: 'New',           dot: 'bg-status-new',       active: 'bg-status-new/10 border-status-new/40 text-status-new' },
+  { value: 'COLLECTED',   label: 'Collected',     dot: 'bg-status-collected', active: 'bg-status-collected/10 border-status-collected/40 text-status-collected' },
+  { value: 'IN_FREEZER',  label: 'In Container',  dot: 'bg-status-container', active: 'bg-status-container/10 border-status-container/40 text-status-container' },
+  { value: 'OUT_FREEZER', label: 'Out Container', dot: 'bg-status-container', active: 'bg-status-container/10 border-status-container/40 text-status-container' },
+  { value: 'CLOSED',      label: 'Closed',        dot: 'bg-status-closed',    active: 'bg-status-closed/10 border-status-closed/40 text-status-closed' },
+  { value: 'NO_SAMPLES',  label: 'No Samples',    dot: 'bg-status-none',      active: 'bg-status-none/15 border-status-none/40 text-status-none' },
 ];
+// Clicking a status pill filters immediately (auto-search), no Search click needed.
+function toggleStatus(v) {
+  filters.status = filters.status === v ? '' : v;
+  reload({ page: 1 });
+}
+
+// EAT minutes color by threshold: fast=green, medium=amber, slow=red, none=gray.
+function etaColor(v) {
+  const n = Number(v);
+  if (!n) return 'text-slate-400';   // 0 / empty / non-numeric
+  if (n <= 30) return 'text-success';
+  if (n <= 40) return 'text-amber-500';
+  return 'text-red-500';
+}
 const searchDateOpts = [
   { value: '',                label: '— Any —' },
   { value: 'collection_date', label: 'Collection Date' },
@@ -78,16 +103,15 @@ const loading = ref(false);
 const columns = [
   { key: 'sequence',          label: '#',                 sticky: 'start', width: '56px' },
   { key: 'id',                label: 'ID',                sticky: 'start', width: '84px' },
-  { key: 'created_at',        label: 'Order Date',        mono: true },
+  { key: 'created_at',        label: 'Order Date',        ltr: true },
   { key: 'client',            label: 'Client' },
   { key: 'driver_name',       label: 'Driver' },
-  { key: 'from_location_name',label: 'From Location' },
-  { key: 'to_location_name',  label: 'To Location' },
+  { key: 'route',             label: 'From → To' },
   { key: 'eta',               label: 'EAT (in Minutes)',  align: 'center' },
-  { key: 'collection_date',   label: 'Collection Date',   mono: true },
-  { key: 'freezer_date',      label: 'Container Date',    mono: true },
-  { key: 'freezer_out_date',  label: 'Container Out Date',mono: true },
-  { key: 'close_date',        label: 'Close Date',        mono: true },
+  { key: 'collection_date',   label: 'Collection Date',   ltr: true },
+  { key: 'freezer_date',      label: 'Container Date',    ltr: true },
+  { key: 'freezer_out_date',  label: 'Container Out Date',ltr: true },
+  { key: 'close_date',        label: 'Close Date',        ltr: true },
   { key: 'status',            label: 'Status' },
   { key: 'task_type',         label: 'Task Type' },
   { key: 'added_by',          label: 'Added By' },
@@ -105,7 +129,7 @@ function reload(extra = {}) {
   });
 }
 function doSearch() { reload({ page: 1 }); }
-function doReset() { Object.assign(filters, DEFAULT_FILTERS); reload({ page: 1 }); }
+function doReset() { Object.assign(filters, DEFAULT_FILTERS); dateRange.value = ''; reload({ page: 1 }); }
 function onQuery(q) { reload({ page: q.page, pageSize: q.pageSize }); }
 
 /* ---------- exports: reuse the EXISTING /admin routes (identical files) ---------- */
@@ -131,9 +155,13 @@ function exportExcel() {
 }
 
 /* ---------- DataTable toolbar (Copy / CSV / Print = current page; Excel = backend) ---------- */
+function cellText(r, c) {
+  if (c.key === 'route') return `${r.from_location_name || ''} → ${r.to_location_name || ''}`;
+  return r[c.key] == null ? '' : String(r[c.key]);
+}
 function matrix() {
   const header = columns.map((c) => c.label);
-  const body = rows.value.map((r) => columns.map((c) => (r[c.key] == null ? '' : String(r[c.key]))));
+  const body = rows.value.map((r) => columns.map((c) => cellText(r, c)));
   return { header, body };
 }
 function onExport(kind) {
@@ -196,8 +224,8 @@ async function bulkDelete(ids) {
   <div>
     <Breadcrumb title="Tasks" :trail="[{ label: 'Tasks' }]">
       <template #actions>
-        <BaseButton variant="light" icon="ri-file-pdf-2-line" @click="exportPdf">PDF</BaseButton>
-        <BaseButton variant="light" icon="ri-file-excel-2-line" @click="exportExcel">Excel</BaseButton>
+        <BaseButton variant="pdf" icon="ri-file-pdf-2-line" @click="exportPdf">PDF</BaseButton>
+        <BaseButton variant="excel" icon="ri-file-excel-2-line" @click="exportExcel">Excel</BaseButton>
         <a v-if="can('task_create')" href="/admin/tasks/create">
           <BaseButton variant="primary" icon="ri-add-line">Add Task</BaseButton>
         </a>
@@ -205,38 +233,71 @@ async function bulkDelete(ids) {
     </Breadcrumb>
 
     <!-- filter bar — mirrors the classic /admin/tasks filter card -->
-    <FilterBar :loading="loading" @search="doSearch" @reset="doReset">
+    <FilterBar :loading="loading" subtitle="refine the task list" @search="doSearch" @reset="doReset">
       <FormInput  v-model="filters.keyword"        label="Keyword"        placeholder="Task ID or keyword" icon="ri-search-line" />
-      <FormSelect v-model="filters.status"         label="Status"         :options="statusOpts"     :searchable="false" placeholder="All statuses" />
       <FormSelect v-model="filters.driver_id"      label="Driver"         :options="driverOpts"     placeholder="Select Driver" />
       <FormSelect v-model="filters.billing_client" label="Billing Client" :options="clientOpts"     placeholder="Select Client" />
       <FormSelect v-model="filters.from_location"  label="From Location"  :options="locationOpts"   placeholder="Select Location" />
       <FormSelect v-model="filters.to_location"    label="To Location"    :options="locationOpts"   placeholder="Select Location" />
-      <FormDate   v-model="filters.date_from"      label="Date From"      mode="datetime" />
-      <FormDate   v-model="filters.date_to"        label="Date To"        mode="datetime" />
+      <FormDate   v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
       <FormSelect v-model="filters.search_date"    label="Search Date"    :options="searchDateOpts" :searchable="false" placeholder="Search by date" />
       <FormSelect v-model="filters.sort_by"        label="Sort By"        :options="sortByOpts"     :searchable="false" placeholder="Default order" />
       <FormSelect v-model="filters.sort_order"     label="Sort Order"     :options="sortOrderOpts"  :searchable="false" placeholder="Default" />
+
+      <!-- Status as colored pills (replaces the dropdown; same filter value) -->
+      <template #actions-extra>
+        <button
+          v-for="s in statusPills" :key="s.value" type="button"
+          @click="toggleStatus(s.value)"
+          class="inline-flex items-center gap-2 ps-3 pe-3.5 h-9 rounded-full border text-sm font-medium transition"
+          :class="filters.status === s.value
+            ? s.active
+            : 'bg-surface dark:bg-slate-800/40 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'"
+        >
+          <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
+          {{ s.label }}
+        </button>
+      </template>
     </FilterBar>
 
     <!-- data table (server-side) -->
     <DataTable
+      title="Tasks"
       :columns="columns" :rows="rows" row-key="id"
       :loading="loading" :server-side="true" :total="total" :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete" @export="onExport"
     >
       <template #cell-id="{ value }">
-        <span class="font-semibold text-primary-700 dark:text-primary-300">#{{ value }}</span>
+        <span class="font-bold text-primary-500 dark:text-primary-300">#{{ value }}</span>
+      </template>
+      <template #cell-client="{ value }">
+        <span class="font-semibold text-ink dark:text-slate-100">{{ value || '—' }}</span>
+      </template>
+      <template #cell-route="{ row }">
+        <div dir="ltr" class="inline-flex items-center gap-2 whitespace-nowrap">
+          <span class="inline-flex items-center gap-1.5">
+            <i class="ri-map-pin-fill text-red-500"></i>
+            <span class="truncate font-medium">{{ row.from_location_name || '—' }}</span>
+          </span>
+          <i class="ri-arrow-right-line text-slate-400 shrink-0"></i>
+          <span class="inline-flex items-center gap-1.5">
+            <i class="ri-map-pin-fill text-green-500"></i>
+            <span class="truncate font-medium">{{ row.to_location_name || '—' }}</span>
+          </span>
+        </div>
       </template>
       <template #cell-driver_name="{ value }">
         <span v-if="value" class="inline-flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" /><span class="truncate">{{ value }}</span>
+          <BaseAvatar :name="value" :size="26" /><span class="truncate font-medium">{{ value }}</span>
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>
       <template #cell-eta="{ value }">
-        <span v-if="value != null && value !== ''" class="inline-flex items-center justify-center min-w-12 h-6 px-2 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 text-xs font-semibold">{{ value }}</span>
+        <span v-if="value != null && value !== ''" class="whitespace-nowrap">
+          <span class="font-bold" :class="etaColor(value)">{{ value }}</span>
+          <span class="text-slate-400 ms-1">min</span>
+        </span>
         <span v-else class="text-slate-400">—</span>
       </template>
       <template #cell-status="{ value }">

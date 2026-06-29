@@ -144,7 +144,7 @@ class TasksController extends Controller
             return null;
         }
         try {
-            return Carbon::parse($value)->format('Y-m-d H:i');
+            return Carbon::parse($value)->format('d M H:i');
         } catch (\Throwable $e) {
             return (string) $value;
         }

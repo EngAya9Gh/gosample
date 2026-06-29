@@ -11,7 +11,7 @@ defineProps({
 <template>
   <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
     <div>
-      <h1 class="text-xl font-bold text-ink dark:text-slate-50 tracking-tight">{{ title }}</h1>
+      <h1 class="text-xl font-extrabold text-ink dark:text-slate-50 tracking-tight">{{ title }}</h1>
       <nav class="flex items-center gap-1.5 mt-1 text-[13px] text-slate-400">
         <a href="#" class="hover:text-primary-600"><i class="ri-home-4-line"></i></a>
         <template v-for="(c, i) in trail" :key="i">

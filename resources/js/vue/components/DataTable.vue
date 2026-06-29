@@ -19,6 +19,7 @@
 import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
+  title:      { type: String, default: '' },   // optional table heading (with record count)
   columns:    { type: Array, required: true },
   rows:       { type: Array, default: () => [] },
   rowKey:     { type: String, default: 'id' },
@@ -39,6 +40,14 @@ const page = ref(1);
 const pageSize = ref(25);
 const sel = ref(new Set());
 const SIZES = [10, 25, 50, 100, 1000];
+
+// Colored export buttons (soft tints, on-theme) with a per-icon hover animation.
+const exportBtns = [
+  { key: 'copy',  label: 'Copy',  icon: 'ri-file-copy-line',    cls: 'text-info bg-info/10 hover:bg-info/20',                                                anim: 'group-hover:scale-125 group-hover:rotate-6' },
+  { key: 'csv',   label: 'CSV',   icon: 'ri-file-text-line',    cls: 'text-secondary bg-secondary/10 hover:bg-secondary/20',                                 anim: 'group-hover:scale-125' },
+  { key: 'excel', label: 'Excel', icon: 'ri-file-excel-2-line', cls: 'text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-500/10 hover:bg-green-100 dark:hover:bg-green-500/20', anim: 'group-hover:scale-125' },
+  { key: 'print', label: 'Print', icon: 'ri-printer-line',      cls: 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-500/10 hover:bg-primary-100 dark:hover:bg-primary-500/20', anim: 'group-hover:-translate-y-0.5 group-hover:scale-110' },
+];
 
 /* ---------- client-side derive (skipped when serverSide) ---------- */
 const filtered = computed(() => {
@@ -112,6 +121,10 @@ function stickyCls(c) {
   <div class="bg-surface dark:bg-slate-800/60 rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden">
     <!-- toolbar -->
     <div class="flex flex-wrap items-center gap-3 px-4 py-3.5 border-b border-slate-100 dark:border-white/5">
+      <div v-if="title" class="flex items-center gap-2 me-2">
+        <h3 class="text-base font-extrabold text-ink dark:text-slate-100">{{ title }}</h3>
+        <span class="inline-flex items-center h-6 px-2.5 rounded-full bg-surface-muted dark:bg-white/10 text-xs font-semibold text-slate-500 dark:text-slate-300">{{ totalRows.toLocaleString() }} records</span>
+      </div>
       <div v-if="searchable" class="relative flex-1 min-w-[200px] max-w-xs">
         <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-slate-400" style="inset-inline-start:.75rem"></i>
         <input v-model="q" placeholder="Search…" class="w-full h-10 ps-10 pe-3 text-sm bg-surface-muted dark:bg-white/5 border border-transparent focus:border-primary-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
@@ -119,10 +132,10 @@ function stickyCls(c) {
 
       <div class="flex items-center gap-2 ms-auto">
         <template v-if="exportable">
-          <button v-for="ex in [['Copy','ri-file-copy-line'],['CSV','ri-file-text-line'],['Excel','ri-file-excel-2-line'],['Print','ri-printer-line']]" :key="ex[0]"
-            @click="$emit('export', ex[0].toLowerCase())"
-            class="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium text-slate-600 dark:text-slate-300 bg-surface-muted dark:bg-white/5 hover:bg-slate-200/70 dark:hover:bg-white/10 transition">
-            <i :class="ex[1]"></i><span class="hidden sm:inline">{{ ex[0] }}</span>
+          <button v-for="ex in exportBtns" :key="ex.key"
+            @click="$emit('export', ex.key)"
+            :class="['group inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-95 hover:-translate-y-0.5 hover:shadow-sm', ex.cls]">
+            <i :class="[ex.icon, 'transition-transform duration-300 ease-out motion-reduce:transition-none', ex.anim]"></i><span class="hidden sm:inline">{{ ex.label }}</span>
           </button>
         </template>
       </div>
@@ -154,7 +167,7 @@ function stickyCls(c) {
               </button>
             </th>
             <th v-for="c in columns" :key="c.key"
-              class="px-3.5 py-3 font-semibold text-[12px] uppercase tracking-wider whitespace-nowrap"
+              class="px-3.5 py-3 font-bold text-[12px] uppercase tracking-wider whitespace-nowrap"
               :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', stickyCls(c), c.sortable ? 'cursor-pointer select-none hover:text-primary-700' : '']"
               :style="c.width ? { width: c.width } : {}"
               @click="toggleSort(c)">
@@ -166,7 +179,7 @@ function stickyCls(c) {
                 </span>
               </span>
             </th>
-            <th v-if="$slots['row-actions']" class="px-3.5 py-3 text-end font-semibold text-[12px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/60 dark:bg-slate-800 z-[2]">Actions</th>
+            <th v-if="$slots['row-actions']" class="px-3.5 py-3 text-end font-bold text-[12px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/60 dark:bg-slate-800 z-[2]">Actions</th>
           </tr>
         </thead>
 
@@ -191,9 +204,9 @@ function stickyCls(c) {
                 </button>
               </td>
               <td v-for="c in columns" :key="c.key"
-                class="px-3.5 py-3 text-ink dark:text-slate-200 whitespace-nowrap"
+                class="px-3.5 py-3 text-ink dark:text-slate-200 whitespace-nowrap font-medium"
                 :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', c.mono ? 'font-mono text-[13px]' : '', stickyCls(c)]"
-                :style="c.mono ? 'direction:ltr; unicode-bidi:plaintext' : ''">
+                :style="(c.mono || c.ltr) ? 'direction:ltr; unicode-bidi:plaintext' : ''">
                 <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
               </td>
               <td v-if="$slots['row-actions']" class="px-3.5 py-3 text-end sticky inset-inline-end-0 bg-inherit z-[1]">

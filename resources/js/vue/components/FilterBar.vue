@@ -6,8 +6,9 @@
  * drops in its own FormInput/FormSelect/date controls.
  */
 defineProps({
-  loading: { type: Boolean, default: false },
-  title:   { type: String, default: 'Filters' },
+  loading:  { type: Boolean, default: false },
+  title:    { type: String, default: 'Filters' },
+  subtitle: { type: String, default: '' },
 });
 defineEmits(['search', 'reset']);
 </script>
@@ -15,8 +16,9 @@ defineEmits(['search', 'reset']);
 <template>
   <div class="bg-surface dark:bg-slate-800/60 rounded-2xl shadow-card border border-slate-100 dark:border-white/5 p-4 sm:p-5 mb-5">
     <div class="flex items-center gap-2 mb-4">
-      <i class="ri-filter-3-line text-primary-600"></i>
-      <h3 class="text-sm font-semibold text-ink dark:text-slate-100">{{ title }}</h3>
+      <i class="ri-equalizer-line text-primary-600 text-lg"></i>
+      <h3 class="text-sm font-extrabold text-ink dark:text-slate-100">{{ title }}</h3>
+      <span v-if="subtitle" class="text-xs text-slate-400 dark:text-slate-500">{{ subtitle }}</span>
       <slot name="title-extra"></slot>
     </div>
 
@@ -24,8 +26,8 @@ defineEmits(['search', 'reset']);
       <slot></slot>
     </div>
 
-    <div class="flex flex-wrap items-center justify-end gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-      <slot name="actions-extra"></slot>
+    <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+      <div class="mr-auto flex flex-wrap items-center gap-2"><slot name="actions-extra"></slot></div>
       <BaseButton variant="light" icon="ri-refresh-line" @click="$emit('reset')">Reset</BaseButton>
       <BaseButton variant="primary" icon="ri-search-line" :loading="loading" @click="$emit('search')">Search</BaseButton>
     </div>

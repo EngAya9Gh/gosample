@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Poppins for the UI; Playfair Display for report/print; Readex Pro for Arabic/RTL. */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Readex+Pro:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700&family=Readex+Pro:wght@300;400;500;600;700&display=swap');
 
 @layer base {
     html[dir='rtl'] {
@@ -247,8 +247,35 @@
 
 /* dark mode (SPA only — classic is light) */
 .dark .flatpickr-calendar.mf-flatpickr { background: #1e293b; border-color: rgba(255, 255, 255, .1); }
+/* header strip: was hard-coded white — darken it and its divider */
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-months { background-color: #1e293b !important; border-bottom-color: rgba(255, 255, 255, .08); }
+/* month / year / day text → light */
 .dark .flatpickr-calendar.mf-flatpickr .flatpickr-month,
 .dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month,
 .dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month .cur-year,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month input.cur-year,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month .flatpickr-monthDropdown-months,
 .dark .flatpickr-calendar.mf-flatpickr .flatpickr-day { color: #e2e8f0 !important; }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month .numInputWrapper:hover { background-color: rgba(255, 255, 255, .08) !important; }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-current-month .numInputWrapper span:hover { background: rgba(255, 255, 255, .14) !important; }
+/* year / time spinner arrows (the up & down triangles) → light */
+.dark .flatpickr-calendar.mf-flatpickr .numInputWrapper span.arrowUp::after { border-bottom-color: #cbd5e1 !important; }
+.dark .flatpickr-calendar.mf-flatpickr .numInputWrapper span.arrowDown::after { border-top-color: #cbd5e1 !important; }
 .dark .flatpickr-calendar.mf-flatpickr .flatpickr-day:hover { background: rgba(255, 255, 255, .06); color: #5eead4; }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-day.prevMonthDay,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-day.nextMonthDay,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-day.flatpickr-disabled { color: #475569 !important; }
+/* prev / next nav buttons → dark surfaces */
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-prev-month,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-next-month { background-color: rgba(255, 255, 255, .05) !important; border-color: rgba(255, 255, 255, .12) !important; }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-prev-month svg,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-next-month svg { fill: #cbd5e1 !important; }
+/* time picker boxes (datetime mode) → dark surfaces */
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time { border-top-color: rgba(255, 255, 255, .08); }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time .numInputWrapper,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time .flatpickr-am-pm { background-color: rgba(255, 255, 255, .05) !important; border-color: rgba(255, 255, 255, .12) !important; }
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time input.flatpickr-hour,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time input.flatpickr-minute,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time input.flatpickr-second,
+.dark .flatpickr-calendar.mf-flatpickr .flatpickr-time .flatpickr-am-pm { color: #e2e8f0 !important; }

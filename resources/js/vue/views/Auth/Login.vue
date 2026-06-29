@@ -1,5 +1,5 @@
 <template>
-  <Head title="GoSample - Sign In">
+  <Head title="MTC - Sign In">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet" />
   </Head>
   <div dir="ltr" class="bg-background min-h-screen flex text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
@@ -15,15 +15,7 @@
 </div>
 <!-- Foreground Content -->
 <div class="relative z-10 w-full max-w-lg text-on-primary">
-<div class="flex items-center gap-sm mb-lg">
-<div class="w-12 h-12 bg-on-primary rounded-lg flex items-center justify-center text-primary shadow-lg">
-<i class="ri-syringe-line text-[32px]"></i>
-</div>
-<div>
-<h1 class="font-headline-lg text-headline-lg text-on-primary">GoSample</h1>
-<p class="font-body-md text-body-md text-on-primary/80">Medical Logistics Platform</p>
-</div>
-</div>
+<img :src="logoLight" alt="MTC" class="h-12 w-auto mb-lg" />
 <div class="space-y-xl">
 <h2 class="font-display-lg text-display-lg text-on-primary leading-tight">
                         Secure.<br/>Traceable.<br/>Mission-Critical.
@@ -52,10 +44,7 @@
 <div class="w-full lg:w-1/2 flex items-center justify-center p-margin-mobile lg:p-margin-desktop bg-surface relative">
 <!-- Mobile Header (Visible only on small screens) -->
 <div class="absolute top-0 left-0 w-full p-margin-mobile flex items-center gap-xs lg:hidden z-20">
-<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary">
-<i class="ri-syringe-line text-[20px]"></i>
-</div>
-<span class="font-headline-md text-headline-md text-primary">GoSample</span>
+<img :src="logoDark" alt="MTC" class="h-8 w-auto" />
 </div>
 <!-- Login Card -->
 <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-outline-variant/30 p-lg sm:p-[40px] relative z-10 glass-panel">
@@ -63,7 +52,8 @@
 <p class="font-body-md text-body-md text-on-surface-variant mb-base">Welcome back</p>
 <h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface">Sign in to continue</h2>
 </div>
-<form class="space-y-md">
+<form method="POST" action="/login" class="space-y-md">
+<input type="hidden" name="_token" :value="csrfToken" />
 <!-- Mobile Number Field -->
 <div>
 <label class="block font-label-md text-label-md text-on-surface mb-2 uppercase tracking-wider" for="email">Email Address</label>
@@ -71,8 +61,8 @@
 <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
 <i class="ri-mail-line text-[20px]"></i>
 </div>
-<input v-model="form.email" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="email" name="email" placeholder="admin@example.com" type="email"/>
-<div v-if="form.errors.email" class="text-error text-sm mt-1">{{ form.errors.email }}</div>
+<input v-model="email" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="email" name="email" placeholder="admin@example.com" type="email" required autofocus/>
+<div v-if="errors.email" class="text-error text-sm mt-1">{{ errors.email }}</div>
 </div>
 </div>
 <!-- Password Field -->
@@ -84,8 +74,8 @@
 <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
 <i class="ri-lock-password-line text-[20px]"></i>
 </div>
-<input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="password" name="password" placeholder="••••••••" />
-<div v-if="form.errors.password" class="text-error text-sm mt-1">{{ form.errors.password }}</div>
+<input v-model="password" :type="showPassword ? 'text' : 'password'" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="password" name="password" placeholder="••••••••" required />
+<div v-if="errors.password" class="text-error text-sm mt-1">{{ errors.password }}</div>
 <button @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-sm flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
 <i :class="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'" class="text-[20px]"></i>
 </button>
@@ -94,7 +84,7 @@
 <!-- Remember & Forgot -->
 <div class="flex items-center justify-between pt-xs">
 <div class="flex items-center">
-<input v-model="form.remember" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" id="remember-me" name="remember-me" type="checkbox"/>
+<input v-model="remember" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" id="remember-me" name="remember" type="checkbox"/>
 <label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant" for="remember-me">
                                 Remember me
                             </label>
@@ -105,7 +95,7 @@
 </div>
 <!-- Submit Button -->
 <div class="pt-sm">
-<button @click.prevent="submit" :disabled="form.processing" class="w-full flex justify-center items-center gap-xs py-3 px-4 border border-transparent rounded-lg shadow-sm font-headline-sm text-headline-sm text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" type="button">
+<button class="w-full flex justify-center items-center gap-xs py-3 px-4 border border-transparent rounded-lg shadow-sm font-headline-sm text-headline-sm text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
                             Sign In
                             <i class="ri-arrow-right-line text-[20px]"></i>
 </button>
@@ -134,22 +124,30 @@ export default {
 </script>
 
 <script setup>
-import { useForm, Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+
+// Native browser POST (not an Inertia visit): a successful login redirects to the
+// Velzon Blade dashboard (/dashboard), which is NOT an Inertia response — an Inertia
+// XHR can't render it and would leave a blank screen. A real form submit lets the
+// browser follow the redirect as a normal full-page navigation.
+// Same brand logos the sidebar uses (public-path strings so Vite doesn't bundle them).
+// Light logo on the dark teal panel; dark logo on the white mobile header.
+const logoLight = '/assets/images/logo-light.png';
+const logoDark = '/assets/images/logo-dark.png';
 
 const showPassword = ref(false);
+const email = ref('');
+const password = ref('');
+const remember = ref(false);
 
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
+// CSRF token from the <meta> tag in app.blade.php (root Inertia view).
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
-const submit = () => {
-    form.post('/login', {
-        onFinish: () => form.reset('password'),
-    });
-};
+// Validation errors are flashed to the session on a failed login and shared back by
+// HandleInertiaRequests when /login re-renders.
+const page = usePage();
+const errors = computed(() => page.props.errors ?? {});
 </script>
 
 <style scoped>
