@@ -11,6 +11,24 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
+     * Prevent browser caching of the initial HTML payload and Inertia JSON responses.
+     * This guarantees that clients always receive the latest Vite asset hashes
+     * after a new deployment, preventing 404 errors for deleted JS chunks.
+     */
+    public function handle(Request $request, \Closure $next)
+    {
+        $response = parent::handle($request, $next);
+
+        if ($response instanceof \Symfony\Component\HttpFoundation\Response) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+        }
+
+        return $response;
+    }
+
+    /**
      * Props shared with every Inertia response (replaces the old boot payload).
      * Permissions are exposed for render-gating only — the backend Gates remain
      * the real security boundary on every route/action.
