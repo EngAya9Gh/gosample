@@ -1,9 +1,9 @@
+/* Poppins for the UI; Playfair Display for report/print; Readex Pro for Arabic/RTL. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700&family=Readex+Pro:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Poppins for the UI; Playfair Display for report/print; Readex Pro for Arabic/RTL. */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700&family=Readex+Pro:wght@300;400;500;600;700&display=swap');
 
 @layer base {
     html[dir='rtl'] {
