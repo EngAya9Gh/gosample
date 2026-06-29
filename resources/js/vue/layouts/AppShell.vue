@@ -29,7 +29,7 @@ watch(() => page.props?.flash, (f) => {
 
 const collapsed = ref(false);
 const dark = ref(false);
-const lang = ref('ar');           // 'ar' | 'en' (Arabic primary)
+const lang = ref('en');           // 'ar' | 'en' (English primary)
 const dir = computed(() => (lang.value === 'ar' ? 'rtl' : 'ltr'));
 
 const emergency = ref(null);      // { message } | null
@@ -55,10 +55,13 @@ function setLang(l) { lang.value = l; }
 onMounted(() => {
   dark.value = localStorage.getItem('mtc-dark') === '1';
   document.documentElement.classList.toggle('dark', dark.value);
-  lang.value = localStorage.getItem('mtc-lang') || 'ar';
+  lang.value = localStorage.getItem('mtc-lang') || 'en';
 });
 watch(dark, (v) => localStorage.setItem('mtc-dark', v ? '1' : '0'));
-watch(lang, (v) => localStorage.setItem('mtc-lang', v));
+watch(lang, (v) => {
+  localStorage.setItem('mtc-lang', v);
+  document.documentElement.setAttribute('dir', v === 'ar' ? 'rtl' : 'ltr');
+});
 
 function onScroll(e) { showTop.value = e.target.scrollTop > 320; }
 function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavior: 'smooth' }); }
