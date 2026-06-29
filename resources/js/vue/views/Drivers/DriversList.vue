@@ -205,7 +205,7 @@ function onExport(format) {
       <template #cell-tasks="{ row }">
         <div class="flex items-center justify-center cursor-pointer" @click="viewTasks(row.id)">
           <span class="px-3 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-[10px] font-extrabold text-sm shadow-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">
-            {{ row.tasks_count || Math.floor(Math.random() * 40) + 10 }}
+            {{ row.tasks_count || 0 }}
           </span>
         </div>
       </template>

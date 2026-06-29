@@ -35,9 +35,7 @@ class DriversController extends Controller
         if (!in_array($sortOrder, ['asc', 'desc'], true)) {
             $sortOrder = 'desc';
         }
-
-        $query = Driver::withoutGlobalScope('enabled')->select('drivers.*');
-
+        $query = Driver::withoutGlobalScope('enabled')->select('drivers.*')->withCount('tasks');
         $query->when($request->status, fn ($q, $v) => $q->where('status', $v))
             ->when($request->mobile, fn ($q, $v) => $q->where('mobile', 'like', "%{$v}%"))
             ->when($request->keyword, function ($q, $v) {
@@ -78,6 +76,7 @@ class DriversController extends Controller
                 'username' => $d->username,
                 'mobile'   => $d->mobile,
                 'email'    => $d->email,
+                'tasks_count' => $d->tasks_count,
             ];
         });
 
@@ -172,6 +171,8 @@ class DriversController extends Controller
         $driver->load(['shifts' => function($q) {
             $q->where('is_active', true);
         }]);
+
+        $driver->append(['punctuality_score', 'shift_completion_score']);
 
         return Inertia::render('Drivers/DriverDetails', [
             'driver' => $driver
