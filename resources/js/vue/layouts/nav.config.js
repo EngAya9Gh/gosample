@@ -21,11 +21,11 @@ export const NAV = [
     ],
   },
   {
-    // Classic "Reports & Analytics" group is not permission-gated → always visible.
+    // Classic "Reports & Analytics" group is permission-gated now
     label: 'Reports & Analytics', icon: 'ri-bar-chart-box-line', items: [
-      { label: 'Reporting Dashboard',       icon: 'ri-dashboard-line',  route: '/admin/reports' },
-      { label: 'KPI Performance Analysis',  icon: 'ri-speed-up-line',   route: '/admin/reports/performance' },
-      { label: 'Monthly Evaluation Report', icon: 'ri-medal-line',      route: '/admin/reports/monthly' },
+      { label: 'Reporting Dashboard',       icon: 'ri-dashboard-line',  route: '/admin/reports',             perm: 'report_access' },
+      { label: 'KPI Performance Analysis',  icon: 'ri-speed-up-line',   route: '/admin/reports/performance', perm: 'report_access' },
+      { label: 'Monthly Evaluation Report', icon: 'ri-medal-line',      route: '/admin/reports/monthly',     perm: 'report_access' },
     ],
   },
   {
