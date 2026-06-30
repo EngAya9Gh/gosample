@@ -120,22 +120,22 @@ function stickyCls(c) {
 <template>
   <div class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden">
     <!-- toolbar -->
-    <div class="flex flex-wrap items-center gap-3 px-4 py-3.5 border-b border-slate-100 dark:border-white/5">
+    <div class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5">
       <div v-if="title" class="flex items-center gap-2 me-2">
-        <h3 class="text-base font-extrabold text-ink dark:text-slate-100">{{ title }}</h3>
-        <span class="inline-flex items-center h-6 px-2.5 rounded-full bg-surface-muted dark:bg-white/10 text-xs font-semibold text-slate-500 dark:text-slate-300">{{ totalRows.toLocaleString() }} records</span>
+        <h3 class="text-[14px] font-bold text-ink dark:text-slate-100">{{ title }}</h3>
+        <span class="inline-flex items-center h-5 px-2 rounded-full bg-surface-muted dark:bg-white/10 text-[11px] font-semibold text-slate-500 dark:text-slate-300">{{ totalRows.toLocaleString() }} records</span>
       </div>
-      <div v-if="searchable" class="relative flex-1 min-w-[200px] max-w-xs">
-        <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-slate-400" style="inset-inline-start:.75rem"></i>
-        <input v-model="q" placeholder="Search…" class="w-full h-10 ps-10 pe-3 text-sm bg-surface-muted dark:bg-white/5 border border-transparent focus:border-primary-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
+      <div v-if="searchable" class="relative flex-1 min-w-[180px] max-w-xs">
+        <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-slate-400 text-[13px]" style="inset-inline-start:.75rem"></i>
+        <input v-model="q" placeholder="Search…" class="w-full h-8 ps-9 pe-3 text-[13px] bg-surface-muted dark:bg-white/5 border border-transparent focus:border-primary-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
       </div>
 
-      <div class="flex items-center gap-2 ms-auto">
+      <div class="flex items-center gap-1.5 ms-auto">
         <template v-if="exportable">
           <button v-for="ex in exportBtns" :key="ex.key"
             @click="$emit('export', ex.key)"
-            :class="['group inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-semibold transition-all duration-200 active:scale-95 hover:-translate-y-0.5 hover:shadow-sm', ex.cls]">
-            <i :class="[ex.icon, 'transition-transform duration-300 ease-out motion-reduce:transition-none', ex.anim]"></i><span class="hidden sm:inline">{{ ex.label }}</span>
+            :class="['group inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 active:scale-95', ex.cls]">
+            <i :class="[ex.icon, 'text-[13px]']"></i><span class="hidden sm:inline">{{ ex.label }}</span>
           </button>
         </template>
       </div>
@@ -160,14 +160,14 @@ function stickyCls(c) {
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
-          <tr class="bg-surface-muted/60 dark:bg-white/5 text-slate-800 dark:text-slate-200">
-            <th v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-surface-muted/60 dark:bg-surface-dark-card z-[2]">
+          <tr class="bg-surface-muted/50 dark:bg-white/5 text-slate-600 dark:text-slate-300">
+            <th v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2]">
               <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                 <i v-if="allOnPage" class="ri-check-line text-xs"></i>
               </button>
             </th>
             <th v-for="c in columns" :key="c.key"
-              class="px-3.5 py-3 font-bold text-[12px] uppercase tracking-wider whitespace-nowrap"
+              class="px-3 py-2.5 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap"
               :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', stickyCls(c), c.sortable ? 'cursor-pointer select-none hover:text-primary-700' : '']"
               :style="c.width ? { width: c.width } : {}"
               @click="toggleSort(c)">
@@ -179,7 +179,7 @@ function stickyCls(c) {
                 </span>
               </span>
             </th>
-            <th v-if="$slots['row-actions']" class="px-3.5 py-3 text-end font-bold text-[12px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/60 dark:bg-surface-dark-card z-[2]">Actions</th>
+            <th v-if="$slots['row-actions']" class="px-3 py-2.5 text-end font-bold text-[11px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2]">Actions</th>
           </tr>
         </thead>
 
@@ -196,20 +196,20 @@ function stickyCls(c) {
           <!-- rows -->
           <template v-else>
             <tr v-for="row in paged" :key="row[rowKey]"
-              class="border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-primary-50/40 dark:hover:bg-white/5"
+              class="border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-primary-50/30 dark:hover:bg-white/3"
               :class="sel.has(row[rowKey]) ? 'bg-primary-50/60 dark:bg-primary-500/10' : ''">
-              <td v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-inherit z-[1]">
+              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-inherit z-[1]">
                 <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                   <i v-if="sel.has(row[rowKey])" class="ri-check-line text-xs"></i>
                 </button>
               </td>
               <td v-for="c in columns" :key="c.key"
-                class="px-3.5 py-3 text-ink dark:text-slate-200 whitespace-nowrap font-medium"
-                :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', c.mono ? 'font-mono text-[13px]' : '', stickyCls(c)]"
+                class="px-3 py-2.5 text-ink dark:text-slate-200 whitespace-nowrap text-[13px]"
+                :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', c.mono ? 'font-mono' : '', stickyCls(c)]"
                 :style="(c.mono || c.ltr) ? 'direction:ltr; unicode-bidi:plaintext' : ''">
                 <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
               </td>
-              <td v-if="$slots['row-actions']" class="px-3.5 py-3 text-end sticky inset-inline-end-0 bg-inherit z-[1]">
+              <td v-if="$slots['row-actions']" class="px-3 py-2.5 text-end sticky inset-inline-end-0 bg-inherit z-[1]">
                 <slot name="row-actions" :row="row"></slot>
               </td>
             </tr>
@@ -222,21 +222,21 @@ function stickyCls(c) {
     </div>
 
     <!-- pagination -->
-    <div v-if="!loading && totalRows" class="flex flex-wrap items-center gap-3 px-4 py-3 border-t border-slate-100 dark:border-white/5">
-      <div class="flex items-center gap-2 text-sm text-slate-500">
+    <div v-if="!loading && totalRows" class="flex flex-wrap items-center gap-2 px-4 py-2.5 border-t border-slate-100 dark:border-white/5">
+      <div class="flex items-center gap-2 text-[13px] text-slate-500">
         <span>Rows</span>
-        <select v-model.number="pageSize" class="h-9 ps-2.5 pe-7 rounded-lg bg-surface-muted dark:bg-white/5 text-sm border-0 focus:ring-2 focus:ring-primary-500/30">
+        <select v-model.number="pageSize" class="h-8 ps-2 pe-6 rounded-lg bg-surface-muted dark:bg-white/5 text-[13px] border-0 focus:ring-2 focus:ring-primary-500/30">
           <option v-for="s in SIZES" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
-      <p class="text-sm text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString() }}</p>
+      <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString() }}</p>
 
       <div class="flex items-center gap-1 ms-auto">
-        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1" class="grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
+        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1" class="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
           <i class="ri-arrow-right-s-line rtl:hidden"></i><i class="ri-arrow-left-s-line hidden rtl:block"></i>
         </button>
-        <span class="px-3 text-sm font-medium text-ink dark:text-slate-200">{{ page }} / {{ pageCount }}</span>
-        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount" class="grid place-items-center w-9 h-9 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
+        <span class="px-2 text-[13px] font-medium text-ink dark:text-slate-200">{{ page }} / {{ pageCount }}</span>
+        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount" class="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
           <i class="ri-arrow-left-s-line rtl:hidden"></i><i class="ri-arrow-right-s-line hidden rtl:block"></i>
         </button>
       </div>
