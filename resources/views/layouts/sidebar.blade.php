@@ -81,6 +81,7 @@
                     </li>
                 @endcan
 
+                @can('report_access')
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->is('admin/reports*') ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarReports">
                         <i class="ri-pie-chart-line"></i> <span>Reports & Analytics</span>
@@ -99,6 +100,7 @@
                         </ul>
                     </div>
                 </li>
+                @endcan
 
                 @can('task_access')
                     <li class="nav-item">

@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 
 class ReportsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            abort_if(\Gate::denies('report_access'), \Symfony\Component\HttpFoundation\Response::HTTP_FORBIDDEN, '403 Forbidden');
+            return $next($request);
+        });
+    }
     public function index()
     {
         return view('admin.reports.index');
