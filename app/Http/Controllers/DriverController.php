@@ -1347,5 +1347,14 @@ class DriverController extends Controller
             return $this->response(false, 'System error');
         }
     }
+    public function refresh(Request $request)
+    {
+        try {
+            $token = auth()->guard('drivers')->refresh();
+            return $this->response(true, 'success', ['token' => $token]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated or Token Expired'], 401);
+        }
+    }
 
 }

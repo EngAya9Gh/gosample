@@ -8,6 +8,7 @@ $request = Illuminate\Http\Request::create('/api/driver/tasks', 'POST', [
     'driver_id' => 1,
     'status' => 'NEW'
 ]);
+$request->headers->set('Accept', 'application/json');
 // Do NOT set any authorization header!
 $response = $kernel->handle($request);
 echo "Status Code: " . $response->getStatusCode() . "\n";
