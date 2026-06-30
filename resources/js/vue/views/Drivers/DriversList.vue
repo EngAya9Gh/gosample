@@ -10,6 +10,7 @@ import FormDate from '../../components/FormDate.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import StatusBadge from '../../components/StatusBadge.vue';
 import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
 
@@ -148,10 +149,12 @@ function onExport(format) {
         <button
           v-for="s in statusPills" :key="s.value" type="button"
           @click="toggleStatus(s.value)"
-          class="inline-flex items-center h-8 px-3 rounded-full text-[13px] font-bold border transition-colors bg-white hover:bg-slate-50 border-slate-200 text-slate-600 dark:bg-transparent dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-          :class="filters.status === s.value ? s.active : ''"
+          class="inline-flex items-center gap-1.5 ps-2 pe-2.5 h-7 rounded-full border text-[11px] font-bold transition"
+          :class="filters.status === s.value
+            ? s.active
+            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300'"
         >
-          <span class="w-1.5 h-1.5 rounded-full mr-2" :class="s.dot"></span>
+          <span class="w-1.5 h-1.5 rounded-full" :class="s.dot"></span>
           {{ s.label }}
         </button>
       </template>
@@ -183,22 +186,15 @@ function onExport(format) {
         <div class="flex items-center gap-3">
           <BaseAvatar :name="row.name" :size="36" />
           <div class="flex flex-col">
-            <span class="font-bold text-on-surface text-sm">{{ row.name }}</span>
-            <span class="text-xs text-on-surface-variant font-medium">{{ row.email || 'No email' }}</span>
+            <span class="font-bold text-ink dark:text-slate-100 text-sm">{{ row.name }}</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{{ row.email || 'No email' }}</span>
           </div>
         </div>
       </template>
 
       <!-- Custom rendering for Status column -->
       <template #cell-status="{ row }">
-        <span v-if="row.status == 1" class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-success/10 text-success border border-success/20 shadow-sm">
-          <span class="w-1.5 h-1.5 rounded-full bg-success mr-1.5"></span>
-          Enabled
-        </span>
-        <span v-else-if="row.status == 2" class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-danger/10 text-danger border border-danger/20 shadow-sm">
-          <span class="w-1.5 h-1.5 rounded-full bg-danger mr-1.5"></span>
-          Disabled
-        </span>
+        <StatusBadge :status="row.status == 1 ? 'ENABLED' : 'DISABLED'" />
       </template>
 
       <!-- Custom rendering for Tasks column -->
