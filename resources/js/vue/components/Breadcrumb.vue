@@ -14,7 +14,7 @@ defineProps({
 <template>
   <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
     <div>
-      <nav v-if="trail.length" class="flex items-center gap-2 text-[15px] mb-1.5">
+      <nav v-if="trail.length" class="flex items-center gap-2 text-[12.5px] mb-1.5">
         <template v-for="(c, i) in trail" :key="i">
           <template v-if="i > 0">
             <i class="ri-arrow-left-s-line rtl:hidden text-slate-400 dark:text-slate-500"></i>
@@ -26,7 +26,7 @@ defineProps({
           <span v-else class="text-slate-500 dark:text-slate-400 font-medium">{{ c.label }}</span>
         </template>
       </nav>
-      <h1 class="text-3xl font-extrabold text-ink dark:text-slate-50 tracking-tight">{{ title }}</h1>
+      <h1 class="text-[23px] font-extrabold text-ink dark:text-slate-50 tracking-tight">{{ title }}</h1>
     </div>
     <div class="flex flex-wrap items-end gap-2"><slot name="actions"></slot></div>
   </div>

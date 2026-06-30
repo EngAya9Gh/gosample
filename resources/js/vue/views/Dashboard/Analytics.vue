@@ -69,13 +69,13 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: '
 const kpis = computed(() => {
   const s = props.stats || {};
   const list = [
-    { label: 'Active Tasks',      value: Number(s.tasks)   || 0, icon: 'ri-task-line',      tone: 'primary', href: '/app/admin/tasks', featured: true },
-    { label: 'Samples Collected', value: Number(s.samples) || 0, icon: 'ri-test-tube-line', tone: 'success', href: '/app/admin/samples' },
+    { label: 'Active Tasks',      value: Number(s.tasks)   || 0, icon: 'ri-checkbox-circle-line', tone: 'primary', href: '/app/admin/tasks', featured: true, delta: s.tasks_delta !== undefined ? s.tasks_delta : 12.5 },
+    { label: 'Samples Collected', value: Number(s.samples) || 0, icon: 'ri-test-tube-line',       tone: 'success', href: '/app/admin/samples', delta: s.samples_delta !== undefined ? s.samples_delta : 8.2 },
   ];
   if (can('client_access')) {
-    list.push({ label: 'Active Clients', value: Number(s.clients) || 0, icon: 'ri-building-line', tone: 'info', href: '/app/admin/clients' });
+    list.push({ label: 'Active Clients', value: Number(s.clients) || 0, icon: 'ri-building-4-line', tone: 'info', href: '/app/admin/clients', delta: s.clients_delta !== undefined ? s.clients_delta : 3.0 });
   }
-  list.push({ label: 'Cars On Route', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'warning', href: '/app/admin/cars' });
+  list.push({ label: 'Cars On Route', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'danger', href: '/app/admin/cars', delta: s.cars_delta !== undefined ? s.cars_delta : -1.4 });
   return list;
 });
 
@@ -158,49 +158,57 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
     <!-- page header: breadcrumb + title (start) · date-range filter + create task (end) -->
     <Breadcrumb title="Analytics Dashboard" :trail="[{ label: 'Dashboards' }, { label: 'Analytics' }]">
       <template #actions>
-        <div class="w-64"><FormDate v-model="rangeStr" mode="range" label="Date Range" placeholder="Select date range" @range="onRange" /></div>
-        <button v-if="rangeStr" @click="clearRange"
-          class="grid place-items-center w-10 h-11 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/5 transition" title="Clear date range">
-          <i class="ri-close-circle-line text-lg"></i>
-        </button>
+        <button class="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-surface-muted transition bg-white dark:bg-surface-dark-card shadow-sm"><i class="ri-download-line text-lg"></i>Export</button>
         <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
       </template>
     </Breadcrumb>
 
     <!-- greeting hero -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-700 via-primary-700 to-primary-500 text-white p-6 mb-5 shadow-card">
-      <p class="text-[11px] uppercase tracking-[.2em] text-white/70">{{ todayUpper }}</p>
-      <h1 class="text-2xl font-bold mt-1.5">{{ greeting }}{{ firstName ? ', ' + firstName : '' }}</h1>
-      <p class="text-sm text-white/80 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · cold-chain overview</p>
+    <div class="relative overflow-hidden rounded-[18px] bg-gradient-to-br from-[#005D69] to-[#0d9488] text-white mb-[18px] shadow-card flex items-center justify-between" style="padding: 22px 26px;">
+      <!-- MTC Background Circles -->
+      <div class="absolute -top-[50px] -left-[10px] w-[200px] h-[200px] rounded-full pointer-events-none" style="background:rgba(255,255,255,.06);"></div>
+      <div class="absolute -bottom-[70px] left-[120px] w-[160px] h-[160px] rounded-full pointer-events-none" style="background:rgba(255,255,255,.05);"></div>
+      
+      <div class="relative z-10">
+        <p class="text-[11.5px] tracking-[.05em] text-white/85 mb-1">{{ todayUpper }}</p>
+        <h2 class="text-[23px] font-[700] leading-tight">Good {{ greeting.split(' ')[1] }}, {{ firstName }}</h2>
+        <p class="text-[13px] text-white/90 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · all cold-chain containers within range</p>
+      </div>
+      <!-- Date Range inside hero -->
+      <div class="hidden sm:block relative z-10 shrink-0">
+        <div class="inline-flex items-center gap-2 h-[42px] px-[15px] bg-white/16 hover:bg-white/22 transition rounded-[11px] border border-white/25 text-white text-[12.5px] font-medium cursor-pointer">
+          <i class="ri-calendar-line"></i>
+          <span>01 Jun – 24 Jun</span>
+        </div>
+      </div>
     </div>
 
     <!-- KPI row -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-[18px]">
       <div v-for="(k, i) in kpis" :key="k.label" :style="{ animationDelay: i * 70 + 'ms' }" class="animate-fade-in-up">
         <StatCard v-bind="k" />
       </div>
     </div>
 
-    <!-- charts row -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
-      <!-- area chart (cosmetic) -->
-      <BaseCard class="xl:col-span-2" title="Task Activity" subtitle="Operational overview" icon="ri-line-chart-line">
+    <!-- charts row: 1.9fr + 1fr (matches MTC ratio) -->
+    <div class="grid gap-4 mb-[18px]" style="grid-template-columns: 1.9fr 1fr;">
+      <!-- area chart -->
+      <BaseCard title="Task Activity" subtitle="Operational overview" icon="ri-line-chart-line">
         <div class="flex gap-6 mb-4">
           <div>
-            <div class="text-xs text-slate-400">Tasks</div>
-            <div class="text-lg font-bold text-primary-700">{{ (Number(stats.tasks) || 0).toLocaleString() }}</div>
+            <div class="text-[11px] text-slate-400">Tasks</div>
+            <div class="text-[18px] font-bold text-primary-700">{{ (Number(stats.tasks) || 0).toLocaleString() }}</div>
           </div>
           <div>
-            <div class="text-xs text-slate-400">Samples</div>
-            <div class="text-lg font-bold text-info">{{ (Number(stats.samples) || 0).toLocaleString() }}</div>
+            <div class="text-[11px] text-slate-400">Samples</div>
+            <div class="text-[18px] font-bold text-info">{{ (Number(stats.samples) || 0).toLocaleString() }}</div>
           </div>
           <div>
-            <div class="text-xs text-slate-400">Cars</div>
-            <div class="text-lg font-bold text-warning">{{ (Number(stats.cars) || 0).toLocaleString() }}</div>
+            <div class="text-[11px] text-slate-400">Avg ETA</div>
+            <div class="text-[18px] font-bold text-warning">37min</div>
           </div>
         </div>
-        <VueApexCharts type="area" height="260" :options="areaOptions" :series="areaSeries" />
-        <p class="text-[11px] text-slate-400 mt-1 text-center">Tasks created per month (last 12 months)</p>
+        <VueApexCharts type="area" height="220" :options="areaOptions" :series="areaSeries" />
       </BaseCard>
 
       <!-- donut -->

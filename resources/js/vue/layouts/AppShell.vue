@@ -71,7 +71,7 @@ function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavi
   <div :dir="dir" :lang="lang"
     class="flex h-screen overflow-hidden bg-surface-canvas dark:bg-surface-dark font-sans text-ink dark:text-slate-200"
   >
-    <Sidebar :collapsed="collapsed" :current="current" @navigate="onNavigate" />
+    <Sidebar :collapsed="collapsed" :current="current" :user="user" @navigate="onNavigate" />
 
     <div class="flex-1 flex flex-col min-w-0">
       <Topbar :dark="dark" :lang="lang" :user="user"

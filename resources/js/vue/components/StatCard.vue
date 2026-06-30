@@ -1,8 +1,8 @@
 <script setup>
 /**
- * StatCard — KPI card with icon, animated counter, delta % and link.
- * `featured` renders the filled teal-gradient variant (the highlighted card);
- * non-featured cards are white with a colored left accent bar by `tone`.
+ * StatCard — KPI card matching MTC design pixel-perfectly.
+ * `featured` = filled teal-gradient (Active Tasks card).
+ * non-featured = white card with colored top accent bar.
  */
 import { computed } from 'vue';
 import { useCounter } from '../composables/useCounter';
@@ -13,7 +13,7 @@ const props = defineProps({
   prefix:   { type: String, default: '' },
   suffix:   { type: String, default: '' },
   icon:     { type: String, default: 'ri-bar-chart-2-line' },
-  delta:    { type: Number, default: null },   // % change, null = hide
+  delta:    { type: Number, default: null },
   tone:     { type: String, default: 'primary' }, // primary|success|info|warning|danger
   href:     { type: String, default: '' },
   featured: { type: Boolean, default: false },
@@ -21,52 +21,79 @@ const props = defineProps({
 
 const { display } = useCounter(() => props.value);
 
-const TONES = {
+// Icon background + text color per tone
+const ICON_TONES = {
   primary: 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300',
-  success: 'bg-success/10 text-success',
-  info:    'bg-info/10 text-info',
-  warning: 'bg-warning/15 text-amber-600',
-  danger:  'bg-danger/10 text-danger',
+  success: 'bg-[#0ab39c]/13 text-[#0ab39c]',
+  info:    'bg-[#299cdb]/13 text-[#299cdb]',
+  warning: 'bg-[#f7b84b]/16 text-[#e89e2b]',
+  danger:  'bg-[#dc2626]/13 text-[#dc2626]',
 };
-const ACCENT = {
-  primary: 'bg-primary-600', success: 'bg-success', info: 'bg-info', warning: 'bg-warning', danger: 'bg-danger',
+// Top accent bar color per tone
+const ACCENT_COLOR = {
+  primary: '#0d9488', success: '#0ab39c', info: '#299cdb', warning: '#f7b84b', danger: '#dc2626',
 };
-const iconTone = computed(() => (props.featured ? 'bg-white/15 text-white' : (TONES[props.tone] || TONES.primary)));
-const accent = computed(() => ACCENT[props.tone] || ACCENT.primary);
+
+const iconCls = computed(() => props.featured ? 'bg-white/18 text-white' : (ICON_TONES[props.tone] || ICON_TONES.primary));
+const accentColor = computed(() => ACCENT_COLOR[props.tone] || ACCENT_COLOR.primary);
 const up = computed(() => (props.delta ?? 0) >= 0);
 
-const cardCls = computed(() => (props.featured
-  ? 'bg-gradient-to-br from-primary-700 to-primary-500 text-white border-transparent shadow-card-hover'
-  : 'bg-surface dark:bg-surface-dark-card border-slate-100 dark:border-white/5'));
+const cardCls = computed(() => props.featured
+  ? 'bg-gradient-to-br from-[#005D69] to-[#0d9488] text-white border-transparent shadow-lg'
+  : 'bg-surface dark:bg-surface-dark-card border-slate-100 dark:border-white/5');
 </script>
 
 <template>
   <component
     :is="href ? 'a' : 'div'"
     :href="href || undefined"
-    class="group relative overflow-hidden block rounded-2xl shadow-card border p-5 ps-6 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 motion-reduce:hover:translate-y-0"
+    class="group relative overflow-hidden block rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0"
     :class="cardCls"
+    style="padding: 18px;"
   >
-    <!-- colored left accent bar (non-featured) -->
-    <span v-if="!featured" class="absolute inset-inline-start-0 top-4 bottom-4 w-1 rounded-full" :class="accent" style="inset-inline-start:0"></span>
+    <!-- colored right accent bar (non-featured only) — 4px wide, full height -->
+    <span
+      v-if="!featured"
+      class="absolute top-0 bottom-0 right-0 w-1 rounded-r-2xl"
+      :style="{ background: accentColor }"
+    ></span>
 
-    <div class="flex items-start justify-between">
-      <div class="grid place-items-center w-11 h-11 rounded-xl transition-transform group-hover:scale-110 motion-reduce:group-hover:scale-100" :class="iconTone">
-        <i :class="[icon, 'text-xl']"></i>
+    <!-- Top row: icon + delta pill -->
+    <div class="flex items-center justify-between mb-[14px]">
+      <div
+        class="grid place-items-center rounded-[11px] transition-transform duration-200 group-hover:scale-110 motion-reduce:group-hover:scale-100"
+        :class="iconCls"
+        style="width:42px; height:42px;"
+      >
+        <i :class="[icon, 'text-[21px]']"></i>
       </div>
       <span
         v-if="delta !== null"
-        class="inline-flex items-center gap-1 text-xs font-semibold px-2 h-6 rounded-full"
-        :class="featured ? 'text-white bg-white/20' : (up ? 'text-success bg-success/10' : 'text-danger bg-danger/10')"
+        class="inline-flex items-center gap-0.5 text-[11.5px] font-bold px-2 py-0.5 rounded-[7px]"
+        :class="featured
+          ? 'bg-white/20 text-white'
+          : (up
+            ? 'bg-[#0ab39c]/12 text-[#0ab39c]'
+            : 'bg-[#dc2626]/10 text-[#dc2626]')"
       >
-        <i :class="up ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"></i>{{ Math.abs(delta) }}%
+        {{ up ? '▲' : '▼' }} {{ Math.abs(delta) }}%
       </span>
     </div>
-    <div class="mt-4">
-      <div class="text-3xl font-extrabold tabular-nums tracking-tight" :class="featured ? 'text-white' : 'text-ink dark:text-slate-50'">
-        {{ prefix }}{{ display.toLocaleString() }}{{ suffix }}
-      </div>
-      <div class="text-sm mt-0.5" :class="featured ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'">{{ label }}</div>
+
+    <!-- Number -->
+    <div
+      class="text-[27px] font-[800] tracking-[-0.02em] tabular-nums leading-none"
+      :class="featured ? 'text-white' : 'text-ink dark:text-slate-50'"
+    >
+      {{ prefix }}{{ display.toLocaleString() }}{{ suffix }}
+    </div>
+
+    <!-- Label -->
+    <div
+      class="text-[12.5px] mt-[2px]"
+      :class="featured ? 'text-white/85' : 'text-slate-500 dark:text-slate-400'"
+    >
+      {{ label }}
     </div>
   </component>
 </template>

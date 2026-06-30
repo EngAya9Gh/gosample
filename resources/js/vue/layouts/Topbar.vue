@@ -171,28 +171,7 @@ const sampleNotif = {
         <i :class="dark ? 'ri-sun-line' : 'ri-moon-line'" class="text-xl transition-transform duration-500 group-hover:rotate-90 motion-reduce:transition-none"></i>
       </button>
 
-      <!-- user -->
-      <div class="relative ms-1">
-        <button @click="toggle('user')" class="flex items-center gap-2.5 h-11 ps-1.5 pe-2.5 rounded-xl hover:bg-surface-muted dark:hover:bg-white/10 transition">
-          <BaseAvatar :name="user.name" :size="34" />
-          <div class="hidden md:block text-start leading-tight">
-            <div class="text-[13px] font-semibold text-ink dark:text-slate-100">{{ user.name }}</div>
-            <div class="text-[11px] text-slate-400">{{ user.role }}</div>
-          </div>
-          <i class="ri-arrow-down-s-line text-slate-400 hidden md:block"></i>
-        </button>
-        <Transition name="drop">
-          <div v-if="openMenu === 'user'" class="absolute mt-2 inset-inline-end-0 w-56 bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5" style="inset-inline-end:0">
-            <div class="px-3 py-2.5 border-b border-slate-100 dark:border-white/5 mb-1">
-              <p class="text-sm font-semibold text-ink dark:text-slate-100">Welcome {{ user.name.split(' ')[0] }}!</p>
-              <p class="text-xs text-slate-400">{{ user.role }}</p>
-            </div>
-            <a href="#" @click.prevent="$emit('navigate','/admin/profile'); close()" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-ink dark:text-slate-200 hover:bg-surface-muted dark:hover:bg-white/5"><i class="ri-user-line text-slate-400"></i>Profile</a>
-            <a href="#" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-ink dark:text-slate-200 hover:bg-surface-muted dark:hover:bg-white/5"><i class="ri-question-line text-slate-400"></i>Help</a>
-            <a href="#" @click.prevent="$emit('navigate','/login'); close()" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-danger hover:bg-danger/5"><i class="ri-logout-box-r-line"></i>Logout</a>
-          </div>
-        </Transition>
-      </div>
+
     </div>
 
     <!-- click-catcher -->
