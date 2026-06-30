@@ -101,19 +101,19 @@ const loading = ref(false);
 
 // Columns map 1:1 to the API row fields (same data keys the classic DataTable uses).
 const columns = [
-  { key: 'sequence',          label: '#',                 sticky: 'start', width: '56px' },
-  { key: 'id',                label: 'ID',                sticky: 'start', width: '84px' },
+  { key: 'sequence',          label: '#',                 sticky: 'start', width: '52px' },
+  { key: 'id',                label: 'ID',                sticky: 'start', width: '80px' },
   { key: 'created_at',        label: 'Order Date',        ltr: true },
-  { key: 'client',            label: 'Client' },
-  { key: 'driver_name',       label: 'Driver' },
-  { key: 'route',             label: 'From → To' },
-  { key: 'eta',               label: 'EAT (in Minutes)',  align: 'center' },
+  { key: 'client',            label: 'Client',            wrap: true, width: '150px' },
+  { key: 'driver_name',       label: 'Driver',            wrap: true, width: '150px' },
+  { key: 'route',             label: 'From → To',        wrap: true, width: '250px' },
+  { key: 'eta',               label: 'EAT (min)',         align: 'center' },
+  { key: 'status',            label: 'Status' },
   { key: 'collection_date',   label: 'Collection Date',   ltr: true },
   { key: 'freezer_date',      label: 'Container Date',    ltr: true },
-  { key: 'freezer_out_date',  label: 'Container Out Date',ltr: true },
+  { key: 'freezer_out_date',  label: 'Container Out',     ltr: true },
   { key: 'close_date',        label: 'Close Date',        ltr: true },
-  { key: 'status',            label: 'Status' },
-  { key: 'task_type',         label: 'Task Type' },
+  { key: 'task_type',         label: 'Type' },
   { key: 'added_by',          label: 'Added By' },
   { key: 'hours',             label: 'Hours',             align: 'center' },
 ];
@@ -249,12 +249,12 @@ async function bulkDelete(ids) {
         <button
           v-for="s in statusPills" :key="s.value" type="button"
           @click="toggleStatus(s.value)"
-          class="inline-flex items-center gap-2 ps-3 pe-3.5 h-9 rounded-full border text-sm font-bold transition"
+          class="inline-flex items-center gap-1.5 ps-2 pe-2.5 h-7 rounded-full border text-[11px] font-bold transition"
           :class="filters.status === s.value
             ? s.active
-            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'"
+            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300'"
         >
-          <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
+          <span class="w-1.5 h-1.5 rounded-full" :class="s.dot"></span>
           {{ s.label }}
         </button>
       </template>
@@ -272,24 +272,24 @@ async function bulkDelete(ids) {
         <span class="font-black text-primary-500 dark:text-primary-300">#{{ value }}</span>
       </template>
       <template #cell-client="{ value }">
-        <span class="font-semibold text-ink dark:text-slate-100">{{ value || '—' }}</span>
+        <span class="font-semibold text-ink dark:text-slate-100 whitespace-normal leading-snug">{{ value || '—' }}</span>
       </template>
       <template #cell-route="{ row }">
-        <div dir="ltr" class="inline-flex items-center gap-2 whitespace-nowrap">
-          <span class="inline-flex items-center gap-1.5">
-            <i class="ri-map-pin-fill text-red-500"></i>
-            <span class="truncate font-medium">{{ row.from_location_name || '—' }}</span>
+        <div dir="ltr" class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal leading-snug">
+          <span class="inline-flex items-center gap-1">
+            <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
+            <span class="font-medium">{{ row.from_location_name || '—' }}</span>
           </span>
-          <i class="ri-arrow-right-line text-slate-400 shrink-0"></i>
-          <span class="inline-flex items-center gap-1.5">
-            <i class="ri-map-pin-fill text-green-500"></i>
-            <span class="truncate font-medium">{{ row.to_location_name || '—' }}</span>
+          <i class="ri-arrow-right-line text-slate-400 shrink-0 text-[11px]"></i>
+          <span class="inline-flex items-center gap-1">
+            <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
+            <span class="font-medium">{{ row.to_location_name || '—' }}</span>
           </span>
         </div>
       </template>
       <template #cell-driver_name="{ value }">
-        <span v-if="value" class="inline-flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" /><span class="truncate font-medium">{{ value }}</span>
+        <span v-if="value" class="inline-flex items-center gap-1.5">
+          <BaseAvatar :name="value" :size="22" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>

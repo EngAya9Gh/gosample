@@ -169,7 +169,7 @@ function stickyCls(c) {
             <th v-for="c in columns" :key="c.key"
               class="px-3 py-2.5 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap"
               :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', stickyCls(c), c.sortable ? 'cursor-pointer select-none hover:text-primary-700' : '']"
-              :style="c.width ? { width: c.width } : {}"
+              :style="c.width ? { minWidth: c.width } : {}"
               @click="toggleSort(c)">
               <span class="inline-flex items-center gap-1">
                 {{ c.label }}
@@ -204,10 +204,20 @@ function stickyCls(c) {
                 </button>
               </td>
               <td v-for="c in columns" :key="c.key"
-                class="px-3 py-2.5 text-ink dark:text-slate-200 whitespace-nowrap text-[13px]"
-                :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', c.mono ? 'font-mono' : '', stickyCls(c)]"
-                :style="(c.mono || c.ltr) ? 'direction:ltr; unicode-bidi:plaintext' : ''">
-                <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
+                class="px-3 py-2.5 text-ink dark:text-slate-200 text-[13px]"
+                :class="[
+                  c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start',
+                  c.wrap ? 'align-top' : 'whitespace-nowrap',
+                  c.mono ? 'font-mono' : '',
+                  stickyCls(c)
+                ]"
+                :style="(c.mono || c.ltr) ? 'direction:ltr; unicode-bidi:plaintext;' : ''"
+              >
+                <!-- wrap mode: constrain width on inner div so browser wraps text -->
+                <div v-if="c.wrap" :style="c.width ? `min-width:${c.width}; max-width:${c.maxWidth || '450px'}; white-space:normal; word-break:break-word;` : 'white-space:normal;'">
+                  <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
+                </div>
+                <slot v-else :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
               </td>
               <td v-if="$slots['row-actions']" class="px-3 py-2.5 text-end sticky inset-inline-end-0 bg-inherit z-[1]">
                 <slot name="row-actions" :row="row"></slot>
