@@ -13,18 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        $permissionId = \DB::table('permissions')->insertGetId([
-            'name' => 'report_access',
-            'guard_name' => 'web',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $exists = \DB::table('permissions')->where('name', 'report_access')->exists();
         
-        // Also assign it to Admin Role (assuming Admin is role_id 1)
-        \DB::table('permission_role')->insert([
-            'permission_id' => $permissionId,
-            'role_id' => 1
-        ]);
+        if (!$exists) {
+            $permissionId = \DB::table('permissions')->insertGetId([
+                'name' => 'report_access',
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            
+            // Also assign it to Admin Role (assuming Admin is role_id 1)
+            \DB::table('permission_role')->insert([
+                'permission_id' => $permissionId,
+                'role_id' => 1
+            ]);
+        }
     }
 
     /**
