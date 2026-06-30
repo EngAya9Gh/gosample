@@ -27,7 +27,7 @@ Route::post('task/create','App\Http\Controllers\SampleController@createTask');
 Route::post('driver/login','App\Http\Controllers\DriverController@login');
 Route::post('driver/loginWithMobile','App\Http\Controllers\DriverController@loginWithMobile');
 Route::post('driver/refresh','App\Http\Controllers\DriverController@refresh');
-Route::middleware('auth:drivers')->group(function () {
+Route::middleware(['auth:drivers', 'force.driver.id'])->group(function () {
     Route::post('driver/profile','App\Http\Controllers\DriverController@profile');
     Route::post('driver/tasks','App\Http\Controllers\DriverController@tasks');
     Route::post('driver/location','App\Http\Controllers\DriverController@carLocation');
@@ -80,7 +80,7 @@ Route::post('shipments/details','App\Http\Controllers\ShipmentController@getShip
 
 Route::post('test','App\Http\Controllers\ShipmentController@test');
 
-Route::middleware('auth:drivers')->group(function () {
+Route::middleware(['auth:drivers', 'force.driver.id'])->group(function () {
     Route::any('tasks/cache','App\Http\Controllers\DriverController@getTasksFromCache');
     Route::post('driver/car/images','App\Http\Controllers\DriverController@uploadPhotos');
     Route::get('driver/car/images','App\Http\Controllers\DriverController@getCarPhotos');
