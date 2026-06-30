@@ -38,7 +38,7 @@ watch(() => props.modelValue, (open) => {
 
       <!-- panel -->
       <div
-        class="relative w-full bg-surface dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 flex flex-col max-h-[88vh] modal-panel"
+        class="relative w-full bg-surface dark:bg-surface-dark-solid rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 flex flex-col max-h-[88vh] modal-panel"
         :class="SIZES[size]"
         role="dialog" aria-modal="true"
       >

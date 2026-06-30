@@ -128,7 +128,7 @@ function submit() {
           <!-- Template selector -->
           <div v-if="shiftTemplates.length" class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-500"><i class="ri-magic-line text-teal-500"></i> Template:</span>
-            <select @change="applyTemplate" class="text-sm border-slate-200 dark:border-white/10 rounded-lg bg-surface dark:bg-slate-900 focus:ring-primary-500 focus:border-primary-500 h-9 px-3">
+            <select @change="applyTemplate" class="text-sm border-slate-200 dark:border-white/10 rounded-lg bg-surface dark:bg-surface-dark-solid focus:ring-primary-500 focus:border-primary-500 h-9 px-3">
               <option value="">-- Choose --</option>
               <option v-for="t in shiftTemplates" :key="t.id" :value="t.id">{{ t.name }}</option>
             </select>
@@ -136,7 +136,7 @@ function submit() {
         </div>
         
         <div class="p-5">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 bg-slate-50/50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5">
             <FormSelect v-model="form.employment_type" label="Employment Type" :options="empTypes" required :error="form.errors.employment_type" />
             <FormInput v-model="form.total_working_hours" type="number" label="Required Hours/Day" required :error="form.errors.total_working_hours" />
             <FormSelect v-model="form.shift_count" label="Number of Shifts" :options="shiftCounts" required :error="form.errors.shift_count" />

@@ -4,7 +4,7 @@
  * Data via props from App\Http\Controllers\App\DashboardController@index (mirrors the
  * classic HomeController@index cached stats/top_drivers/notifications + the samples
  * donut). The samples donut re-fetches on date-range change via an Inertia partial reload.
- * The "Task Activity" area chart is cosmetic (no backing series exists in the system).
+ * The "Task Activity" area chart plots real monthly Tasks + Samples volume (last 12 months).
  */
 import { reactive, computed, watch, ref, onMounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
@@ -28,27 +28,31 @@ const props = defineProps({
   taskActivity:  { type: Object, default: () => ({ labels: [], values: [] }) },
 });
 
-// ---- Task Activity area chart (real monthly task volume, interactive) ----
-const areaSeries = computed(() => [{ name: 'Tasks', data: props.taskActivity?.values || [] }]);
+// ---- Task Activity area chart (real monthly Tasks + Samples volume, interactive) ----
+const areaSeries = computed(() => [
+  { name: 'Tasks',   data: props.taskActivity?.tasks   || props.taskActivity?.values || [] },
+  { name: 'Samples', data: props.taskActivity?.samples || [] },
+]);
 const areaOptions = computed(() => ({
   chart: {
     type: 'area', height: 260, toolbar: { show: false }, zoom: { enabled: false },
     fontFamily: 'Poppins, sans-serif',
     animations: { enabled: true, easing: 'easeinout', speed: 800 },
   },
-  colors: ['#0d9488'],
+  colors: ['#0d9488', '#299cdb'],
   dataLabels: { enabled: false },
   stroke: { curve: 'smooth', width: 2.5 },
-  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.32, opacityTo: 0.02, stops: [0, 90] } },
+  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.28, opacityTo: 0.02, stops: [0, 90] } },
   grid: { borderColor: 'rgba(148,163,184,.18)', strokeDashArray: 4, padding: { left: 8, right: 8 } },
+  legend: { show: true, position: 'top', horizontalAlign: 'right', fontFamily: 'Poppins, sans-serif', labels: { colors: '#94a3b8' }, markers: { radius: 12 }, itemMargin: { horizontal: 8 } },
   xaxis: {
     categories: props.taskActivity?.labels || [],
     axisBorder: { show: false }, axisTicks: { show: false },
     labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
   },
   yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '11px' }, formatter: (v) => Math.round(v) } },
-  markers: { size: 0, strokeColors: '#0d9488', hover: { size: 6 } },
-  tooltip: { theme: 'light', y: { formatter: (v) => `${v} tasks` } },
+  markers: { size: 0, strokeColors: ['#0d9488', '#299cdb'], hover: { size: 6 } },
+  tooltip: { theme: 'light', y: { formatter: (v, { seriesIndex }) => `${v} ${seriesIndex === 1 ? 'samples' : 'tasks'}` } },
 }));
 
 const { can } = usePermissions();
@@ -151,20 +155,22 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
 
 <template>
   <div>
-    <!-- top controls: date-range filter (samples donut) + create task — ABOVE the hero -->
-    <div class="flex flex-wrap items-end justify-end gap-2 mb-4">
-      <div class="w-64"><FormDate v-model="rangeStr" mode="range" label="Date Range" placeholder="Select date range" @range="onRange" /></div>
-      <button v-if="rangeStr" @click="clearRange"
-        class="grid place-items-center w-10 h-11 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/5 transition" title="Clear date range">
-        <i class="ri-close-circle-line text-lg"></i>
-      </button>
-      <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
-    </div>
+    <!-- page header: breadcrumb + title (start) · date-range filter + create task (end) -->
+    <Breadcrumb title="Analytics Dashboard" :trail="[{ label: 'Dashboards' }, { label: 'Analytics' }]">
+      <template #actions>
+        <div class="w-64"><FormDate v-model="rangeStr" mode="range" label="Date Range" placeholder="Select date range" @range="onRange" /></div>
+        <button v-if="rangeStr" @click="clearRange"
+          class="grid place-items-center w-10 h-11 rounded-xl text-slate-400 hover:text-danger hover:bg-danger/5 transition" title="Clear date range">
+          <i class="ri-close-circle-line text-lg"></i>
+        </button>
+        <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
+      </template>
+    </Breadcrumb>
 
     <!-- greeting hero -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-700 via-primary-700 to-primary-500 text-white p-6 mb-5 shadow-card">
       <p class="text-[11px] uppercase tracking-[.2em] text-white/70">{{ todayUpper }}</p>
-      <h1 class="text-2xl font-bold mt-1.5">{{ greeting }}{{ firstName ? ', ' + firstName : '' }} 👋</h1>
+      <h1 class="text-2xl font-bold mt-1.5">{{ greeting }}{{ firstName ? ', ' + firstName : '' }}</h1>
       <p class="text-sm text-white/80 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · cold-chain overview</p>
     </div>
 
@@ -217,8 +223,8 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
           <div class="w-full mt-4 space-y-2">
             <div v-for="d in donutSeg" :key="d.label" class="flex items-center gap-2.5 text-sm">
               <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ background: d.color }"></span>
-              <span class="text-slate-600 dark:text-slate-300 flex-1 truncate">{{ d.label }}</span>
-              <span class="font-semibold text-ink dark:text-slate-100">{{ Math.round(d.pct) }}%</span>
+              <span class="font-medium text-slate-600 dark:text-slate-300 flex-1 truncate">{{ d.label }}</span>
+              <span class="font-bold text-ink dark:text-slate-100">{{ Math.round(d.pct) }}%</span>
             </div>
           </div>
         </div>
@@ -235,12 +241,12 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
             <span class="grid place-items-center w-6 h-6 rounded-lg text-xs font-bold shrink-0"
               :class="i === 0 ? 'bg-amber-100 text-amber-600' : i === 1 ? 'bg-slate-100 text-slate-500' : i === 2 ? 'bg-orange-100 text-orange-600' : 'bg-surface-muted text-slate-400'">{{ i + 1 }}</span>
             <BaseAvatar :name="d.name || '—'" :size="36" />
-            <span class="font-medium text-ink dark:text-slate-100 flex-1 truncate">{{ d.name }}</span>
+            <span class="font-semibold text-ink dark:text-slate-100 flex-1 truncate">{{ d.name }}</span>
             <div class="flex items-center gap-2 w-40">
               <div class="flex-1 h-2 rounded-full bg-surface-muted dark:bg-white/10 overflow-hidden">
                 <div class="h-full rounded-full bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-700" :style="{ width: ((Number(d.total) || 0) / driversMax * 100) + '%' }"></div>
               </div>
-              <span class="text-sm font-semibold text-ink dark:text-slate-200 tabular-nums w-9 text-end">{{ d.total }}</span>
+              <span class="text-sm font-bold text-ink dark:text-slate-200 tabular-nums w-9 text-end">{{ d.total }}</span>
             </div>
           </div>
         </div>

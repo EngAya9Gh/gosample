@@ -20,7 +20,7 @@ defineProps({
 
       <!-- node -->
       <span
-        class="relative z-10 grid place-items-center w-7 h-7 rounded-full shrink-0 text-xs font-bold ring-4 ring-surface dark:ring-slate-800"
+        class="relative z-10 grid place-items-center w-7 h-7 rounded-full shrink-0 text-xs font-bold ring-4 ring-surface dark:ring-surface-dark-card"
         :class="{
           'bg-success text-white': s.state === 'done',
           'bg-primary-600 text-white animate-pulse-ring': s.state === 'current',

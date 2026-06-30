@@ -37,7 +37,7 @@ const up = computed(() => (props.delta ?? 0) >= 0);
 
 const cardCls = computed(() => (props.featured
   ? 'bg-gradient-to-br from-primary-700 to-primary-500 text-white border-transparent shadow-card-hover'
-  : 'bg-surface dark:bg-slate-800/60 border-slate-100 dark:border-white/5'));
+  : 'bg-surface dark:bg-surface-dark-card border-slate-100 dark:border-white/5'));
 </script>
 
 <template>

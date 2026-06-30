@@ -101,7 +101,7 @@ const formatDate = (dateString) => {
             </div>
           </div>
           <!-- Quick Contact -->
-          <div class="bg-surface dark:bg-slate-800/60 p-4 grid grid-cols-2 gap-4">
+          <div class="bg-surface dark:bg-surface-dark-card p-4 grid grid-cols-2 gap-4">
             <div class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
               <i class="ri-phone-line text-[#0ab39c] text-lg mb-1"></i>
               <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-300" style="direction:ltr">{{ driver.mobile }}</div>
@@ -113,7 +113,7 @@ const formatDate = (dateString) => {
           </div>
           
           <!-- Personal Info inside the same card -->
-          <div class="bg-surface dark:bg-slate-800/60 px-5 pb-5">
+          <div class="bg-surface dark:bg-surface-dark-card px-5 pb-5">
             <dl class="space-y-1 mt-1">
               <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-white/5">
                 <dt class="text-sm text-slate-500 font-medium">National ID</dt>
@@ -126,7 +126,7 @@ const formatDate = (dateString) => {
               <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-white/5">
                 <dt class="text-sm text-slate-500 font-medium">Language</dt>
                 <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-xs">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-xs">
                     {{ driver.language === 'en' ? 'English' : (driver.language === 'ar' ? 'Arabic' : driver.language || '-') }}
                   </span>
                 </dd>
@@ -156,14 +156,14 @@ const formatDate = (dateString) => {
           </div>
 
           <div v-if="shifts.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="s in shifts" :key="s.id" class="group relative bg-surface dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all hover:border-[#0ab39c]/30">
+            <div v-for="s in shifts" :key="s.id" class="group relative bg-surface dark:bg-surface-dark-card rounded-2xl p-5 border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all hover:border-[#0ab39c]/30">
               <!-- Shift Number Badge -->
-              <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-[#0ab39c]/10 group-hover:text-[#0ab39c] transition-colors">
+              <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-[#0ab39c]/10 group-hover:text-[#0ab39c] transition-colors">
                 #{{ s.shift_number }}
               </div>
               
               <div class="flex items-center gap-4 mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center group-hover:from-[#0ab39c]/20 group-hover:to-[#0ab39c]/5 transition-colors">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/5 dark:to-white/10 flex items-center justify-center group-hover:from-[#0ab39c]/20 group-hover:to-[#0ab39c]/5 transition-colors">
                   <i class="ri-calendar-event-line text-xl text-slate-500 group-hover:text-[#0ab39c] transition-colors"></i>
                 </div>
                 <div>
@@ -172,7 +172,7 @@ const formatDate = (dateString) => {
                 </div>
               </div>
               
-              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                 <div class="text-center flex-1">
                   <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Start</span>
                   <span class="text-lg font-mono font-bold text-slate-700 dark:text-slate-200">{{ s.start_time }}</span>
@@ -188,8 +188,8 @@ const formatDate = (dateString) => {
             </div>
           </div>
           
-          <div v-else class="bg-surface dark:bg-slate-800/60 rounded-2xl p-8 border border-slate-100 dark:border-white/5 text-center flex flex-col items-center justify-center shadow-sm">
-            <div class="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center mb-3">
+          <div v-else class="bg-surface dark:bg-surface-dark-card rounded-2xl p-8 border border-slate-100 dark:border-white/5 text-center flex flex-col items-center justify-center shadow-sm">
+            <div class="w-16 h-16 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-3">
               <i class="ri-timer-flash-line text-2xl text-slate-400"></i>
             </div>
             <h4 class="text-slate-700 dark:text-slate-300 font-bold mb-1">No Shifts Assigned</h4>
@@ -199,7 +199,7 @@ const formatDate = (dateString) => {
 
         <!-- KPI / Attendance Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="bg-surface dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
+          <div class="bg-surface dark:bg-surface-dark-card rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
             <div class="absolute top-0 right-0 w-24 h-24 bg-success/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
             <div class="flex items-center justify-between mb-4 relative z-10">
               <div class="flex items-center gap-2">
@@ -208,12 +208,12 @@ const formatDate = (dateString) => {
               </div>
               <span class="text-xl font-extrabold text-success">{{ pScore }}%</span>
             </div>
-            <div class="h-2.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden relative z-10">
+            <div class="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden relative z-10">
               <div class="h-full rounded-full bg-success transition-all duration-1000 ease-out" :style="{ width: pScore + '%' }"></div>
             </div>
           </div>
           
-          <div class="bg-surface dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
+          <div class="bg-surface dark:bg-surface-dark-card rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
             <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
             <div class="flex items-center justify-between mb-4 relative z-10">
               <div class="flex items-center gap-2">
@@ -222,7 +222,7 @@ const formatDate = (dateString) => {
               </div>
               <span class="text-xl font-extrabold text-blue-500">{{ sScore }}%</span>
             </div>
-            <div class="h-2.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden relative z-10">
+            <div class="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden relative z-10">
               <div class="h-full rounded-full bg-blue-500 transition-all duration-1000 ease-out" :style="{ width: sScore + '%' }"></div>
             </div>
           </div>
@@ -247,7 +247,7 @@ const formatDate = (dateString) => {
               </template>
               <template #empty>
                 <div class="text-center py-10 flex flex-col items-center justify-center">
-                  <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                  <div class="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-3">
                     <i class="ri-file-list-3-line text-2xl text-slate-400"></i>
                   </div>
                   <h4 class="text-slate-600 dark:text-slate-300 font-bold mb-1">No Task History</h4>
@@ -275,7 +275,7 @@ const formatDate = (dateString) => {
               </template>
               <template #empty>
                 <div class="text-center py-10 flex flex-col items-center justify-center">
-                  <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                  <div class="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-3">
                     <i class="ri-car-line text-2xl text-slate-400"></i>
                   </div>
                   <h4 class="text-slate-600 dark:text-slate-300 font-bold mb-1">No Car Links</h4>

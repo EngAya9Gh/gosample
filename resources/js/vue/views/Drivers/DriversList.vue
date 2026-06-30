@@ -204,7 +204,7 @@ function onExport(format) {
       <!-- Custom rendering for Tasks column -->
       <template #cell-tasks="{ row }">
         <div class="flex items-center justify-center cursor-pointer" @click="viewTasks(row.id)">
-          <span class="px-3 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-[10px] font-extrabold text-sm shadow-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">
+          <span class="px-3 py-1 bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-slate-300 rounded-[10px] font-extrabold text-sm shadow-sm transition-colors hover:bg-slate-200 dark:hover:bg-white/10">
             {{ row.tasks_count || 0 }}
           </span>
         </div>
@@ -216,7 +216,7 @@ function onExport(format) {
           <button v-if="can('driver_show')" @click="router.visit(`/app/admin/drivers/${row.id}`)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-50 text-blue-500 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 transition-colors shadow-sm" title="View">
             <i class="ri-eye-line text-[1.15rem]"></i>
           </button>
-          <button v-if="can('driver_edit')" @click="router.visit(`/app/admin/drivers/${row.id}/edit`)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors shadow-sm" title="Edit">
+          <button v-if="can('driver_edit')" @click="router.visit(`/app/admin/drivers/${row.id}/edit`)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 transition-colors shadow-sm" title="Edit">
             <i class="ri-pencil-line text-[1.15rem]"></i>
           </button>
           <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors shadow-sm" title="Delete">
@@ -240,7 +240,7 @@ function onExport(format) {
       </div>
       <template #footer>
         <div class="flex gap-4 w-full px-2 pb-2">
-          <button @click="deleteModal.isOpen = false" class="flex-1 h-11 rounded-[12px] bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors dark:bg-slate-800 dark:border-white/10 dark:text-slate-200 dark:hover:bg-slate-700">Cancel</button>
+          <button @click="deleteModal.isOpen = false" class="flex-1 h-11 rounded-[12px] bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">Cancel</button>
           <button @click="confirmDelete" class="flex-1 h-11 rounded-[12px] bg-[#b85b8c] text-white font-bold hover:bg-[#a34d7a] transition-colors shadow-md">Yes, delete</button>
         </div>
       </template>

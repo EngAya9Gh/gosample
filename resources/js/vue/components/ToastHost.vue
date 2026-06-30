@@ -20,7 +20,7 @@ const ICONS = {
       <div
         v-for="t in state.items"
         :key="t.id"
-        class="flex items-start gap-3 bg-surface dark:bg-slate-800 rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-3.5 pe-2.5"
+        class="flex items-start gap-3 bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-3.5 pe-2.5"
       >
         <i :class="[ICONS[t.type] || ICONS.info, 'text-xl mt-0.5']"></i>
         <div class="flex-1 min-w-0">

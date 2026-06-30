@@ -14,7 +14,7 @@ defineEmits(['search', 'reset']);
 </script>
 
 <template>
-  <div class="bg-surface dark:bg-slate-800/60 rounded-2xl shadow-card border border-slate-100 dark:border-white/5 p-4 sm:p-5 mb-5">
+  <div class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 p-4 sm:p-5 mb-5">
     <div class="flex items-center gap-2 mb-4">
       <i class="ri-equalizer-line text-primary-600 text-lg"></i>
       <h3 class="text-sm font-extrabold text-ink dark:text-slate-100">{{ title }}</h3>

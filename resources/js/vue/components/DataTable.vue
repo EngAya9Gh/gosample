@@ -111,14 +111,14 @@ watch([q, pageSize], () => { page.value = 1; });
 
 function runBulk(ev) { emit(ev, [...sel.value]); clearSel(); }
 function stickyCls(c) {
-  if (c.sticky === 'start') return 'sticky inset-inline-start-0 z-[1] bg-surface dark:bg-slate-800';
-  if (c.sticky === 'end')   return 'sticky inset-inline-end-0 z-[1] bg-surface dark:bg-slate-800';
+  if (c.sticky === 'start') return 'sticky inset-inline-start-0 z-[1] bg-surface dark:bg-surface-dark-card';
+  if (c.sticky === 'end')   return 'sticky inset-inline-end-0 z-[1] bg-surface dark:bg-surface-dark-card';
   return '';
 }
 </script>
 
 <template>
-  <div class="bg-surface dark:bg-slate-800/60 rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden">
+  <div class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden">
     <!-- toolbar -->
     <div class="flex flex-wrap items-center gap-3 px-4 py-3.5 border-b border-slate-100 dark:border-white/5">
       <div v-if="title" class="flex items-center gap-2 me-2">
@@ -161,8 +161,8 @@ function stickyCls(c) {
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-surface-muted/60 dark:bg-white/5 text-slate-800 dark:text-slate-200">
-            <th v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-surface-muted/60 dark:bg-slate-800 z-[2]">
-              <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/20'">
+            <th v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-surface-muted/60 dark:bg-surface-dark-card z-[2]">
+              <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                 <i v-if="allOnPage" class="ri-check-line text-xs"></i>
               </button>
             </th>
@@ -179,7 +179,7 @@ function stickyCls(c) {
                 </span>
               </span>
             </th>
-            <th v-if="$slots['row-actions']" class="px-3.5 py-3 text-end font-bold text-[12px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/60 dark:bg-slate-800 z-[2]">Actions</th>
+            <th v-if="$slots['row-actions']" class="px-3.5 py-3 text-end font-bold text-[12px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/60 dark:bg-surface-dark-card z-[2]">Actions</th>
           </tr>
         </thead>
 
@@ -199,7 +199,7 @@ function stickyCls(c) {
               class="border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-primary-50/40 dark:hover:bg-white/5"
               :class="sel.has(row[rowKey]) ? 'bg-primary-50/60 dark:bg-primary-500/10' : ''">
               <td v-if="selectable" class="ps-4 pe-2 py-3 sticky inset-inline-start-0 bg-inherit z-[1]">
-                <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/20'">
+                <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                   <i v-if="sel.has(row[rowKey])" class="ri-check-line text-xs"></i>
                 </button>
               </td>

@@ -74,7 +74,7 @@ const sampleNotif = {
 </script>
 
 <template>
-  <header class="relative z-40 flex items-center gap-2 h-16 px-4 bg-surface dark:bg-slate-900/80 backdrop-blur border-b border-slate-200/70 dark:border-white/5">
+  <header class="relative z-40 flex items-center gap-2 h-16 px-4 bg-surface dark:bg-surface-dark/80 backdrop-blur border-b border-slate-200/70 dark:border-white/5">
     <!-- hamburger -->
     <button @click="$emit('toggle-sidebar')" class="group grid place-items-center w-10 h-10 rounded-xl text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 transition">
       <i class="ri-menu-2-line text-xl transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none"></i>
@@ -100,7 +100,7 @@ const sampleNotif = {
           <i class="ri-arrow-down-s-line text-base"></i>
         </button>
         <Transition name="drop">
-          <div v-if="openMenu === 'create'" class="absolute mt-2 inset-inline-end-0 w-60 bg-surface dark:bg-slate-800 rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5" style="inset-inline-end:0">
+          <div v-if="openMenu === 'create'" class="absolute mt-2 inset-inline-end-0 w-60 bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5" style="inset-inline-end:0">
             <button v-for="c in createItems" :key="c.key" @click="$emit('quick-create', c.key); close()"
               class="w-full flex items-center gap-3 px-2.5 h-10 rounded-lg text-sm text-ink dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-white/5 transition text-start">
               <i :class="[c.icon, 'text-primary-600 text-base']"></i>
@@ -124,7 +124,7 @@ const sampleNotif = {
           <span v-if="counts.notif" class="absolute top-1 inset-inline-end-1 inline-grid place-items-center min-w-4 h-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white" style="inset-inline-end:.25rem">{{ counts.notif }}</span>
         </button>
         <Transition name="drop">
-          <div v-if="openMenu === 'notif'" class="absolute mt-2 inset-inline-end-0 w-[340px] max-w-[90vw] bg-surface dark:bg-slate-800 rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 overflow-hidden" style="inset-inline-end:0">
+          <div v-if="openMenu === 'notif'" class="absolute mt-2 inset-inline-end-0 w-[340px] max-w-[90vw] bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 overflow-hidden" style="inset-inline-end:0">
             <div class="flex border-b border-slate-100 dark:border-white/5">
               <button v-for="t in notifTabs" :key="t.key" @click="notifTab = t.key"
                 class="flex-1 flex items-center justify-center gap-1.5 py-3 text-[13px] font-medium transition border-b-2"
@@ -182,7 +182,7 @@ const sampleNotif = {
           <i class="ri-arrow-down-s-line text-slate-400 hidden md:block"></i>
         </button>
         <Transition name="drop">
-          <div v-if="openMenu === 'user'" class="absolute mt-2 inset-inline-end-0 w-56 bg-surface dark:bg-slate-800 rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5" style="inset-inline-end:0">
+          <div v-if="openMenu === 'user'" class="absolute mt-2 inset-inline-end-0 w-56 bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5" style="inset-inline-end:0">
             <div class="px-3 py-2.5 border-b border-slate-100 dark:border-white/5 mb-1">
               <p class="text-sm font-semibold text-ink dark:text-slate-100">Welcome {{ user.name.split(' ')[0] }}!</p>
               <p class="text-xs text-slate-400">{{ user.role }}</p>

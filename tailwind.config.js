@@ -61,6 +61,12 @@ module.exports = {
                     DEFAULT: '#ffffff',
                     muted: '#f3f6f9',
                     canvas: '#f3f3f9', // app background
+                    // Dark-mode surfaces — teal-tinted near-black (matches the
+                    // delivered reference theme; deliberately NOT Tailwind's
+                    // blue `slate` scale). Used only behind the `dark` class.
+                    dark: '#0A0F0E',         // app canvas + topbar
+                    'dark-card': '#101A19',  // cards, panels, tables
+                    'dark-solid': '#142220', // modals, dropdowns, toasts (raised)
                 },
                 ink: '#212529', // body text
             },

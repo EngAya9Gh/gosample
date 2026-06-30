@@ -113,26 +113,42 @@ class DashboardController extends Controller
 
         // ---- Task Activity: real task volume over the last 12 months (cached, scoped) ----
         $cacheKeyActivity = $scoped
-            ? 'dash_task_activity_clients_' . md5(implode(',', $loggedUser->assigned_client_ids))
-            : 'dash_task_activity_admin';
+            ? 'dash_task_activity_v2_clients_' . md5(implode(',', $loggedUser->assigned_client_ids))
+            : 'dash_task_activity_v2_admin';
         $taskActivity = Cache::remember($cacheKeyActivity, now()->addMinutes(30), function () use ($scoped, $loggedUser) {
             $startMonth = Carbon::now()->startOfMonth()->subMonths(11);
-            $q = Task::query();
+
+            // monthly task counts
+            $tq = Task::query();
             if ($scoped) {
-                $q->whereIn('billing_client', $loggedUser->assigned_client_ids);
+                $tq->whereIn('billing_client', $loggedUser->assigned_client_ids);
             }
-            $byMonth = $q->where('created_at', '>=', $startMonth->toDateTimeString())
+            $tasksByMonth = $tq->where('created_at', '>=', $startMonth->toDateTimeString())
                 ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as total")
                 ->groupBy('ym')->pluck('total', 'ym');
 
+            // monthly sample counts (scoped via the parent task's billing_client)
+            $sq = Sample::query();
+            if ($scoped) {
+                $sq->join('tasks', 'tasks.id', '=', 'samples.task_id')
+                    ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids);
+            }
+            $samplesByMonth = $sq->where('samples.created_at', '>=', $startMonth->toDateTimeString())
+                ->selectRaw("DATE_FORMAT(samples.created_at, '%Y-%m') as ym, COUNT(*) as total")
+                ->groupBy('ym')->pluck('total', 'ym');
+
             $labels = [];
-            $values = [];
+            $tasks = [];
+            $samples = [];
             for ($i = 0; $i < 12; $i++) {
                 $m = $startMonth->copy()->addMonths($i);
+                $key = $m->format('Y-m');
                 $labels[] = $m->format('M');
-                $values[] = (int) ($byMonth[$m->format('Y-m')] ?? 0);
+                $tasks[]   = (int) ($tasksByMonth[$key] ?? 0);
+                $samples[] = (int) ($samplesByMonth[$key] ?? 0);
             }
-            return ['labels' => $labels, 'values' => $values];
+            // 'values' kept for backward-compat (equals the tasks series)
+            return ['labels' => $labels, 'tasks' => $tasks, 'samples' => $samples, 'values' => $tasks];
         });
 
         return Inertia::render('Dashboard/Analytics', [

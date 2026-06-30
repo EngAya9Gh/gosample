@@ -76,7 +76,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
 
     <!-- panel -->
     <div v-if="open" class="relative">
-      <div class="absolute z-30 mt-1.5 w-full bg-surface dark:bg-slate-800 rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5 animate-fade-in-up">
+      <div class="absolute z-30 mt-1.5 w-full bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5 animate-fade-in-up">
         <div v-if="searchable" class="relative mb-1.5">
           <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-2.5 text-slate-400 text-sm" style="inset-inline-start:.625rem"></i>
           <input v-model="q" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
@@ -92,7 +92,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
             @click="pick(o.value)"
             class="flex items-center gap-2.5 px-2.5 h-9 rounded-lg text-sm cursor-pointer text-ink dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-white/5"
           >
-            <span class="grid place-items-center w-4 h-4 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/20'">
+            <span class="grid place-items-center w-4 h-4 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
               <i v-if="isSel(o.value)" class="ri-check-line text-xs"></i>
             </span>
             {{ o.label }}

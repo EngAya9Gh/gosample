@@ -54,13 +54,13 @@ function close() {
     <!-- Body Content -->
     <div class="mt-8 px-1 pb-2">
       <!-- Tabs -->
-      <div class="flex bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-[14px] mb-8 border border-slate-100 dark:border-white/5">
+      <div class="flex bg-slate-50 dark:bg-white/5 p-1.5 rounded-[14px] mb-8 border border-slate-100 dark:border-white/5">
         <button 
           v-for="tab in ['driver', 'tasks', 'car']" 
           :key="tab"
           @click="activeTab = tab"
           class="flex-1 py-2.5 text-[15px] font-bold rounded-xl transition-all capitalize"
-          :class="activeTab === tab ? 'bg-white text-[#0d9488] shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+          :class="activeTab === tab ? 'bg-white text-[#0d9488] shadow-[0_1px_3px_rgba(0,0,0,0.1)] dark:bg-white/10 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
         >
           {{ tab }}
         </button>
@@ -87,7 +87,7 @@ function close() {
       </div>
 
       <div v-else-if="activeTab === 'tasks'" class="space-y-3.5">
-        <div v-for="t in tasks" :key="t.id" class="flex items-center justify-between px-4 py-3.5 rounded-[14px] bg-slate-50/70 dark:bg-slate-800/80 transition-all hover:bg-slate-100 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+        <div v-for="t in tasks" :key="t.id" class="flex items-center justify-between px-4 py-3.5 rounded-[14px] bg-slate-50/70 dark:bg-surface-dark-card transition-all hover:bg-slate-100 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
           <div class="font-black text-[15px] text-slate-800 dark:text-white tracking-wide">#{{ t.id }} · {{ t.client }}</div>
           <div class="px-3.5 py-1.5 rounded-full text-[13px] font-black flex items-center gap-2" :class="t.statusColor">
             <span class="w-2 h-2 rounded-full" :class="t.dot"></span>
