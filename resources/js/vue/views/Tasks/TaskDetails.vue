@@ -403,7 +403,7 @@ function fmtDate(d) {
         
         <!-- Sample Manifest -->
         <BaseCard class="overflow-hidden">
-          <div class="p-5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02]">
+          <div class="p-5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.02] print:border-none">
             <h2 class="text-lg font-bold text-ink dark:text-white">Sample Manifest</h2>
             <span class="bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold text-xs px-3 py-1.5 rounded-full">{{ sample_count }} Items</span>
           </div>

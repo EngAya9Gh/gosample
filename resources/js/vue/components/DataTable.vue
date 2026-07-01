@@ -118,7 +118,7 @@ function stickyCls(c) {
 </script>
 
 <template>
-  <div class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden">
+  <div class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden print:border-none print:shadow-none">
     <!-- toolbar -->
     <div class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 print:hidden">
       <div v-if="title" class="flex items-center gap-2 me-2">
@@ -161,7 +161,7 @@ function stickyCls(c) {
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-surface-muted/50 dark:bg-white/5 text-slate-600 dark:text-slate-300">
-            <th v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2]">
+            <th v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2] print:hidden">
               <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                 <i v-if="allOnPage" class="ri-check-line text-xs"></i>
               </button>
@@ -187,7 +187,7 @@ function stickyCls(c) {
           <!-- skeleton -->
           <template v-if="loading">
             <tr v-for="n in 6" :key="'sk' + n" class="border-t border-slate-100 dark:border-white/5">
-              <td v-if="selectable" class="ps-4 pe-2 py-3.5"><div class="w-4 h-4 rounded skeleton"></div></td>
+              <td v-if="selectable" class="ps-4 pe-2 py-3.5 print:hidden"><div class="w-4 h-4 rounded skeleton"></div></td>
               <td v-for="c in columns" :key="c.key" class="px-3.5 py-3.5"><div class="h-4 rounded skeleton" :style="{ width: (40 + (n * 7 % 50)) + '%' }"></div></td>
               <td v-if="$slots['row-actions']" class="px-3.5 py-3.5"><div class="h-4 w-16 rounded skeleton ms-auto"></div></td>
             </tr>
@@ -198,7 +198,7 @@ function stickyCls(c) {
             <tr v-for="row in paged" :key="row[rowKey]"
               class="border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-primary-50/30 dark:hover:bg-white/3"
               :class="sel.has(row[rowKey]) ? 'bg-primary-50/60 dark:bg-primary-500/10' : ''">
-              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-inherit z-[1]">
+              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-inherit z-[1] print:hidden">
                 <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                   <i v-if="sel.has(row[rowKey])" class="ri-check-line text-xs"></i>
                 </button>

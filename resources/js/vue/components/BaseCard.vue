@@ -13,7 +13,7 @@ defineProps({
 
 <template>
   <section
-    class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 transition-all duration-300"
+    class="bg-surface dark:bg-surface-dark-card rounded-2xl shadow-card border border-slate-100 dark:border-white/5 transition-all duration-300 print:border-none print:shadow-none"
     :class="hover ? 'hover:shadow-card-hover hover:-translate-y-0.5 motion-reduce:hover:translate-y-0' : ''"
   >
     <header
