@@ -195,7 +195,7 @@ function fmtDate(d) {
     </div>
 
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-primary-600 text-white p-5 rounded-2xl shadow-md print:bg-transparent print:text-ink print:shadow-none print:p-0 print:border-b print:border-slate-300 print:pb-4 print:rounded-none">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-br from-[#005D69] to-[#0d9488] text-white p-5 rounded-2xl shadow-md print:bg-transparent print:text-ink print:shadow-none print:p-0 print:border-b print:border-slate-300 print:pb-4 print:rounded-none">
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-4">
           <button class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors print:hidden" @click="router.visit('/app/admin/tasks')">

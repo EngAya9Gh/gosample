@@ -80,7 +80,7 @@ const formatDate = (dateString) => {
         <!-- Premium Green Avatar Card -->
         <div class="rounded-2xl shadow-card border border-slate-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
           <!-- Green Gradient Header Area -->
-          <div class="bg-gradient-to-br from-[#0ab39c] via-[#0d9488] to-[#0f766e] px-6 py-8 flex flex-col items-center text-center relative overflow-hidden">
+          <div class="bg-gradient-to-br from-[#005D69] to-[#0d9488] px-6 py-8 flex flex-col items-center text-center relative overflow-hidden">
             <!-- Decorative circles -->
             <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white/10 blur-xl"></div>
             <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-black/10 blur-lg"></div>
