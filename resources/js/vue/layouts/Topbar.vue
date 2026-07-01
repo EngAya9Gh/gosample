@@ -74,7 +74,7 @@ const sampleNotif = {
 </script>
 
 <template>
-  <header class="relative z-40 flex items-center gap-2 h-16 px-4 bg-surface dark:bg-surface-dark/80 backdrop-blur border-b border-slate-200/70 dark:border-white/5">
+  <header class="relative z-40 flex items-center gap-2 h-16 px-4 bg-surface dark:bg-surface-dark/80 backdrop-blur border-b border-slate-200/70 dark:border-white/5 print:hidden">
     <!-- hamburger -->
     <button @click="$emit('toggle-sidebar')" class="group grid place-items-center w-10 h-10 rounded-xl text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 transition">
       <i class="ri-menu-2-line text-xl transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none"></i>

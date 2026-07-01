@@ -69,7 +69,7 @@ function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavi
 
 <template>
   <div :dir="dir" :lang="lang"
-    class="flex h-screen overflow-hidden bg-surface-canvas dark:bg-surface-dark font-sans text-ink dark:text-slate-200"
+    class="flex h-screen overflow-hidden print:h-auto print:overflow-visible bg-surface-canvas dark:bg-surface-dark font-sans text-ink dark:text-slate-200 print:bg-white"
   >
     <Sidebar :collapsed="collapsed" :current="current" :user="user" @navigate="onNavigate" />
 
@@ -88,8 +88,8 @@ function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavi
       </Transition>
 
       <!-- scroll region -->
-      <main class="shell-scroll flex-1 overflow-y-auto" @scroll="onScroll">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
+      <main class="shell-scroll flex-1 overflow-y-auto print:overflow-visible" @scroll="onScroll">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 print:p-0">
           <slot></slot>
         </div>
         <Footer />

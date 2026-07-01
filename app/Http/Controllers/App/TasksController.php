@@ -7,9 +7,11 @@ use App\Models\Task;
 use App\Models\Client;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\Sample;
 use Carbon\Carbon;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -161,5 +163,49 @@ class TasksController extends Controller
         } catch (\Throwable $e) {
             return '';
         }
+    }
+
+    public function show(Task $task)
+    {
+        abort_if(Gate::denies('task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $task->load('from', 'to', 'client', 'driver', 'car');
+        $bags = Sample::with('container')->where('task_id', $task->id)->get()->groupBy('bag_code');
+        $bag_count = Sample::where('task_id', $task->id)->distinct('bag_code')->count('bag_code');
+        $sample_count = Sample::where('task_id', $task->id)->count();
+        
+        $carTracking = DB::table('car_tracking')
+            ->select(
+                DB::raw("count(id) AS cnt"),
+                DB::raw("COALESCE(ROUND(SUM(temp5),2),'0') AS total_temp_1"),
+                DB::raw("COALESCE(ROUND(SUM(temp6),2),'0') AS total_temp_2"),
+                DB::raw("COALESCE(ROUND(SUM(temp7),2),'0') AS total_temp_3"),
+            )->where('task_id', $task->id)->first();
+            
+        $temperatureReadings = DB::table('car_tracking')
+            ->select('created_at', 'temp5', 'temp6', 'temp7')
+            ->where('task_id', $task->id)
+            ->orderBy('created_at')
+            ->get();
+
+        $labels = $temperatureReadings->pluck('created_at')->map(function ($time) {
+            return \Carbon\Carbon::parse($time)->format('H:i');
+        });
+
+        $temp1 = $temperatureReadings->pluck('temp5');
+        $temp2 = $temperatureReadings->pluck('temp6');
+        $temp3 = $temperatureReadings->pluck('temp7');
+
+        return Inertia::render('Tasks/TaskDetails', [
+            'task' => $task,
+            'bags' => $bags,
+            'bag_count' => $bag_count,
+            'sample_count' => $sample_count,
+            'carTracking' => $carTracking,
+            'labels' => $labels,
+            'temp1' => $temp1,
+            'temp2' => $temp2,
+            'temp3' => $temp3,
+        ]);
     }
 }

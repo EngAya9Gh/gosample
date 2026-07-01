@@ -50,7 +50,7 @@ const initials = computed(() => {
 
 <template>
   <aside
-    class="flex flex-col h-full bg-gradient-to-b from-[#006b78] to-[#00424b] dark:from-[#05343b] dark:to-[#03171b] text-primary-100 transition-[width] duration-300 ease-out shrink-0"
+    class="flex flex-col h-full bg-gradient-to-b from-[#006b78] to-[#00424b] dark:from-[#05343b] dark:to-[#03171b] text-primary-100 transition-[width] duration-300 ease-out shrink-0 print:hidden"
     :class="collapsed ? 'w-[76px]' : 'w-[264px]'"
   >
     <!-- logo box -->
