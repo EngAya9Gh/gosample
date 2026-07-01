@@ -151,10 +151,14 @@ const chartSeries = computed(() => [
 ]);
 
 const chartOptions = computed(() => ({
-  chart: { type: 'line', height: 250, toolbar: { show: false }, background: 'transparent' },
+  chart: { type: 'line', height: 250, width: '100%', toolbar: { show: false }, background: 'transparent' },
   colors: ['#ef4444', '#3b82f6', '#22c55e'],
   stroke: { width: 3, curve: 'smooth' },
-  xaxis: { categories: props.labels, labels: { style: { colors: '#94a3b8' } } },
+  xaxis: { 
+    categories: props.labels, 
+    tickAmount: 15,
+    labels: { style: { colors: '#94a3b8' }, hideOverlappingLabels: true } 
+  },
   yaxis: { labels: { style: { colors: '#94a3b8' } } },
   grid: { borderColor: 'rgba(148, 163, 184, 0.1)', strokeDashArray: 4 },
   legend: { show: false },
@@ -465,7 +469,7 @@ function fmtDate(d) {
             </div>
           </div>
           
-          <div class="w-full mt-4">
+          <div class="w-full max-w-full overflow-hidden mt-4">
             <!-- Dynamic ApexChart -->
             <VueApexCharts
               v-if="labels && labels.length > 0"
