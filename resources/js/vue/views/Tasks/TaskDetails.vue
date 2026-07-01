@@ -1,11 +1,12 @@
 <script setup>
-import { computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import DataTable from '../../components/DataTable.vue';
+import BaseModal from '../../components/BaseModal.vue';
 import VueApexCharts from 'vue3-apexcharts';
 import { usePermissions } from '../../composables/usePermissions';
 
@@ -22,6 +23,20 @@ const props = defineProps({
 });
 
 const { can } = usePermissions();
+
+const showEditTimesModal = ref(false);
+const editTimesForm = useForm({
+  freezer_out_date: props.task.freezer_out_date ? props.task.freezer_out_date.substring(0, 16).replace(' ', 'T') : '',
+  close_date: props.task.close_date ? props.task.close_date.substring(0, 16).replace(' ', 'T') : '',
+});
+
+function submitEditTimes() {
+  editTimesForm.put(`/app/admin/tasks/${props.task.id}/update-times`, {
+    onSuccess: () => {
+      showEditTimesModal.value = false;
+    }
+  });
+}
 
 function printPage() {
   window.print();
@@ -213,7 +228,7 @@ function fmtDate(d) {
           <button @click="printPage" class="flex-1 md:flex-none border border-white/30 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium">
             <i class="ri-printer-line text-lg"></i> Print
           </button>
-          <button class="flex-1 md:flex-none border border-white/30 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium">
+          <button v-if="can('task_edit_times')" @click="showEditTimesModal = true" class="flex-1 md:flex-none border border-white/30 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium">
             <i class="ri-edit-line text-lg"></i> Edit Times
           </button>
           <button class="flex-1 md:flex-none bg-white text-primary-700 text-sm px-5 py-2.5 rounded-lg hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2 font-bold">
@@ -468,6 +483,41 @@ function fmtDate(d) {
       </div>
     </div>
   </div>
+
+  <!-- Edit Times Modal -->
+  <BaseModal v-model="showEditTimesModal" title="Edit Delivery Times">
+    <form @submit.prevent="submitEditTimes" class="flex flex-col gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sample Out (Container Out)</label>
+        <input 
+          type="datetime-local" 
+          v-model="editTimesForm.freezer_out_date"
+          class="w-full h-10 px-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none transition text-sm"
+        />
+        <div v-if="editTimesForm.errors.freezer_out_date" class="text-red-500 text-xs mt-1">{{ editTimesForm.errors.freezer_out_date }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sample Delivery (Close Date)</label>
+        <input 
+          type="datetime-local" 
+          v-model="editTimesForm.close_date"
+          class="w-full h-10 px-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 outline-none transition text-sm"
+        />
+        <div v-if="editTimesForm.errors.close_date" class="text-red-500 text-xs mt-1">{{ editTimesForm.errors.close_date }}</div>
+      </div>
+      
+      <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+        <button type="button" @click="showEditTimesModal = false" class="px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors">
+          Cancel
+        </button>
+        <button type="submit" :disabled="editTimesForm.processing" class="px-5 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors flex items-center gap-2">
+          <i v-if="editTimesForm.processing" class="ri-loader-4-line animate-spin"></i>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </BaseModal>
+
 </template>
 
 <style scoped>
