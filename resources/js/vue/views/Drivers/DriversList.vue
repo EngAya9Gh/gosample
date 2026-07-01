@@ -29,6 +29,15 @@ const DEFAULT_FILTERS = {
 };
 const filters = reactive({ ...DEFAULT_FILTERS, ...props.filters });
 
+// Single date-range field (replaces Date From/To). The picker emits {from,to};
+// we mirror those into the existing date_from/date_to backend filters.
+const datePart = (s) => (s ? String(s).slice(0, 10) : '');
+const dateRange = ref(filters.date_from ? `${datePart(filters.date_from)} to ${datePart(filters.date_to)}` : '');
+function onDateRange({ from, to }) {
+  filters.date_from = from || '';
+  filters.date_to = to || '';
+}
+
 const statusPills = [
   { value: '1', label: 'Enabled', dot: 'bg-green-500', active: 'bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400' },
   { value: '2', label: 'Disabled', dot: 'bg-red-500', active: 'bg-red-500/10 border-red-500/40 text-red-600 dark:text-red-400' }
@@ -65,6 +74,7 @@ function doSearch() {
 }
 function doReset() {
   Object.assign(filters, DEFAULT_FILTERS);
+  dateRange.value = '';
   fetch();
 }
 function doPage(p) {
@@ -141,8 +151,7 @@ function onExport(format) {
     <FilterBar :loading="loading" @search="doSearch" @reset="doReset">
       <FormInput v-model="filters.keyword" label="Keyword" placeholder="Name, Email, or Username" icon="ri-search-line" />
       <FormInput v-model="filters.mobile" label="Mobile" placeholder="e.g. 05XXXXXXXX" icon="ri-phone-line" />
-      <FormDate v-model="filters.date_from" label="Date From" />
-      <FormDate v-model="filters.date_to" label="Date To" />
+      <FormDate v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
 
       <!-- Status as colored pills (replaces the dropdown) -->
       <template #actions-extra>
@@ -208,16 +217,10 @@ function onExport(format) {
 
       <!-- Custom Actions column -->
       <template #row-actions="{ row }">
-        <div class="flex items-center justify-end gap-1.5">
-          <button v-if="can('driver_show')" @click="router.visit(`/app/admin/drivers/${row.id}`)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-blue-50 text-blue-500 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 transition-colors shadow-sm" title="View">
-            <i class="ri-eye-line text-[1.15rem]"></i>
-          </button>
-          <button v-if="can('driver_edit')" @click="router.visit(`/app/admin/drivers/${row.id}/edit`)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 transition-colors shadow-sm" title="Edit">
-            <i class="ri-pencil-line text-[1.15rem]"></i>
-          </button>
-          <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="flex items-center justify-center w-8 h-8 rounded-[10px] bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors shadow-sm" title="Delete">
-            <i class="ri-delete-bin-line text-[1.15rem]"></i>
-          </button>
+        <div class="inline-flex items-center gap-1">
+          <button v-if="can('driver_show')" @click="router.visit(`/app/admin/drivers/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <button v-if="can('driver_edit')" @click="router.visit(`/app/admin/drivers/${row.id}/edit`)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
     </DataTable>

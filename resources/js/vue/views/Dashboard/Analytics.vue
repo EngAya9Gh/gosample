@@ -6,7 +6,7 @@
  * donut). The samples donut re-fetches on date-range change via an Inertia partial reload.
  * The "Task Activity" area chart plots real monthly Tasks + Samples volume (last 12 months).
  */
-import { reactive, computed, watch, ref, onMounted } from 'vue';
+import { reactive, computed, watch, ref, onMounted, onBeforeUnmount } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useCounter } from '../../composables/useCounter';
 import Breadcrumb from '../../components/Breadcrumb.vue';
@@ -14,9 +14,10 @@ import BaseCard from '../../components/BaseCard.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import StatCard from '../../components/StatCard.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
-import FormDate from '../../components/FormDate.vue';
 import EmptyState from '../../components/EmptyState.vue';
 import VueApexCharts from 'vue3-apexcharts';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.css';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
@@ -148,9 +149,44 @@ watch(() => [range.from, range.to], ([from, to]) => {
 
 // Single range picker (mirrors the classic dashboard #daterange). Fetches only when
 // both bounds are chosen; the @range event carries { from, to }.
-const rangeStr = ref(props.range?.from && props.range?.to ? `${props.range.from} to ${props.range.to}` : '');
 function onRange({ from, to }) { range.from = from; range.to = to; }
-function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
+function clearRange() { range.from = ''; range.to = ''; heroFp?.clear(); }
+
+// Friendly pill label: "01 Jun – 24 Jun" when a range is chosen, else "All time".
+const heroRangeLabel = computed(() => {
+  if (range.from && range.to) {
+    const fmt = (s) => new Date(s + 'T00:00:00').toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+    return `${fmt(range.from)} – ${fmt(range.to)}`;
+  }
+  return 'All time';
+});
+
+// Hero date-range picker: flatpickr attached to the branded pill — keeps the design
+// the other dev added and activates the filtering they left disconnected. The pill
+// opens the calendar; picking both bounds triggers the donut reload via the watch above.
+const heroDateEl = ref(null);
+const heroPill = ref(null);
+let heroFp = null;
+function openHeroPicker() { heroFp?.open(); }
+onMounted(() => {
+  heroFp = flatpickr(heroDateEl.value, {
+    mode: 'range',
+    dateFormat: 'Y-m-d',
+    disableMobile: true,
+    clickOpens: false,                 // opened manually via the pill click
+    positionElement: heroPill.value,   // anchor the calendar under the pill
+    defaultDate: range.from && range.to ? [range.from, range.to] : undefined,
+    onReady: (_s, _str, inst) => inst.calendarContainer.classList.add('mf-flatpickr'),
+    onChange: (dates, _str, inst) => {
+      if (dates.length === 2) {
+        onRange({ from: inst.formatDate(dates[0], 'Y-m-d'), to: inst.formatDate(dates[1], 'Y-m-d') });
+      } else if (dates.length === 0) {
+        onRange({ from: '', to: '' });
+      }
+    },
+  });
+});
+onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
 </script>
 
 <template>
@@ -158,7 +194,6 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
     <!-- page header: breadcrumb + title (start) · date-range filter + create task (end) -->
     <Breadcrumb title="Analytics Dashboard" :trail="[{ label: 'Dashboards' }, { label: 'Analytics' }]">
       <template #actions>
-        <button class="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-surface-muted transition bg-white dark:bg-surface-dark-card shadow-sm"><i class="ri-download-line text-lg"></i>Export</button>
         <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
       </template>
     </Breadcrumb>
@@ -174,11 +209,17 @@ function clearRange() { rangeStr.value = ''; range.from = ''; range.to = ''; }
         <h2 class="text-[23px] font-[700] leading-tight">Good {{ greeting.split(' ')[1] }}, {{ firstName }}</h2>
         <p class="text-[13px] text-white/90 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · all cold-chain containers within range</p>
       </div>
-      <!-- Date Range inside hero -->
+      <!-- Date Range inside hero (functional flatpickr range picker) -->
       <div class="hidden sm:block relative z-10 shrink-0">
-        <div class="inline-flex items-center gap-2 h-[42px] px-[15px] bg-white/16 hover:bg-white/22 transition rounded-[11px] border border-white/25 text-white text-[12.5px] font-medium cursor-pointer">
+        <div ref="heroPill" @click="openHeroPicker"
+          class="inline-flex items-center gap-2 h-[42px] px-[15px] bg-white/16 hover:bg-white/22 transition rounded-[11px] border border-white/25 text-white text-[12.5px] font-medium cursor-pointer">
           <i class="ri-calendar-line"></i>
-          <span>01 Jun – 24 Jun</span>
+          <span>{{ heroRangeLabel }}</span>
+          <button v-if="range.from && range.to" type="button" @click.stop="clearRange"
+            class="ms-1 -me-1 grid place-items-center w-5 h-5 rounded-full hover:bg-white/25 transition" title="Clear range">
+            <i class="ri-close-line"></i>
+          </button>
+          <input ref="heroDateEl" type="text" tabindex="-1" aria-hidden="true" class="sr-only" />
         </div>
       </div>
     </div>
