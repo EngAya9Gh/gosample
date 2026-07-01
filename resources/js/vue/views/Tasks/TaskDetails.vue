@@ -172,6 +172,12 @@ function fmtDate(d) {
     hour: '2-digit', minute: '2-digit' 
   });
 }
+
+function getDuration(start, end) {
+  if (!start || !end) return '—';
+  const diff = (new Date(end) - new Date(start)) / 60000;
+  return Math.round(diff) + ' min';
+}
 </script>
 
 <template>
@@ -369,8 +375,12 @@ function fmtDate(d) {
             </div>
             <div class="pt-1">
               <p class="text-sm font-bold text-ink dark:text-white">Collection Information</p>
-              <p class="text-xs text-slate-500 mt-1 font-medium">Arrival: {{ task.from_location_arrival_time || '—' }}</p>
-              <p class="text-xs text-slate-500 mt-0.5 font-medium">Departure: {{ task.pickup_time || '—' }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium">Arrival: {{ fmtDate(task.from_location_confirmation_timestamp) }}</p>
+              <p class="text-xs text-slate-500 mt-0.5 font-medium">Departure: {{ fmtDate(task.collection_date) }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
+                <i class="ri-time-line text-[11px] text-primary-500"></i> Duration of Pick Up: 
+                <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.from_location_confirmation_timestamp, task.collection_date) }}</span>
+              </p>
             </div>
           </div>
           
@@ -382,6 +392,10 @@ function fmtDate(d) {
               <p class="text-sm font-bold text-ink dark:text-white">Sample Placement</p>
               <p class="text-xs text-slate-500 mt-1 font-medium">Sample Receiving: {{ fmtDate(task.collection_date) }}</p>
               <p class="text-xs text-slate-500 mt-0.5 font-medium">Sample In: {{ fmtDate(task.freezer_date) }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
+                <i class="ri-time-line text-[11px] text-primary-500"></i> Duration — Sample In: 
+                <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.collection_date, task.freezer_date) }}</span>
+              </p>
             </div>
           </div>
           
@@ -393,6 +407,10 @@ function fmtDate(d) {
               <p class="text-sm font-bold text-primary-600 dark:text-primary-400">Sample Delivery</p>
               <p class="text-xs text-slate-500 mt-1 font-medium">Sample Out: {{ fmtDate(task.freezer_out_date) }}</p>
               <p class="text-xs text-slate-500 mt-0.5 font-medium">Delivery: {{ fmtDate(task.close_date) }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
+                <i class="ri-time-line text-[11px] text-primary-500"></i> Duration — Sample Delivery: 
+                <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.freezer_out_date, task.close_date) }}</span>
+              </p>
             </div>
           </div>
         </div>
