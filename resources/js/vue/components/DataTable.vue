@@ -110,9 +110,22 @@ watch([q, sortKey, sortDir, page, pageSize], () => {
 watch([q, pageSize], () => { page.value = 1; });
 
 function runBulk(ev) { emit(ev, [...sel.value]); clearSel(); }
-function stickyCls(c) {
-  if (c.sticky === 'start') return 'sticky inset-inline-start-0 z-[1] bg-surface dark:bg-surface-dark-card';
-  if (c.sticky === 'end')   return 'sticky inset-inline-end-0 z-[1] bg-surface dark:bg-surface-dark-card';
+// Sticky cells need an opaque base (so horizontally-scrolled content doesn't
+// bleed through) that still follows the row's hover — hence group-hover. Matches
+// the Analytics row hover exactly. group-hover only fires on body rows (the <tr>
+// there is `group`); header th are inert.
+/* Sticky cells must be OPAQUE (content scrolls under them), but translucent tints
+   (white/5, surface-muted/50) can't be reused here — layered on top of the row's own
+   tint they compose to a different shade and the pinned columns read as a highlighted
+   band. So each state gets the flattened equivalent of what non-sticky cells show:
+   tint blended over white (light) / surface-dark-card #101A19 (dark). */
+const STICKY_HOVER = 'group-hover:bg-[#F9FAFC] dark:group-hover:bg-[#1C2525]';
+const STICKY_BODY  = `bg-surface dark:bg-surface-dark-card ${STICKY_HOVER}`;
+const STICKY_SEL   = `bg-[#F0F7F7] dark:bg-[#102624] ${STICKY_HOVER}`;
+const STICKY_HEAD  = 'bg-[#F9FAFC] dark:bg-[#1C2525]';
+function stickyCls(c, bg = STICKY_BODY) {
+  if (c.sticky === 'start') return `sticky inset-inline-start-0 z-[1] ${bg}`;
+  if (c.sticky === 'end')   return `sticky inset-inline-end-0 z-[1] ${bg}`;
   return '';
 }
 </script>
@@ -161,14 +174,14 @@ function stickyCls(c) {
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-surface-muted/50 dark:bg-white/5 text-slate-600 dark:text-slate-300">
-            <th v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2] print:hidden">
+            <th v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 z-[2] print:hidden" :class="STICKY_HEAD">
               <button @click="toggleAll" class="grid place-items-center w-4 h-4 rounded border transition" :class="allOnPage ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                 <i v-if="allOnPage" class="ri-check-line text-xs"></i>
               </button>
             </th>
             <th v-for="c in columns" :key="c.key"
               class="px-3 py-2.5 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap"
-              :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', stickyCls(c), c.sortable ? 'cursor-pointer select-none hover:text-primary-700' : '']"
+              :class="[c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start', stickyCls(c, STICKY_HEAD), c.sortable ? 'cursor-pointer select-none hover:text-primary-700' : '']"
               :style="c.width ? { minWidth: c.width } : {}"
               @click="toggleSort(c)">
               <span class="inline-flex items-center gap-1">
@@ -179,7 +192,7 @@ function stickyCls(c) {
                 </span>
               </span>
             </th>
-            <th v-if="$slots['row-actions']" class="px-3 py-2.5 text-end font-bold text-[11px] uppercase tracking-wider sticky inset-inline-end-0 bg-surface-muted/50 dark:bg-surface-dark-card z-[2]">Actions</th>
+            <th v-if="$slots['row-actions']" class="px-3 py-2.5 text-end font-bold text-[11px] uppercase tracking-wider sticky inset-inline-end-0 z-[2]" :class="STICKY_HEAD">Actions</th>
           </tr>
         </thead>
 
@@ -196,9 +209,9 @@ function stickyCls(c) {
           <!-- rows -->
           <template v-else>
             <tr v-for="row in paged" :key="row[rowKey]"
-              class="border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-primary-50/30 dark:hover:bg-white/3"
+              class="group border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-surface-muted/50 dark:hover:bg-white/5"
               :class="sel.has(row[rowKey]) ? 'bg-primary-50/60 dark:bg-primary-500/10' : ''">
-              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 bg-inherit z-[1] print:hidden">
+              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 z-[1] print:hidden" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
                 <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                   <i v-if="sel.has(row[rowKey])" class="ri-check-line text-xs"></i>
                 </button>
@@ -209,7 +222,7 @@ function stickyCls(c) {
                   c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start',
                   c.wrap ? 'align-top' : 'whitespace-nowrap',
                   c.mono ? 'font-mono' : '',
-                  stickyCls(c)
+                  stickyCls(c, sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY)
                 ]"
                 :style="(c.mono || c.ltr) ? 'direction:ltr; unicode-bidi:plaintext;' : ''"
               >
@@ -219,7 +232,7 @@ function stickyCls(c) {
                 </div>
                 <slot v-else :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
               </td>
-              <td v-if="$slots['row-actions']" class="px-3 py-2.5 text-end sticky inset-inline-end-0 bg-inherit z-[1]">
+              <td v-if="$slots['row-actions']" class="px-3 py-2.5 text-end sticky inset-inline-end-0 z-[1]" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
                 <slot name="row-actions" :row="row"></slot>
               </td>
             </tr>

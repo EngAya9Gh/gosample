@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
@@ -38,9 +38,46 @@ function submitEditTimes() {
   });
 }
 
-function printPage() {
+/* The Apex SVG is rasterized at its on-screen pixel width; the printed page is only
+   ~A4 wide, so without intervention the right side of the chart gets clipped by the
+   overflow-hidden wrapper. 580px fits A4 portrait after Chrome's default margins,
+   the print:p-8 page padding and the card padding. */
+const printing = ref(false);
+const PRINT_CHART_WIDTH = 580;
+
+async function printPage() {
+  printing.value = true;                          // chartOptions swaps to the fixed print width
+  await nextTick();
+  await new Promise((r) => setTimeout(r, 450));   // ApexCharts redraws asynchronously
   window.print();
+  printing.value = false;                         // Chrome blocks here until the dialog closes
 }
+
+/* Fallback for native prints (Cmd+P) that skip printPage(): beforeprint fires while the
+   layout is still screen-width, so shrink the already-rendered canvas synchronously. */
+function scaleChartForNativePrint() {
+  if (printing.value) return;
+  const el = document.querySelector('.apexcharts-canvas');
+  if (!el) return;
+  const w = el.getBoundingClientRect().width;
+  if (w > PRINT_CHART_WIDTH) {
+    el.style.transform = `scale(${PRINT_CHART_WIDTH / w})`;
+    el.style.transformOrigin = 'top left';
+  }
+}
+function resetChartAfterPrint() {
+  printing.value = false;
+  const el = document.querySelector('.apexcharts-canvas');
+  if (el) { el.style.transform = ''; el.style.transformOrigin = ''; }
+}
+onMounted(() => {
+  window.addEventListener('beforeprint', scaleChartForNativePrint);
+  window.addEventListener('afterprint', resetChartAfterPrint);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeprint', scaleChartForNativePrint);
+  window.removeEventListener('afterprint', resetChartAfterPrint);
+});
 
 function getAvgTemp(type, carTracking) {
   if (!carTracking || !carTracking.cnt) {
@@ -151,7 +188,11 @@ const chartSeries = computed(() => [
 ]);
 
 const chartOptions = computed(() => ({
-  chart: { type: 'line', height: 250, width: '100%', toolbar: { show: false }, background: 'transparent' },
+  chart: {
+    type: 'line', height: 250, toolbar: { show: false }, background: 'transparent',
+    width: printing.value ? PRINT_CHART_WIDTH : '100%',
+    animations: { enabled: !printing.value },   // print redraw must finish before window.print()
+  },
   colors: ['#ef4444', '#3b82f6', '#22c55e'],
   stroke: { width: 3, curve: 'smooth' },
   xaxis: { 

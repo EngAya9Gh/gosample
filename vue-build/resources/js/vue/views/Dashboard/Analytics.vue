@@ -156,7 +156,7 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: '
         <div class="divide-y divide-slate-100 dark:divide-white/5">
           <div v-for="(d, i) in topDrivers" :key="d.name" class="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-muted/50 dark:hover:bg-white/5 transition">
             <span class="grid place-items-center w-6 h-6 rounded-lg text-xs font-bold shrink-0"
-              :class="i === 0 ? 'bg-amber-100 text-amber-600' : i === 1 ? 'bg-slate-100 text-slate-500' : i === 2 ? 'bg-orange-100 text-orange-600' : 'bg-surface-muted text-slate-400'">{{ i + 1 }}</span>
+              :class="i === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : i === 1 ? 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300' : i === 2 ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400' : 'bg-surface-muted text-slate-400 dark:bg-white/5 dark:text-slate-500'">{{ i + 1 }}</span>
             <BaseAvatar :name="d.name" :size="36" />
             <span class="font-medium text-ink dark:text-slate-100 flex-1 truncate">{{ d.name }}</span>
             <div class="flex items-center gap-2 w-40">
