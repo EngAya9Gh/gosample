@@ -23,7 +23,7 @@ defineEmits(['update:active']);
       :key="t.key"
       type="button"
       @click="$emit('update:active', t.key)"
-      class="relative inline-flex items-center gap-2 text-sm font-medium transition-all duration-200 whitespace-nowrap"
+      class="relative inline-flex items-center gap-2 text-sm font-bold transition-all duration-200 whitespace-nowrap"
       :class="[
         variant === 'pills'
           ? ['px-3.5 h-9 rounded-lg',

@@ -61,6 +61,16 @@ function doReset() {
   reloadData();
 }
 
+const driverGradients = [
+  'from-emerald-400 to-teal-600 shadow-teal-500/20',
+  'from-sky-400 to-blue-600 shadow-blue-500/20',
+  'from-amber-400 to-orange-500 shadow-orange-500/20',
+  'from-primary to-primary-800 shadow-primary/20',
+  'from-indigo-400 to-purple-600 shadow-purple-500/20',
+  'from-rose-400 to-red-600 shadow-red-500/20'
+];
+const getDriverGradient = (id) => driverGradients[(id || 0) % driverGradients.length];
+
 watch(currentTab, (newTab) => {
   // Clear filters that don't apply to the new tab, if desired
   if (newTab !== 'performance') {
@@ -89,7 +99,7 @@ function onDateRange(range) {
       <TabGroup :tabs="tabs" v-model:active="currentTab" variant="pills" />
     </div>
 
-    <div class="bg-surface dark:bg-surface-dark-card border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm mb-6">
+    <div class="bg-surface dark:bg-surface-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm mb-6 relative z-10">
       <FilterBar :loading="loading" subtitle="Refine your report data" @search="doSearch" @reset="doReset">
         <!-- Shared Driver Filter -->
         <FormSelect v-model="localFilters.driver_id" label="Driver" :options="driverOpts" placeholder="All Drivers" />
@@ -138,7 +148,7 @@ function onDateRange(range) {
         </div>
         <div v-for="d in reportData.drivers" :key="d.id" class="bg-surface dark:bg-surface-dark-card border border-slate-200 dark:border-white/10 rounded-[16px] p-[18px] hover:shadow-md transition-shadow">
           <div class="flex items-center gap-[11px] mb-[16px]">
-            <div class="w-[42px] h-[42px] rounded-full bg-gradient-to-br from-primary to-indigo-600 text-white flex items-center justify-center text-[13px] font-bold shrink-0 shadow-sm shadow-primary/20">
+            <div :class="['w-[42px] h-[42px] rounded-full text-white flex items-center justify-center text-[13px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(d.id)]">
               {{ d.name.substring(0, 1).toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">
@@ -161,12 +171,12 @@ function onDateRange(range) {
 
           <div class="flex gap-[10px]">
             <div class="flex-1 bg-surface-muted dark:bg-surface-dark-solid rounded-[11px] p-[11px_13px]">
-              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Operation Speed (Avg Time)</div>
+              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Operation Speed</div>
               <div class="text-[15px] font-bold text-slate-900 dark:text-white mt-1">{{ d.avg_speed_mins }} <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">min</span></div>
             </div>
             <div class="flex-1 bg-surface-muted dark:bg-surface-dark-solid rounded-[11px] p-[11px_13px]">
-              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Operational Violations</div>
-              <div class="text-[15px] font-bold mt-1" :class="d.delayed_tasks > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'">{{ d.delayed_tasks }} <span v-if="d.delayed_tasks > 0" class="text-[11px] font-medium text-slate-500 dark:text-slate-400">delays</span></div>
+              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Violations</div>
+              <div class="text-[15px] font-bold mt-1" :class="d.punctuality >= 80 ? 'text-emerald-500' : (d.punctuality >= 50 ? 'text-amber-500' : 'text-rose-500')">{{ d.delayed_tasks }} <span v-if="d.delayed_tasks > 0" class="text-[11px] font-medium text-slate-500 dark:text-slate-400">delays</span></div>
             </div>
           </div>
         </div>
@@ -188,7 +198,7 @@ function onDateRange(range) {
             <div v-for="w in reportData.drivers" :key="w.id" class="grid grid-cols-[minmax(200px,1.6fr)_130px_130px_150px_160px] items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
               <div class="p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
-                  <span class="w-[32px] h-[32px] rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm">{{ w.name.substring(0, 1).toUpperCase() }}</span>
+                  <span :class="['w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(w.id)]">{{ w.name.substring(0, 1).toUpperCase() }}</span>
                   <span class="text-[13px] font-semibold text-slate-900 dark:text-white">{{ w.name }}</span>
                 </div>
               </div>
@@ -273,7 +283,7 @@ function onDateRange(range) {
             <div v-for="d in reportData.drivers" :key="d.id" class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
               <div class="flex-1 p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
-                  <span class="w-[32px] h-[32px] rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm">{{ d.name.substring(0, 1).toUpperCase() }}</span>
+                  <span :class="['w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(d.id)]">{{ d.name.substring(0, 1).toUpperCase() }}</span>
                   <span class="text-[13px] font-semibold text-slate-900 dark:text-white">{{ d.name }}</span>
                 </div>
               </div>
