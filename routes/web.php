@@ -21,6 +21,10 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/tasks/{task}', [\App\Http\Controllers\App\TasksController::class, 'show'])->name('app.admin.tasks.show');
     Route::put('admin/tasks/{task}/update-times', [\App\Http\Controllers\App\TasksController::class, 'updateTimes'])->name('app.admin.tasks.updateTimes');
 
+    // Live Map
+    Route::get('map', [\App\Http\Controllers\App\MapController::class, 'index'])->name('app.map');
+    Route::post('map/filter', [\App\Http\Controllers\App\MapController::class, 'filter'])->name('app.map.filter');
+
     // Drivers
     Route::get('admin/drivers', [\App\Http\Controllers\App\DriversController::class, 'index'])->name('app.admin.drivers.index');
     Route::get('admin/drivers/create', [\App\Http\Controllers\App\DriversController::class, 'create'])->name('app.admin.drivers.create');
