@@ -12,6 +12,8 @@ const props = defineProps({
   multiple:{ type: Boolean, default: false },
   searchable: { type: Boolean, default: true },
   placeholder: { type: String, default: 'Select…' },
+  icon:    { type: String, default: '' },              // optional leading ri-* icon in the trigger
+  iconClass: { type: String, default: 'text-slate-400' },
   helper:  { type: String, default: '' },
   error:   { type: String, default: '' },
   required:{ type: Boolean, default: false },
@@ -63,6 +65,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
       class="w-full min-h-11 px-3.5 py-1.5 flex items-center gap-1.5 flex-wrap text-start bg-surface dark:bg-white/5 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500/40"
       :class="error ? 'border-danger/60' : 'border-slate-200 dark:border-white/10'"
     >
+      <i v-if="icon" :class="[icon, iconClass]" class="text-[15px] shrink-0"></i>
       <template v-if="multiple && selectedArr.length">
         <span v-for="v in selectedArr" :key="v" class="inline-flex items-center gap-1 ps-2 pe-1 h-6 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 text-xs font-medium">
           {{ options.find((o) => o.value === v)?.label }}
