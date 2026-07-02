@@ -138,8 +138,46 @@ class DailyOperationController extends Controller
         // Dispatch background job
         \App\Jobs\GenerateDailyOperationExportJob::dispatch($token, $filters, $loggedUser?->id);
 
-        // Redirect to the existing status checker (it checks storage/app/exports/$token.*)
-        return redirect()->route('admin.tasks.export.status', ['token' => $token]);
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'message' => 'Export started in background.'
+        ]);
+    }
+
+    public function checkExportStatus(string $token)
+    {
+        abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        
+        $dir = storage_path('app/exports');
+        $base = $dir . DIRECTORY_SEPARATOR . $token . '.xlsx';
+
+        if (file_exists($base . '.error')) {
+            return response()->json(['status' => 'error', 'message' => file_get_contents($base . '.error')]);
+        }
+        if (file_exists($base . '.done')) {
+            return response()->json([
+                'status' => 'ready', 
+                'download_url' => route('app.daily-operation.export.download', ['token' => $token])
+            ]);
+        }
+        if (file_exists($base)) {
+            return response()->json(['status' => 'processing']);
+        }
+        
+        return response()->json(['status' => 'not_found'], 404);
+    }
+
+    public function downloadExport(string $token)
+    {
+        abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        
+        $path = storage_path('app/exports/' . $token . '.xlsx');
+        if (!file_exists($path) || !file_exists($path . '.done')) {
+            abort(404, 'Export file not found or not ready.');
+        }
+
+        return response()->download($path, 'Daily_Operation_Report.xlsx')->deleteFileAfterSend(true);
     }
 
     private function options($user): array

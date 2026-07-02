@@ -28,6 +28,8 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     // Daily Operation
     Route::get('daily-operation', [\App\Http\Controllers\App\DailyOperationController::class, 'index'])->name('app.daily-operation');
     Route::post('daily-operation/export', [\App\Http\Controllers\App\DailyOperationController::class, 'export'])->name('app.daily-operation.export');
+    Route::get('daily-operation/export/status/{token}', [\App\Http\Controllers\App\DailyOperationController::class, 'checkExportStatus'])->name('app.daily-operation.export.status');
+    Route::get('daily-operation/export/download/{token}', [\App\Http\Controllers\App\DailyOperationController::class, 'downloadExport'])->name('app.daily-operation.export.download');
 
     // Live Map
     Route::get('map', [\App\Http\Controllers\App\MapController::class, 'index'])->name('app.map');

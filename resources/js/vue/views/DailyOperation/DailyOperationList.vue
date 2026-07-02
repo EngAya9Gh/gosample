@@ -16,6 +16,7 @@ import StatusBadge from '../../components/StatusBadge.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import { useToast } from '../../composables/useToast';
+import axios from 'axios';
 
 const props = defineProps({
   rows:     { type: Array,  default: () => [] },
@@ -126,48 +127,98 @@ function doReset() {
 function onQuery({ page, pageSize }) { reload({ page, pageSize }); }
 
 const isExporting = ref(false);
-async function onExport() {
-  isExporting.value = true;
-  push({ type: 'info', title: 'Export Started', message: 'Your report is being generated in the background...' });
-  
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/app/daily-operation/export';
-  
-  const tokenField = document.createElement('input');
-  tokenField.type = 'hidden';
-  tokenField.name = '_token';
-  tokenField.value = csrf;
-  form.appendChild(tokenField);
-  
-  Object.entries(filters).forEach(([k, v]) => {
-    if (v) {
-      const el = document.createElement('input');
-      el.type = 'hidden';
-      el.name = k;
-      el.value = v;
-      form.appendChild(el);
-    }
-  });
 
-  document.body.appendChild(form);
-  form.submit();
-  setTimeout(() => isExporting.value = false, 2000);
+async function checkExportStatus(token) {
+  try {
+    const res = await axios.get(`/app/daily-operation/export/status/${token}`);
+    const data = res.data;
+    
+    if (data.status === 'ready') {
+      isExporting.value = false;
+      push({ type: 'success', title: 'Export Ready', message: 'Downloading your file automatically...' });
+      window.location.href = data.download_url;
+    } else if (data.status === 'error') {
+      isExporting.value = false;
+      push({ type: 'error', title: 'Export Failed', message: data.message || 'An error occurred during export.' });
+    } else {
+      // Still processing, poll again in 2 seconds
+      setTimeout(() => checkExportStatus(token), 2000);
+    }
+  } catch (err) {
+    isExporting.value = false;
+    push({ type: 'error', title: 'Export Error', message: 'Failed to check export status.' });
+  }
+}
+
+async function handleExportStart() {
+  if (isExporting.value) return;
+  isExporting.value = true;
+  push({ type: 'info', title: 'Export Started', message: 'Your file is being generated in the background...' });
+
+  try {
+    const res = await axios.post('/app/daily-operation/export', filters);
+    if (res.data.success && res.data.token) {
+      setTimeout(() => checkExportStatus(res.data.token), 2000);
+    } else {
+      isExporting.value = false;
+      push({ type: 'error', title: 'Export Failed', message: 'Could not start the export process.' });
+    }
+  } catch (err) {
+    isExporting.value = false;
+    push({ type: 'error', title: 'Export Error', message: 'An error occurred while starting the export.' });
+  }
+}
+
+function onExport(type) {
+  if (type === 'excel' || type === 'csv') {
+    handleExportStart();
+  } else if (type === 'copy') {
+    const text = props.rows.map(r => Object.values(r).join('\t')).join('\n');
+    navigator.clipboard.writeText(text);
+    push({ type: 'success', title: 'Copied', message: 'Rows copied to clipboard' });
+  } else if (type === 'print') {
+    const w = window.open('', '_blank');
+    w.document.write('<html dir="rtl"><head><title>Print Report</title></head><body style="font-family:sans-serif; padding:20px;"><h2>Daily Operation Report</h2><table border="1" style="width:100%; border-collapse:collapse; text-align:right;">');
+    
+    // Header
+    w.document.write('<tr>');
+    columns.forEach(c => w.document.write(`<th style="padding:8px; background:#f0f0f0;">${c.label}</th>`));
+    w.document.write('</tr>');
+    
+    // Body
+    props.rows.forEach(r => {
+      w.document.write('<tr>');
+      columns.forEach(c => w.document.write(`<td style="padding:8px;">${r[c.key] || ''}</td>`));
+      w.document.write('</tr>');
+    });
+
+    w.document.write('</table></body></html>');
+    w.document.close(); 
+    w.focus();
+    setTimeout(() => w.print(), 500);
+  }
 }
 </script>
 
 <template>
-  <div>
-    <Breadcrumb title="Operation Report" :trail="[{ label: 'Operation Report' }]">
+  <div class="px-4 py-6 md:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+    <Breadcrumb title="Operation Report" :trail="[{ label: 'Dashboards', href: '/app/dashboard' }, { label: 'Operation Report' }]">
       <template #actions>
-        <BaseButton variant="excel" icon="ri-file-excel-2-line" :loading="isExporting" @click="onExport">Export Excel</BaseButton>
+        <BaseButton variant="primary" icon="ri-file-excel-2-line" @click="handleExportStart" :disabled="isExporting">
+          <template v-if="isExporting">
+            <i class="ri-loader-4-line animate-spin me-2"></i> Exporting...
+          </template>
+          <template v-else>
+            Export Excel
+          </template>
+        </BaseButton>
       </template>
     </Breadcrumb>
 
     <FilterBar :loading="loading" subtitle="refine the operation report" @search="doSearch" @reset="doReset">
       <FormInput  v-model="filters.keyword"        label="Task ID"        placeholder="Task ID" icon="ri-search-line" />
       <FormSelect v-model="filters.driver_id"      label="Driver"         :options="driverOpts"     placeholder="Select Driver" />
-      <FormSelect v-model="filters.billing_client" label="Billing Client" :options="clientOpts"     placeholder="Select Client" />
+      <FormSelect v-model="filters.billing_client" label="Client"         :options="clientOpts"     placeholder="Select Client" />
       <FormSelect v-model="filters.from_location"  label="From Location"  :options="locationOpts"   placeholder="Select Location" />
       <FormSelect v-model="filters.to_location"    label="To Location"    :options="locationOpts"   placeholder="Select Location" />
       <FormSelect v-model="filters.delayed_reason" label="Delay Reason"   :options="delayReasonOpts" placeholder="Any Reason" />
@@ -197,6 +248,7 @@ async function onExport() {
         :columns="columns" :rows="rows" row-key="id"
         :loading="loading" :server-side="true" :total="total" :searchable="false"
         @query="onQuery"
+        @export="onExport"
       >
         <template #cell-id="{ value }">
           <span class="font-black text-primary-500 dark:text-primary-300">#{{ value }}</span>
