@@ -62,14 +62,20 @@ function doReset() {
 }
 
 const driverGradients = [
-  'from-emerald-400 to-teal-600 shadow-teal-500/20',
-  'from-sky-400 to-blue-600 shadow-blue-500/20',
-  'from-amber-400 to-orange-500 shadow-orange-500/20',
-  'from-primary to-primary-800 shadow-primary/20',
-  'from-indigo-400 to-purple-600 shadow-purple-500/20',
-  'from-rose-400 to-red-600 shadow-red-500/20'
+  'linear-gradient(135deg, #0ab39c 0%, #068170 100%)',
+  'linear-gradient(135deg, #299cdb 0%, #1c71a3 100%)',
+  'linear-gradient(135deg, #f7b84b 0%, #d49524 100%)',
+  'linear-gradient(135deg, #005D69 0%, #00363d 100%)',
+  'linear-gradient(135deg, #BD6BA7 0%, #8e4c7d 100%)'
 ];
 const getDriverGradient = (id) => driverGradients[(id || 0) % driverGradients.length];
+
+const getPunctColor = (p) => p >= 90 ? '#0ab39c' : (p >= 75 ? '#f7b84b' : '#dc2626');
+const getPunctBg = (p) => p >= 90 ? 'rgba(10,179,156,0.12)' : (p >= 75 ? 'rgba(247,184,75,0.12)' : 'rgba(220,38,38,0.12)');
+
+const doPrint = () => {
+  window.print();
+};
 
 watch(currentTab, (newTab) => {
   // Clear filters that don't apply to the new tab, if desired
@@ -93,6 +99,22 @@ function onDateRange(range) {
 <template>
   <div class="px-4 py-6 md:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
     <Breadcrumb title="Reports & Analytics" :trail="[{ label: 'Dashboards', href: '/app/dashboard' }, { label: 'Reports' }]" />
+
+    <!-- Header Section matching MTC -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
+      <div>
+        <h1 class="text-[24px] font-extrabold text-[#16282b] dark:text-[#e8f0f0] mb-1">Performance Tracking</h1>
+        <div class="text-[13.5px] font-medium text-[#7e9094] dark:text-[#7b8d8f]">Monitor carrier performance, delays, and task execution.</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="h-[38px] px-4 rounded-[10px] border border-[#e3eaea] dark:border-[#1d2c2e] bg-white dark:bg-[#0f1c1e] text-[#16282b] dark:text-[#e8f0f0] text-[13.5px] font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-[#13201f] transition-colors" @click="doPrint">
+          <i class="ri-printer-line text-[16px]"></i> Print
+        </button>
+        <button class="h-[38px] px-4 rounded-[10px] border-none text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_8px_18px_rgba(0,93,105,0.22)] hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#0d9488,#005D69);">
+          <i class="ri-file-excel-2-line text-[16px]"></i> Export Excel
+        </button>
+      </div>
+    </div>
 
     <!-- Tabs and Filters independent of the cards -->
     <div class="flex items-center gap-2 mb-4">
@@ -146,37 +168,43 @@ function onDateRange(range) {
         <div v-if="!reportData.drivers?.length" class="col-span-full py-12 text-center text-slate-500">
           No KPI data available for this selection.
         </div>
-        <div v-for="d in reportData.drivers" :key="d.id" class="bg-surface dark:bg-surface-dark-card border border-slate-200 dark:border-white/10 rounded-[16px] p-[18px] hover:shadow-md transition-shadow">
+        <div v-for="d in reportData.drivers" :key="d.id" class="bg-white dark:bg-[#0f1c1e] border border-[#e3eaea] dark:border-[#1d2c2e] rounded-[16px] p-[18px] hover:shadow-md transition-shadow">
           <div class="flex items-center gap-[11px] mb-[16px]">
-            <div :class="['w-[42px] h-[42px] rounded-full text-white flex items-center justify-center text-[13px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(d.id)]">
+            <div class="w-[42px] h-[42px] rounded-full text-white flex items-center justify-center text-[13px] font-bold shrink-0" :style="{ background: getDriverGradient(d.id) }">
               {{ d.name.substring(0, 1).toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">{{ d.name }}</div>
-              <span class="inline-flex items-center text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-[2px] rounded-md mt-0.5">Active Carrier</span>
+              <div class="text-[13.5px] font-bold text-[#16282b] dark:text-[#e8f0f0] truncate">{{ d.name }}</div>
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#0ab39c] bg-[#0ab39c]/12 px-2 py-[3px] rounded-[7px] mt-0.5 ring-1 ring-[#0ab39c]/30 shadow-[0_0_8px_rgba(10,179,156,0.3)]">
+                <span class="relative flex h-1.5 w-1.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0ab39c] opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#0ab39c]"></span>
+                </span>
+                Active Carrier
+              </span>
             </div>
           </div>
 
           <div class="mb-[14px]">
             <div class="flex justify-between mb-[6px]">
-              <span class="text-[12px] text-slate-500 dark:text-slate-400">Punctuality (Time Commitment)</span>
-              <span class="text-[12.5px] font-bold" :class="d.punctuality >= 80 ? 'text-emerald-500' : (d.punctuality >= 50 ? 'text-amber-500' : 'text-rose-500')">
+              <span class="text-[12px] text-[#52656a] dark:text-[#a9babc]">Punctuality</span>
+              <span class="text-[12.5px] font-bold" :style="{ color: getPunctColor(d.punctuality) }">
                 {{ d.punctuality }}%
               </span>
             </div>
-            <div class="h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-1000" :class="d.punctuality >= 80 ? 'bg-emerald-500' : (d.punctuality >= 50 ? 'bg-amber-500' : 'bg-rose-500')" :style="{ width: d.punctuality + '%' }"></div>
+            <div class="h-2 rounded-[5px] bg-[#eef1f5] dark:bg-[#162426] overflow-hidden">
+              <div class="h-full rounded-[5px] transition-all duration-1000" :style="{ background: getPunctColor(d.punctuality), width: d.punctuality + '%' }"></div>
             </div>
           </div>
 
           <div class="flex gap-[10px]">
-            <div class="flex-1 bg-surface-muted dark:bg-surface-dark-solid rounded-[11px] p-[11px_13px]">
-              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Operation Speed</div>
-              <div class="text-[15px] font-bold text-slate-900 dark:text-white mt-1">{{ d.avg_speed_mins }} <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">min</span></div>
+            <div class="flex-1 bg-[#f6f9f9] dark:bg-[#0c1719] rounded-[11px] p-[11px_13px]">
+              <div class="text-[10.5px] text-[#7e9094] dark:text-[#7b8d8f]">Operation speed</div>
+              <div class="text-[15px] font-bold text-[#16282b] dark:text-[#e8f0f0] mt-1">{{ d.avg_speed_mins }} <span class="text-[11px] font-medium text-[#7e9094] dark:text-[#7b8d8f]">min</span></div>
             </div>
-            <div class="flex-1 bg-surface-muted dark:bg-surface-dark-solid rounded-[11px] p-[11px_13px]">
-              <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Violations</div>
-              <div class="text-[15px] font-bold mt-1" :class="d.punctuality >= 80 ? 'text-emerald-500' : (d.punctuality >= 50 ? 'text-amber-500' : 'text-rose-500')">{{ d.delayed_tasks }} <span v-if="d.delayed_tasks > 0" class="text-[11px] font-medium text-slate-500 dark:text-slate-400">delays</span></div>
+            <div class="flex-1 bg-[#f6f9f9] dark:bg-[#0c1719] rounded-[11px] p-[11px_13px]">
+              <div class="text-[10.5px] text-[#7e9094] dark:text-[#7b8d8f]">Violations</div>
+              <div class="text-[15px] font-bold mt-1" :style="{ color: d.delayed_tasks > 0 ? getPunctColor(d.punctuality) : '#16282b' }">{{ d.delayed_tasks }} <span v-if="d.delayed_tasks > 0" class="text-[11px] font-medium text-[#7e9094] dark:text-[#7b8d8f]">delays</span></div>
             </div>
           </div>
         </div>
@@ -198,16 +226,16 @@ function onDateRange(range) {
             <div v-for="w in reportData.drivers" :key="w.id" class="grid grid-cols-[minmax(200px,1.6fr)_130px_130px_150px_160px] items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
               <div class="p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
-                  <span :class="['w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(w.id)]">{{ w.name.substring(0, 1).toUpperCase() }}</span>
-                  <span class="text-[13px] font-semibold text-slate-900 dark:text-white">{{ w.name }}</span>
+                  <span class="w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0" :style="{ background: getDriverGradient(w.id) }">{{ w.name.substring(0, 1).toUpperCase() }}</span>
+                  <span class="text-[13px] font-semibold text-[#16282b] dark:text-[#e8f0f0]">{{ w.name }}</span>
                 </div>
               </div>
               <div class="p-[11px_14px] text-left text-[13px] font-semibold text-slate-900 dark:text-white">{{ w.days_worked }} days</div>
               <div class="p-[11px_14px] text-left text-[13px] font-bold text-rose-500">{{ w.total_delays }} times</div>
               <div class="p-[11px_14px] text-left text-[13px] font-semibold text-emerald-500">{{ (w.overtime / 60).toFixed(1) }} hrs</div>
               <div class="p-[11px_16px] text-left">
-                <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-bold"
-                  :class="w.punctuality >= 80 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' : (w.punctuality >= 50 ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10')"
+                <span class="inline-flex items-center h-[24px] px-[8px] rounded-[12px] text-[11px] font-bold"
+                  :style="{ color: getPunctColor(w.punctuality), background: getPunctBg(w.punctuality) }"
                 >
                   {{ w.punctuality }}% Consistent
                 </span>
@@ -255,12 +283,10 @@ function onDateRange(range) {
                 {{ d.hrs_balance >= 0 ? '+' : '' }}{{ (d.hrs_balance / 60).toFixed(1) }}h
               </div>
               <div class="w-[150px] p-[11px_16px] text-center">
-                <div class="flex items-center justify-center gap-[6px]">
-                  <div class="h-[6px] w-[60px] bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" :class="d.performance_score >= 80 ? 'bg-emerald-500' : (d.performance_score >= 50 ? 'bg-amber-500' : 'bg-rose-500')" :style="{ width: d.performance_score + '%' }"></div>
-                  </div>
-                  <span class="text-[12px] font-bold" :class="d.performance_score >= 80 ? 'text-emerald-600' : (d.performance_score >= 50 ? 'text-amber-600' : 'text-rose-600')">{{ d.performance_score }}%</span>
+                <div class="h-[8px] rounded-[4px] bg-[#eef1f5] dark:bg-[#162426] overflow-hidden w-[80%] mx-auto">
+                  <div class="h-full rounded-[4px] transition-all" :style="{ background: getPunctColor(d.performance_score), width: d.performance_score + '%' }"></div>
                 </div>
+                <div class="text-[11px] font-bold mt-1 text-center" :style="{ color: getPunctColor(d.performance_score) }">{{ d.performance_score }}% Score</div>
               </div>
             </div>
           </div>
@@ -283,8 +309,8 @@ function onDateRange(range) {
             <div v-for="d in reportData.drivers" :key="d.id" class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
               <div class="flex-1 p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
-                  <span :class="['w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm bg-gradient-to-br', getDriverGradient(d.id)]">{{ d.name.substring(0, 1).toUpperCase() }}</span>
-                  <span class="text-[13px] font-semibold text-slate-900 dark:text-white">{{ d.name }}</span>
+                  <span class="w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0" :style="{ background: getDriverGradient(d.id) }">{{ d.name.substring(0, 1).toUpperCase() }}</span>
+                  <span class="text-[13px] font-semibold text-[#16282b] dark:text-[#e8f0f0]">{{ d.name }}</span>
                 </div>
               </div>
               <div class="w-[120px] p-[11px_14px] text-center text-[13px] font-semibold text-slate-700 dark:text-slate-300">{{ d.check_in }}</div>

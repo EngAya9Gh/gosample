@@ -88,6 +88,10 @@ class ReportsController extends Controller
             
             $onTime = $total - $delayed;
             $punctuality = $total > 0 ? round(($onTime / $total) * 100, 1) : 0;
+            
+            // FIXME: Dummy data for UI testing (remove later)
+            // $punctuality = rand(40, 100);
+            // $delayed = rand(0, 5);
 
             // Calculate avg operation speed in minutes (from_location_arrival_time to close_date)
             $totalMins = 0;
@@ -226,7 +230,8 @@ class ReportsController extends Controller
             $onTimeCount = $attendances->where('is_late', false)->count();
             $totalDays = $attendances->count();
             $punctuality = $totalDays > 0 ? round(($onTimeCount / $totalDays) * 100) : 0;
-
+             // $punctuality = rand(40, 100);
+            // $delayed = rand(0, 5);
             return [
                 'id' => $driver->id,
                 'name' => $driver->name,
