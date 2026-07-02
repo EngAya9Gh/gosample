@@ -22,6 +22,13 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/tasks/{task}', [\App\Http\Controllers\App\TasksController::class, 'show'])->name('app.admin.tasks.show');
     Route::put('admin/tasks/{task}/update-times', [\App\Http\Controllers\App\TasksController::class, 'updateTimes'])->name('app.admin.tasks.updateTimes');
 
+    // Tasks Dashboard
+    Route::get('tasks-dashboard', [\App\Http\Controllers\App\TasksDashboardController::class, 'index'])->name('app.tasks-dashboard');
+
+    // Daily Operation
+    Route::get('daily-operation', [\App\Http\Controllers\App\DailyOperationController::class, 'index'])->name('app.daily-operation');
+    Route::post('daily-operation/export', [\App\Http\Controllers\App\DailyOperationController::class, 'export'])->name('app.daily-operation.export');
+
     // Live Map
     Route::get('map', [\App\Http\Controllers\App\MapController::class, 'index'])->name('app.map');
     Route::post('map/filter', [\App\Http\Controllers\App\MapController::class, 'filter'])->name('app.map.filter');
