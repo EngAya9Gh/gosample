@@ -62,11 +62,10 @@ module.exports = {
                     muted: '#f3f6f9',
                     canvas: '#f3f3f9', // app background
                     // Dark-mode surfaces — teal-tinted near-black (matches the
-                    // delivered reference theme; deliberately NOT Tailwind's
-                    // blue `slate` scale). Used only behind the `dark` class.
-                    dark: '#0A0F0E',         // app canvas + topbar
-                    'dark-card': '#101A19',  // cards, panels, tables
-                    'dark-solid': '#142220', // modals, dropdowns, toasts (raised)
+                    // delivered reference theme MTC System.dc.html).
+                    dark: '#0a1214',         // app canvas + topbar
+                    'dark-card': '#0f1c1e',  // cards, panels, tables
+                    'dark-solid': '#13201f', // modals, dropdowns, toasts (raised)
                 },
                 ink: '#212529', // body text
             },
