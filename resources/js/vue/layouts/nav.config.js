@@ -18,14 +18,7 @@ export const NAV = [
       { label: 'Map',               icon: 'ri-map-pin-line',        route: '/map',              perm: 'map' },
       { label: 'Tasks Dashboard',   icon: 'ri-bar-chart-grouped-line', route: '/tasks-dashboard', perm: 'tasks-dashboard' },
       { label: 'Operation Report',  icon: 'ri-file-list-3-line',    route: '/daily-operation',  perm: 'daily-operation' },
-    ],
-  },
-  {
-    // Classic "Reports & Analytics" group is permission-gated now
-    label: 'Reports & Analytics', icon: 'ri-bar-chart-box-line', items: [
-      { label: 'Reporting Dashboard',       icon: 'ri-dashboard-line',  route: '/admin/reports',             perm: 'report_access' },
-      { label: 'KPI Performance Analysis',  icon: 'ri-speed-up-line',   route: '/admin/reports/performance', perm: 'report_access' },
-      { label: 'Monthly Evaluation Report', icon: 'ri-medal-line',      route: '/admin/reports/monthly',     perm: 'report_access' },
+      { label: 'Reports',           icon: 'ri-line-chart-line',     route: '/reports',          perm: 'report_access' },
     ],
   },
   {

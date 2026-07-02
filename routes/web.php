@@ -31,6 +31,9 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('daily-operation/export/status/{token}', [\App\Http\Controllers\App\DailyOperationController::class, 'checkExportStatus'])->name('app.daily-operation.export.status');
     Route::get('daily-operation/export/download/{token}', [\App\Http\Controllers\App\DailyOperationController::class, 'downloadExport'])->name('app.daily-operation.export.download');
 
+    // Reports Dashboard
+    Route::get('reports', [\App\Http\Controllers\App\ReportsController::class, 'index'])->name('app.reports');
+
     // Live Map
     Route::get('map', [\App\Http\Controllers\App\MapController::class, 'index'])->name('app.map');
     Route::post('map/filter', [\App\Http\Controllers\App\MapController::class, 'filter'])->name('app.map.filter');
