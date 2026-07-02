@@ -93,7 +93,7 @@ class GenerateDailyOperationExportJob implements ShouldQueue
             ], $headerStyle));
 
             $count = 0;
-            $query->orderBy('tasks.id', 'desc')->chunkById(500, function ($tasks) use ($writer, &$count) {
+            $query->orderBy('tasks.id', 'desc')->chunk(500, function ($tasks) use ($writer, &$count) {
                 foreach ($tasks as $t) {
                     if ($count >= 30000) {
                         \Log::info('GenerateDailyOperationExportJob reached maximum limit of 30,000 records.', ['token' => $this->token]);
