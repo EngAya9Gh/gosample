@@ -1833,7 +1833,8 @@ class TasksController extends Controller
     public function unUsedTasks(Request $request)
     {
         abort_if(Gate::denies('unused_tasks'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-	    $tasks = Task::leftjoin('clients','clients.id','=','tasks.billing_client')
+        // We use withoutGlobalScope to bypass the invisibility cloak we added for unused tasks!
+	    $tasks = Task::withoutGlobalScope('active')->leftjoin('clients','clients.id','=','tasks.billing_client')
             ->leftjoin('drivers','drivers.id','=','tasks.driver_id')
             ->leftjoin('locations as from','from.id','=','tasks.from_location')
             ->leftjoin('locations as to','to.id','=','tasks.to_location')

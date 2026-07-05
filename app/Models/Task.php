@@ -27,6 +27,14 @@ class Task extends Model
 
     protected static function booted()
     {
+        // Global scope to completely hide unused tasks from the entire application,
+        // mimicking the old SoftDeletes behavior but with zero performance cost!
+        static::addGlobalScope('active', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where(function ($query) {
+                $query->where('is_unused', 0)->orWhereNull('is_unused');
+            });
+        });
+
         static::saved(function ($task) {
             if ($task->wasChanged('status') && $task->driver_id) {
                 dispatch(new \App\Jobs\CalculateDriverETAJob($task->driver_id))->afterResponse();
