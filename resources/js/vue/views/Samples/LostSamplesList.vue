@@ -142,6 +142,7 @@ async function confirmDelete() {
       :rows="rows"
       :columns="columns"
       :total="total"
+      :server-side="true"
       :page="page"
       :page-size="pageSize"
       :loading="loading"

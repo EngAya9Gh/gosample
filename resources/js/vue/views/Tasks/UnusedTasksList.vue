@@ -84,6 +84,7 @@ function onQuery(q) { reload({ page: q.page, pageSize: q.pageSize }); }
       :rows="rows"
       :columns="columns"
       :total="total"
+      :server-side="true"
       :page="page"
       :page-size="pageSize"
       :loading="loading"
