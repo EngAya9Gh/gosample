@@ -3,7 +3,7 @@
  * FormSelect — single or multi select with optional search + Select-All.
  * options = [{ value, label }]. v-model is value (single) or array (multi).
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
   modelValue: { type: [String, Number, Array, null], default: '' },
@@ -17,12 +17,28 @@ const props = defineProps({
   helper:  { type: String, default: '' },
   error:   { type: String, default: '' },
   required:{ type: Boolean, default: false },
+  // Teleport the dropdown panel to <body> so it isn't clipped by an overflow
+  // ancestor (e.g. a modal body). Use inside modals.
+  floating:{ type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue']);
 
 const open = ref(false);
 const q = ref('');
 const root = ref(null);
+const trigger = ref(null);
+const panel = ref(null);
+const floatStyle = ref({});
+
+// Position the teleported panel under the trigger (fixed → viewport coords).
+function positionPanel() {
+  const t = trigger.value;
+  if (!t) return;
+  const r = t.getBoundingClientRect();
+  floatStyle.value = { top: `${r.bottom + 6}px`, left: `${r.left}px`, width: `${r.width}px` };
+}
+function onReflow() { if (open.value && props.floating) positionPanel(); }
+watch(open, (v) => { if (v && props.floating) nextTick(positionPanel); });
 
 const filtered = computed(() =>
   props.options.filter((o) => o.label.toLowerCase().includes(q.value.toLowerCase()))
@@ -48,10 +64,22 @@ function pick(v) {
 function allOn() { emit('update:modelValue', props.options.map((o) => o.value)); }
 function allOff() { emit('update:modelValue', []); }
 
-function onDoc(e) { if (root.value && !root.value.contains(e.target)) open.value = false; }
-import { onMounted, onBeforeUnmount } from 'vue';
-onMounted(() => document.addEventListener('click', onDoc));
-onBeforeUnmount(() => document.removeEventListener('click', onDoc));
+function onDoc(e) {
+  // Keep open when the click is inside the trigger OR the (possibly teleported) panel.
+  const inRoot = root.value && root.value.contains(e.target);
+  const inPanel = panel.value && panel.value.contains(e.target);
+  if (!inRoot && !inPanel) open.value = false;
+}
+onMounted(() => {
+  document.addEventListener('click', onDoc);
+  window.addEventListener('resize', onReflow);
+  window.addEventListener('scroll', onReflow, true); // capture → catches modal-body scroll
+});
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDoc);
+  window.removeEventListener('resize', onReflow);
+  window.removeEventListener('scroll', onReflow, true);
+});
 </script>
 
 <template>
@@ -61,6 +89,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
     </label>
 
     <button
+      ref="trigger"
       type="button" @click="open = !open"
       class="w-full min-h-11 px-3.5 py-1.5 flex items-center gap-1.5 flex-wrap text-start bg-surface dark:bg-white/5 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500/40"
       :class="error ? 'border-danger/60' : 'border-slate-200 dark:border-white/10'"
@@ -77,9 +106,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
       <i class="ri-arrow-down-s-line ms-auto text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
     </button>
 
-    <!-- panel -->
-    <div v-if="open" class="relative">
-      <div class="absolute z-30 mt-1.5 w-full bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5 animate-fade-in-up">
+    <!-- panel — teleported to <body> when floating so a modal's overflow can't clip it -->
+    <div class="relative">
+      <Teleport to="body" :disabled="!floating">
+      <div v-if="open" ref="panel"
+        :style="floating ? floatStyle : undefined"
+        class="bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 p-1.5 animate-fade-in-up"
+        :class="floating ? 'fixed z-[200]' : 'absolute z-30 mt-1.5 w-full'">
         <div v-if="searchable" class="relative mb-1.5">
           <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-2.5 text-slate-400 text-sm" style="inset-inline-start:.625rem"></i>
           <input v-model="q" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
@@ -103,6 +136,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc));
           <li v-if="!filtered.length" class="px-2.5 py-3 text-sm text-slate-400 text-center">No matches</li>
         </ul>
       </div>
+      </Teleport>
     </div>
 
     <p v-if="error" class="flex items-center gap-1 text-xs text-danger mt-1.5"><i class="ri-error-warning-line"></i>{{ error }}</p>

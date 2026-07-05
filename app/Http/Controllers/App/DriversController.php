@@ -104,7 +104,23 @@ class DriversController extends Controller
             'options' => [
                 'statuses' => $statuses,
             ],
+            // Feed the Add/Edit driver modals (fields live in DriverFormFields.vue).
+            'zones' => Zone::select('id as value', 'name as label')->get(),
+            'shiftTemplates' => ShiftTemplate::all(),
         ]);
+    }
+
+    /**
+     * Full editable driver record for the SPA Edit modal (list rows are summaries).
+     * Returns the same model the classic edit() feeds to the form.
+     */
+    public function editData($id)
+    {
+        abort_if(Gate::denies('driver_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return response()->json(
+            Driver::withoutGlobalScope('enabled')->findOrFail($id)
+        );
     }
 
     public function create()

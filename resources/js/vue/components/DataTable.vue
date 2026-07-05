@@ -118,11 +118,11 @@ function runBulk(ev) { emit(ev, [...sel.value]); clearSel(); }
    (white/5, surface-muted/50) can't be reused here — layered on top of the row's own
    tint they compose to a different shade and the pinned columns read as a highlighted
    band. So each state gets the flattened equivalent of what non-sticky cells show:
-   tint blended over white (light) / surface-dark-card #101A19 (dark). */
-const STICKY_HOVER = 'group-hover:bg-[#F9FAFC] dark:group-hover:bg-[#1C2525]';
+   tint blended over white (light) / surface-dark-card #0f1c1e (dark). */
+const STICKY_HOVER = 'group-hover:bg-[#F9FAFC] dark:group-hover:bg-[#1B2729]';
 const STICKY_BODY  = `bg-surface dark:bg-surface-dark-card ${STICKY_HOVER}`;
-const STICKY_SEL   = `bg-[#F0F7F7] dark:bg-[#102624] ${STICKY_HOVER}`;
-const STICKY_HEAD  = 'bg-[#F9FAFC] dark:bg-[#1C2525]';
+const STICKY_SEL   = `bg-[#F0F7F7] dark:bg-[#0F2829] ${STICKY_HOVER}`;
+const STICKY_HEAD  = 'bg-[#F9FAFC] dark:bg-[#1B2729]';
 function stickyCls(c, bg = STICKY_BODY) {
   if (c.sticky === 'start') return `sticky inset-inline-start-0 z-[1] ${bg}`;
   if (c.sticky === 'end')   return `sticky inset-inline-end-0 z-[1] ${bg}`;

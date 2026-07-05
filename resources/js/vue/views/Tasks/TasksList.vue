@@ -7,7 +7,8 @@
  * export routes (queued PDF/Excel) so files are identical to the classic page.
  */
 import { ref, reactive, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -95,6 +96,83 @@ const sortOrderOpts = [
 const driverOpts = computed(() => props.options?.drivers || []);
 const clientOpts = computed(() => props.options?.clients || []);
 const locationOpts = computed(() => props.options?.locations || []);
+
+/* ---------- Create Task modal (mirrors /admin/tasks/create fields + defaults) ---------- */
+// Enum options from App\Models\Task (TYPE_SELECT / TAKASI_SELECT / TASK_TYPE_SELECT).
+const TYPE_OPTS      = [{ value: 'one_time', label: 'one_time' }, { value: 'scheduled', label: 'scheduled' }];
+const TAKASI_OPTS    = [{ value: 'NO', label: 'NO' }, { value: 'YES', label: 'YES' }];
+const TASK_TYPE_OPTS = [{ value: 'SAMPLE', label: 'SAMPLE' }, { value: 'BOX', label: 'BOX' }];
+
+const showCreate = ref(false);
+// Defaults match the classic create form exactly.
+const createForm = useForm({
+  from_location: [],        // multi-select (required)
+  to_location: '',          // required, must differ from from_location
+  billing_client: '',       // required
+  driver_id: '',            // required
+  type: 'one_time',         // default
+  pickup_time: '',          // required (datetime)
+  dropoff_time: '',         // required (datetime)
+  takasi: 'NO',             // default
+  task_type: 'SAMPLE',      // default
+  time_of_visit: 1,         // default, required (>0, <50)
+});
+
+function openCreate() {
+  if (!can('task_create')) return;
+  createForm.reset();
+  createForm.clearErrors();
+  showCreate.value = true;
+}
+function submitCreate() {
+  createForm.post('/app/admin/tasks/popup', {
+    preserveScroll: true,
+    onSuccess: () => { showCreate.value = false; createForm.reset(); },
+  });
+}
+
+/* ---------- Edit Task modal (mirrors /admin/tasks/{id}/edit fields) ---------- */
+// Status options from App\Models\Task::STATUS_SELECT.
+const STATUS_OPTS = ['NEW', 'COLLECTED', 'CLOSED', 'IN_FREEZER', 'NO_SAMPLES', 'OUT_FREEZER']
+  .map((s) => ({ value: s, label: s }));
+
+const showEdit = ref(false);
+const editLoading = ref(false);
+const editId = ref(null);       // kept out of the form so it isn't sent in the payload
+const editForm = useForm({
+  from_location: '', to_location: '', billing_client: '', driver_id: '',
+  task_type: '', status: '', takasi: '',
+});
+
+async function openEdit(row) {
+  if (!can('task_edit')) return;
+  editLoading.value = true;
+  showEdit.value = true;
+  try {
+    const { data } = await axios.get(`/app/admin/tasks/${row.id}/popup-data`);
+    editForm.clearErrors();
+    editId.value            = data.id;
+    editForm.from_location  = data.from_location ?? '';
+    editForm.to_location    = data.to_location ?? '';
+    editForm.billing_client = data.billing_client ?? '';
+    editForm.driver_id      = data.driver_id ?? '';
+    editForm.task_type      = data.task_type ?? '';
+    editForm.status         = data.status ?? '';
+    editForm.takasi         = data.takasi ?? '';
+  } catch (e) {
+    showEdit.value = false;
+    push({ type: 'error', title: 'Could not load', message: 'Failed to load task for editing.' });
+  } finally {
+    editLoading.value = false;
+  }
+}
+function submitEdit() {
+  editForm.put(`/app/admin/tasks/${editId.value}/popup`, {
+    preserveScroll: true,
+    onSuccess: () => { showEdit.value = false; },
+  });
+}
+
 const rows = computed(() => props.rows || []);
 const total = computed(() => props.total || 0);
 const loading = ref(false);
@@ -226,9 +304,7 @@ async function bulkDelete(ids) {
       <template #actions>
         <BaseButton variant="pdf" icon="ri-file-pdf-2-line" @click="exportPdf">PDF</BaseButton>
         <BaseButton variant="excel" icon="ri-file-excel-2-line" @click="exportExcel">Excel</BaseButton>
-        <a v-if="can('task_create')" href="/admin/tasks/create">
-          <BaseButton variant="primary" icon="ri-add-line">Add Task</BaseButton>
-        </a>
+        <BaseButton v-if="can('task_create')" variant="primary" icon="ri-add-line" @click="openCreate">Add Task</BaseButton>
       </template>
     </Breadcrumb>
 
@@ -307,7 +383,7 @@ async function bulkDelete(ids) {
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
           <button v-if="can('task_show')" @click="router.visit(`/app/admin/tasks/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
-          <a v-if="can('task_edit')" :href="`/admin/tasks/${row.id}/edit`" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
+          <button v-if="can('task_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="canDelete()" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
@@ -323,6 +399,66 @@ async function bulkDelete(ids) {
       <template #footer>
         <BaseButton variant="light" @click="showDel = false">Cancel</BaseButton>
         <BaseButton variant="danger" icon="ri-delete-bin-line" @click="confirmDelete">Delete</BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- create task -->
+    <BaseModal v-model="showCreate" title="Create Task" icon="ri-add-circle-line" size="xl">
+      <form @submit.prevent="submitCreate" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <FormSelect floating v-model="createForm.from_location" label="From Location" :options="locationOpts" multiple
+            placeholder="Select one or more locations" required :error="createForm.errors.from_location" />
+        </div>
+        <FormSelect floating v-model="createForm.to_location" label="To Location" :options="locationOpts"
+          placeholder="Select Location" required :error="createForm.errors.to_location" />
+        <FormSelect floating v-model="createForm.billing_client" label="Billing Client" :options="clientOpts"
+          placeholder="Select Client" required :error="createForm.errors.billing_client" />
+        <FormSelect floating v-model="createForm.driver_id" label="Driver" :options="driverOpts"
+          placeholder="Select Driver" required :error="createForm.errors.driver_id" />
+        <FormSelect floating v-model="createForm.type" label="Type" :options="TYPE_OPTS" :searchable="false"
+          required :error="createForm.errors.type" />
+        <FormDate v-model="createForm.pickup_time" label="Pickup Time" mode="datetime" floating
+          required :error="createForm.errors.pickup_time" />
+        <FormDate v-model="createForm.dropoff_time" label="Dropoff Time" mode="datetime" floating
+          required :error="createForm.errors.dropoff_time" />
+        <FormSelect floating v-model="createForm.takasi" label="Takasi" :options="TAKASI_OPTS" :searchable="false"
+          :error="createForm.errors.takasi" />
+        <FormSelect floating v-model="createForm.task_type" label="Task Type" :options="TASK_TYPE_OPTS" :searchable="false"
+          :error="createForm.errors.task_type" />
+        <FormInput v-model="createForm.time_of_visit" label="Number of Visits" type="number"
+          required :error="createForm.errors.time_of_visit" />
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showCreate = false" :disabled="createForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="createForm.processing" @click="submitCreate">Save Task</BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- edit task -->
+    <BaseModal v-model="showEdit" title="Edit Task" icon="ri-pencil-line" size="xl">
+      <div v-if="editLoading" class="grid place-items-center py-16 text-slate-400">
+        <i class="ri-loader-4-line text-3xl animate-spin"></i>
+        <p class="text-sm mt-2">Loading task…</p>
+      </div>
+      <form v-else @submit.prevent="submitEdit" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormSelect floating v-model="editForm.from_location" label="From Location" :options="locationOpts"
+          placeholder="Select Location" required :error="editForm.errors.from_location" />
+        <FormSelect floating v-model="editForm.to_location" label="To Location" :options="locationOpts"
+          placeholder="Select Location" required :error="editForm.errors.to_location" />
+        <FormSelect floating v-model="editForm.billing_client" label="Client" :options="clientOpts"
+          placeholder="Select Client" required :error="editForm.errors.billing_client" />
+        <FormSelect floating v-model="editForm.driver_id" label="Driver" :options="driverOpts"
+          placeholder="Select Driver" required :error="editForm.errors.driver_id" />
+        <FormSelect floating v-model="editForm.task_type" label="Task Type" :options="TASK_TYPE_OPTS" :searchable="false"
+          required :error="editForm.errors.task_type" />
+        <FormSelect floating v-model="editForm.status" label="Status" :options="STATUS_OPTS" :searchable="false"
+          :error="editForm.errors.status" />
+        <FormSelect floating v-model="editForm.takasi" label="Takasi" :options="TAKASI_OPTS" :searchable="false"
+          :error="editForm.errors.takasi" />
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showEdit = false" :disabled="editForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="editForm.processing" @click="submitEdit">Save</BaseButton>
       </template>
     </BaseModal>
   </div>

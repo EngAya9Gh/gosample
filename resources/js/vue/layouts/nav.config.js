@@ -30,7 +30,7 @@ export const NAV = [
       { label: 'Create Task',      icon: 'ri-add-circle-line',     route: '/admin/tasks/create',     perm: 'task_create' },
       { label: 'Missing Tasks',    icon: 'ri-question-mark',       route: '/admin/tasks/missing',    perm: 'task_missing' },
       { label: 'Lost Samples',     icon: 'ri-flask-line',          route: '/admin/lost',             perm: 'task_missing', badge: 'lost' },
-      { label: 'Scan',             icon: 'ri-qr-scan-2-line',      route: '/admin/tasks/scan',       perm: 'task_scan' },
+      { label: 'Scan & Reconcile', icon: 'ri-scan-2-line',         route: '/admin/tasks/reconcile',  perm: 'task_scan' },
       { label: 'Unused Tasks',     icon: 'ri-inbox-unarchive-line', route: '/admin/tasks/unused',    perm: 'unused_tasks' },
       { label: 'Samples',          icon: 'ri-test-tube-line',      route: '/admin/samples',          perm: 'sample_access' },
       { label: 'Shipments',        icon: 'ri-truck-line',          route: '/admin/shipments',        perm: 'shipment_access' },

@@ -17,9 +17,23 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('car-dashboard', [\App\Http\Controllers\App\CarDashboardController::class, 'index'])->name('app.car-dashboard');
     Route::get('tasks-dashboard', [\App\Http\Controllers\App\TasksDashboardController::class, 'index'])->name('app.tasks-dashboard');
 
+    // Scan & Reconcile — merged Scan Samples + Missing Samples workspace.
+    Route::get('admin/tasks/reconcile', [\App\Http\Controllers\App\SampleReconciliationController::class, 'index'])->name('app.admin.tasks.reconcile');
+    Route::post('admin/tasks/reconcile/load', [\App\Http\Controllers\App\SampleReconciliationController::class, 'loadBatch'])->name('app.admin.tasks.reconcile.load');
+    Route::post('admin/tasks/reconcile/check', [\App\Http\Controllers\App\SampleReconciliationController::class, 'checkSample'])->name('app.admin.tasks.reconcile.check');
+    Route::post('admin/tasks/reconcile/confirm-all', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirmAll'])->name('app.admin.tasks.reconcile.confirmAll');
+    Route::post('admin/tasks/reconcile/confirm', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirm'])->name('app.admin.tasks.reconcile.confirm');
+    Route::post('admin/tasks/reconcile/details', [\App\Http\Controllers\App\SampleReconciliationController::class, 'details'])->name('app.admin.tasks.reconcile.details');
+    Route::post('admin/tasks/reconcile/lost', [\App\Http\Controllers\App\SampleReconciliationController::class, 'lost'])->name('app.admin.tasks.reconcile.lost');
+
     // Tasks (plan 08-tasks.md)
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');
     Route::get('admin/tasks/unused', [\App\Http\Controllers\App\TasksController::class, 'unused'])->name('app.admin.tasks.unused');
+    // Task create/edit popup (SPA modals) — distinct "popup" paths so they never
+    // collide with page-style create/edit routes or the {task} wildcard below.
+    Route::post('admin/tasks/popup', [\App\Http\Controllers\App\TasksController::class, 'store'])->name('app.admin.tasks.popup.store');
+    Route::get('admin/tasks/{task}/popup-data', [\App\Http\Controllers\App\TasksController::class, 'editData'])->name('app.admin.tasks.popup.editData');
+    Route::put('admin/tasks/{task}/popup', [\App\Http\Controllers\App\TasksController::class, 'update'])->name('app.admin.tasks.popup.update');
     Route::get('admin/tasks/{task}', [\App\Http\Controllers\App\TasksController::class, 'show'])->name('app.admin.tasks.show');
     Route::put('admin/tasks/{task}/update-times', [\App\Http\Controllers\App\TasksController::class, 'updateTimes'])->name('app.admin.tasks.updateTimes');
 
@@ -46,6 +60,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/drivers', [\App\Http\Controllers\App\DriversController::class, 'index'])->name('app.admin.drivers.index');
     Route::get('admin/drivers/create', [\App\Http\Controllers\App\DriversController::class, 'create'])->name('app.admin.drivers.create');
     Route::post('admin/drivers', [\App\Http\Controllers\App\DriversController::class, 'store'])->name('app.admin.drivers.store');
+    Route::get('admin/drivers/{driver}/data', [\App\Http\Controllers\App\DriversController::class, 'editData'])->name('app.admin.drivers.editData');
     Route::get('admin/drivers/{driver}', [\App\Http\Controllers\App\DriversController::class, 'show'])->name('app.admin.drivers.show');
     Route::get('admin/drivers/{driver}/edit', [\App\Http\Controllers\App\DriversController::class, 'edit'])->name('app.admin.drivers.edit');
     Route::put('admin/drivers/{driver}', [\App\Http\Controllers\App\DriversController::class, 'update'])->name('app.admin.drivers.update');

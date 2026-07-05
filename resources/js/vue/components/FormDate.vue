@@ -21,6 +21,9 @@ const props = defineProps({
   error:    { type: String, default: '' },
   required: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  // Render the calendar into <body> (floating) instead of attached to the field.
+  // Use inside modals / overflow-hidden containers so the calendar isn't clipped.
+  floating: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue', 'range']);
 
@@ -53,9 +56,11 @@ const borderCls = computed(() =>
 
 function buildConfig() {
   const base = {
-    // Render the calendar attached to the field (not document.body) so it scrolls
-    // with the SPA's inner scroll container and never gets "stuck".
-    static: true,
+    // Normally render the calendar attached to the field (static) so it scrolls
+    // with the SPA's inner scroll container and never gets "stuck". Inside a modal
+    // (floating) append it to <body> so the modal's overflow doesn't clip it.
+    static: !props.floating,
+    ...(props.floating ? { appendTo: document.body } : {}),
     disableMobile: true,                 // always the branded picker, never native mobile UI
     // Show a friendly formatted value (altInput) while the real input keeps the
     // raw Y-m-d H:i string the backend filters expect.

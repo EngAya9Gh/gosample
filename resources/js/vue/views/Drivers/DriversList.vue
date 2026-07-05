@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -11,6 +12,7 @@ import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
+import DriverFormFields from './DriverFormFields.vue';
 import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
 
@@ -18,10 +20,77 @@ const props = defineProps({
   drivers:  { type: Object, default: () => ({ data: [], total: 0, page: 1, pageSize: 25 }) },
   filters:  { type: Object, default: () => ({}) },
   options:  { type: Object, default: () => ({ statuses: [] }) },
+  zones:          { type: Array, default: () => [] },
+  shiftTemplates: { type: Array, default: () => [] },
 });
 
 const { push } = useToast();
 const { can, canDelete } = usePermissions();
+
+/* ---------- Add / Edit Driver modals (fields in DriverFormFields.vue) ---------- */
+// Build the form payload from a driver record (or defaults) — mirrors DriverForm.vue.
+function driverFormData(d) {
+  return {
+    name: d?.name || '',
+    username: d?.username || '',
+    password: '',
+    mobile: d?.mobile || '',
+    email: d?.email || '',
+    national_id: d?.national_id || '',
+    language: d?.language || 'en',
+    status: (d?.status !== undefined && d?.status !== null) ? String(d.status) : '1',
+    zone_id: d?.zone_id || '',
+    employment_type: d?.employment_type || 'full_time',
+    shift_count: d?.shift_count ? String(d.shift_count) : '1',
+    total_working_hours: d?.total_working_hours || 8,
+    working_hours_start: d?.working_hours_start ? d.working_hours_start.slice(0, 5) : '',
+    working_hours_end: d?.working_hours_end ? d.working_hours_end.slice(0, 5) : '',
+    second_shift_working_hours_start: d?.second_shift_working_hours_start ? d.second_shift_working_hours_start.slice(0, 5) : '',
+    second_shift_working_hours_end: d?.second_shift_working_hours_end ? d.second_shift_working_hours_end.slice(0, 5) : '',
+    third_shift_working_hours_start: d?.third_shift_working_hours_start ? d.third_shift_working_hours_start.slice(0, 5) : '',
+    third_shift_working_hours_end: d?.third_shift_working_hours_end ? d.third_shift_working_hours_end.slice(0, 5) : '',
+  };
+}
+
+const driverModal = reactive({ open: false, isEdit: false, id: null, loading: false });
+const driverForm = useForm(driverFormData(null));
+
+function openCreateDriver() {
+  if (!can('driver_create')) return;
+  driverModal.isEdit = false;
+  driverModal.id = null;
+  driverModal.loading = false;
+  Object.assign(driverForm, driverFormData(null));
+  driverForm.clearErrors();
+  driverModal.open = true;
+}
+
+async function openEditDriver(row) {
+  if (!can('driver_edit')) return;
+  driverModal.isEdit = true;
+  driverModal.id = row.id;
+  driverModal.loading = true;
+  driverModal.open = true;
+  driverForm.clearErrors();
+  try {
+    const { data } = await axios.get(`/app/admin/drivers/${row.id}/data`);
+    Object.assign(driverForm, driverFormData(data));
+  } catch (e) {
+    driverModal.open = false;
+    push({ type: 'error', title: 'Could not load', message: 'Failed to load driver for editing.' });
+  } finally {
+    driverModal.loading = false;
+  }
+}
+
+function submitDriver() {
+  const onSuccess = () => { driverModal.open = false; }; // backend flash → toast
+  if (driverModal.isEdit) {
+    driverForm.put(`/app/admin/drivers/${driverModal.id}`, { onSuccess });
+  } else {
+    driverForm.post('/app/admin/drivers', { onSuccess });
+  }
+}
 
 const DEFAULT_FILTERS = {
   keyword: '', status: '', mobile: '', date_from: '', date_to: '',
@@ -141,9 +210,9 @@ function onExport(format) {
   <div>
     <Breadcrumb title="Drivers" :trail="[{ label: 'Drivers' }]">
       <template #actions>
-        <BaseButton variant="light" icon="ri-file-pdf-2-line" @click="onExport('pdf')">PDF</BaseButton>
-        <BaseButton variant="light" icon="ri-file-excel-2-line" @click="onExport('excel')">Excel</BaseButton>
-        <BaseButton v-if="can('driver_create')" variant="primary" icon="ri-add-line" @click="() => router.visit('/app/admin/drivers/create')">Add Driver</BaseButton>
+        <BaseButton variant="pdf" icon="ri-file-pdf-2-line" @click="onExport('pdf')">PDF</BaseButton>
+        <BaseButton variant="excel" icon="ri-file-excel-2-line" @click="onExport('excel')">Excel</BaseButton>
+        <BaseButton v-if="can('driver_create')" variant="primary" icon="ri-add-line" @click="openCreateDriver">Add Driver</BaseButton>
       </template>
     </Breadcrumb>
 
@@ -219,7 +288,7 @@ function onExport(format) {
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
           <button v-if="can('driver_show')" @click="router.visit(`/app/admin/drivers/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
-          <button v-if="can('driver_edit')" @click="router.visit(`/app/admin/drivers/${row.id}/edit`)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <button v-if="can('driver_edit')" @click="openEditDriver(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
@@ -242,6 +311,23 @@ function onExport(format) {
           <button @click="deleteModal.isOpen = false" class="flex-1 h-11 rounded-[12px] bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10">Cancel</button>
           <button @click="confirmDelete" class="flex-1 h-11 rounded-[12px] bg-[#b85b8c] text-white font-bold hover:bg-[#a34d7a] transition-colors shadow-md">Yes, delete</button>
         </div>
+      </template>
+    </BaseModal>
+
+    <!-- Add / Edit Driver Modal -->
+    <BaseModal v-model="driverModal.open" :title="driverModal.isEdit ? 'Edit Driver' : 'Add Driver'" :icon="driverModal.isEdit ? 'ri-pencil-line' : 'ri-user-add-line'" size="xl">
+      <div v-if="driverModal.loading" class="grid place-items-center py-16 text-slate-400">
+        <i class="ri-loader-4-line text-3xl animate-spin"></i>
+        <p class="text-sm mt-2">Loading driver…</p>
+      </div>
+      <form v-else @submit.prevent="submitDriver">
+        <DriverFormFields :form="driverForm" :zones="zones" :shift-templates="shiftTemplates" :is-edit="driverModal.isEdit" floating />
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="driverModal.open = false" :disabled="driverForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="driverForm.processing" @click="submitDriver">
+          {{ driverModal.isEdit ? 'Save Changes' : 'Create Driver' }}
+        </BaseButton>
       </template>
     </BaseModal>
   </div>

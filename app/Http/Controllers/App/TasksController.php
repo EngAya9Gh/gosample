@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\TasksController as AdminTasksController;
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use App\Models\Client;
 use App\Models\Location;
@@ -116,6 +119,86 @@ class TasksController extends Controller
             // Lazy closure → skipped on partial table reloads (only: ['rows','total']).
             'options'  => fn () => $this->options($user),
         ]);
+    }
+
+    /**
+     * Create task(s) from the SPA modal.
+     * MIRRORS Admin\TasksController@store 1:1 — same StoreTaskRequest validation
+     * (+ task_create Gate via authorize()), same one-task-per-(visit × from_location)
+     * loop, same defaults (added_by = user email, eta = null), same driver
+     * notifications + ETA job dispatch. Returns an Inertia redirect back to the
+     * list (flash → toast) instead of the classic Blade redirect.
+     */
+    public function store(StoreTaskRequest $request)
+    {
+        $user = auth()->user();
+        $driver = Driver::find($request->driver_id);
+
+        for ($i = 0; $i < (int) $request->time_of_visit; $i++) {
+            foreach ((array) $request->from_location as $fromLocation) {
+                $task = new Task();
+                $task->to_location    = $request->to_location;
+                $task->type           = $request->type;
+                $task->pickup_time    = $request->pickup_time;
+                $task->dropoff_time   = $request->dropoff_time;
+                $task->takasi         = $request->takasi;
+                $task->time_of_visit  = $request->time_of_visit;
+                $task->task_type      = $request->task_type;
+                $task->driver_id      = $request->driver_id;
+                $task->billing_client = $request->billing_client;
+                $task->from_location  = $fromLocation;
+                $task->added_by       = $user->email;
+                $task->created_at     = now();
+                $task->eta            = null;
+                $task->save();
+
+                if ($driver) {
+                    $driver->sendNotification('New Task', 'You have new task', [$driver->fcm_token], $task, 'open_task');
+                    $this->sendGeneralNotification($driver, $task);
+                }
+            }
+        }
+
+        if ($driver) {
+            dispatch(new \App\Jobs\CalculateDriverETAJob($driver->id));
+        }
+
+        return redirect()->route('app.admin.tasks')->with('success', 'Task created successfully');
+    }
+
+    /**
+     * Editable field values for the SPA Edit-Task modal (raw FK columns/enums),
+     * fetched when the modal opens since the list rows only carry display names.
+     */
+    public function editData(Task $task)
+    {
+        abort_if(Gate::denies('task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return response()->json([
+            'id'             => $task->id,
+            'from_location'  => $task->from_location,
+            'to_location'    => $task->to_location,
+            'billing_client' => $task->billing_client,
+            'driver_id'      => $task->driver_id,
+            'task_type'      => $task->task_type,
+            'status'         => $task->status,
+            'takasi'         => $task->takasi,
+        ]);
+    }
+
+    /**
+     * Update a task from the SPA modal. DELEGATES to Admin\TasksController@update
+     * so the CLOSED-transition side effects (closed_by, close_date,
+     * to_location_confirmation_timestamp, blazma LogData dispatch) and mass-update
+     * stay 1:1 with the classic page. UpdateTaskRequest enforces the same
+     * validation + task_edit Gate. We swap the classic Blade redirect for an
+     * Inertia redirect back to the list (flash → toast).
+     */
+    public function update(UpdateTaskRequest $request, Task $task, AdminTasksController $classic)
+    {
+        $classic->update($request, $task);
+
+        return redirect()->route('app.admin.tasks')->with('success', 'Task updated successfully');
     }
 
     private function options($user): array
