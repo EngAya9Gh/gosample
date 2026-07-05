@@ -1839,7 +1839,7 @@ class TasksController extends Controller
             ->leftjoin('locations as from','from.id','=','tasks.from_location')
             ->leftjoin('locations as to','to.id','=','tasks.to_location')
             ->where('drivers.status', 1)
-            ->select('tasks.*','clients.english_name','drivers.name as dname','from.name as from_name','to.name as to_name')->where('is_unused',true);
+            ->select('tasks.*','clients.english_name','drivers.name as dname','from.name as from_name','to.name as to_name')->where('is_unused',1);
         if (!empty($request->input('client_id'))){
             $tasks = $tasks->where('clients.id',$request->input('client_id'));
         }

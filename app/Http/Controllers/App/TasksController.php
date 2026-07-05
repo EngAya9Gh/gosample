@@ -224,4 +224,81 @@ class TasksController extends Controller
 
         return redirect()->back()->with('status', 'Task times updated successfully.');
     }
+    public function unused(Request $request)
+    {
+        abort_if(Gate::denies('unused_tasks'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $user = auth()->user();
+
+        // sort whitelist (identical to classic)
+        $sortColumn = $request->input('sort_by');
+        if (!in_array($sortColumn, ['created_at', 'updated_at', 'collection_date'], true)) {
+            $sortColumn = 'created_at';
+        }
+        $sortOrder = $request->input('sort_order', 'desc');
+        if (!in_array($sortOrder, ['asc', 'desc'], true)) {
+            $sortOrder = 'desc';
+        }
+
+        $query = Task::withoutGlobalScope('active')->where('is_unused', 1)->whereHas('driver', function($q) {
+            $q->where('status', 1);
+        })->with(['from', 'to', 'client', 'driver'])->select('tasks.*');
+
+        // fail-closed client scoping (identical to classic)
+        if ($user && !empty($user->assigned_client_ids)) {
+            $query->whereIn('billing_client', $user->assigned_client_ids);
+        }
+
+        $query->when($request->driver_id, fn ($q, $v) => $q->where('driver_id', $v))
+            ->when($request->client_id, fn ($q, $v) => $q->where('billing_client', $v));
+
+        $dateColumn = $request->input('search_date') ?: 'tasks.created_at';
+        $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;
+        $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
+        if (!$dateFrom && !$dateTo && !$request->keyword) {
+            $dateFrom = Carbon::now()->subDays(30)->startOfDay();
+            $dateTo = Carbon::now()->endOfDay();
+        }
+        if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+        }
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween($dateColumn, [$dateFrom->toDateTimeString(), $dateTo->toDateTimeString()]);
+        } elseif ($dateFrom) {
+            $query->where($dateColumn, '>=', $dateFrom);
+        } elseif ($dateTo) {
+            $query->where($dateColumn, '<=', $dateTo);
+        }
+
+        $query->orderBy($sortColumn, $sortOrder);
+
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->toBase()->getCountForPagination();
+        $offset = ($page - 1) * $pageSize;
+
+        $seq = $offset;
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function (Task $t) use (&$seq) {
+            return [
+                'sequence'           => ++$seq,
+                'id'                 => $t->id,
+                'created_at'         => $this->fmt($t->created_at),
+                'client'             => optional($t->client)->english_name,
+                'driver_name'        => optional($t->driver)->name,
+                'from_location_name' => optional($t->from)->name,
+                'to_location_name'   => optional($t->to)->name,
+            ];
+        });
+
+        $filters = $request->only(['client_id', 'driver_id', 'date_from', 'date_to', 'sort_by', 'sort_order']);
+
+        return Inertia::render('Tasks/UnusedTasksList', [
+            'rows'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'pageSize' => $pageSize,
+            'filters'  => $filters,
+            'options'  => fn () => $this->options($user),
+        ]);
+    }
 }

@@ -43,7 +43,7 @@ class RemoveOldNewTasks implements ShouldQueue
         // Delete the tasks (Canceled: Now we just mark them as unused, 
         // and the new Global Scope hides them automatically)
         foreach ($tasks as $task) {
-            $task->is_unused = true;
+            $task->is_unused = 1;
             $task->save();
         }
     }

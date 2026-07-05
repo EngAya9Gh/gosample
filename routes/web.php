@@ -19,6 +19,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
 
     // Tasks (plan 08-tasks.md)
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');
+    Route::get('admin/tasks/unused', [\App\Http\Controllers\App\TasksController::class, 'unused'])->name('app.admin.tasks.unused');
     Route::get('admin/tasks/{task}', [\App\Http\Controllers\App\TasksController::class, 'show'])->name('app.admin.tasks.show');
     Route::put('admin/tasks/{task}/update-times', [\App\Http\Controllers\App\TasksController::class, 'updateTimes'])->name('app.admin.tasks.updateTimes');
 
