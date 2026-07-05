@@ -76,7 +76,7 @@ class TasksController extends Controller
 
         $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
-        $total = (clone $query)->toBase()->getCountForPagination();
+        $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
 
         $seq = $offset;
@@ -274,7 +274,7 @@ class TasksController extends Controller
 
         $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
-        $total = (clone $query)->toBase()->getCountForPagination();
+        $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
 
         $seq = $offset;
