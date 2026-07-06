@@ -39,7 +39,7 @@ const showTop = ref(false);
 // /app); Blade-only targets (login/logout) do a full page navigation.
 function onNavigate(target) {
   if (!target) return;
-  if (target.startsWith('/admin') && !['/admin/tasks', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks', '/admin/shipments', '/admin/money-transfers'].includes(target)) {
+  if (target.startsWith('/admin') && !['/admin/tasks', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks', '/admin/shipments', '/admin/money-transfers', '/admin/drivers', '/admin/cars'].includes(target)) {
     window.location.href = target;
   } else if (target.startsWith('http')) {
     window.open(target, '_blank');

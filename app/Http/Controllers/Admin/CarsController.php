@@ -19,93 +19,116 @@ class CarsController extends Controller
     {
         abort_if(Gate::denies('car_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->ajax()) {
-            $query = Car::withoutGlobalScope('enabled')->with(['driver'])->select(sprintf('%s.*', (new Car)->table));
-            if ($request->filled('date_from') && $request->filled('date_to')) {
-                $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
-            }
-            if ($request->filled('imei')) {
-                $query->where('imei', $request->imei);
-            }
-            if ($request->filled('plate_number')) {
-                $query->where('plate_number', $request->plate_number);
-            }
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
-            $table = Datatables::of($query);
+        $query = Car::withoutGlobalScope('enabled')->with(['driver'])->select(sprintf('%s.*', (new Car)->table));
 
+        if ($request->filled('keyword')) {
+            $query->where(function($q) use ($request) {
+                $q->where('imei', 'like', '%' . $request->keyword . '%')
+                  ->orWhere('plate_number', 'like', '%' . $request->keyword . '%')
+                  ->orWhereHas('driver', function($dq) use ($request) {
+                      $dq->where('name', 'like', '%' . $request->keyword . '%');
+                  });
+            });
+        }
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+        }
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+        if ($request->filled('imei')) {
+            $query->where('imei', $request->imei);
+        }
+        if ($request->filled('plate_number')) {
+            $query->where('plate_number', $request->plate_number);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $sortBy = $request->input('sortBy', 'id');
+        $sortOrder = $request->input('sortOrder', 'desc');
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        
+        $query->orderBy($sortBy, $sortOrder);
+        
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->count();
+        $offset = ($page - 1) * $pageSize;
+
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($car) {
+            return [
+                'id' => $car->id,
+                'driver_name' => $car->driver ? $car->driver->name : null,
+                'driver_mobile' => $car->driver ? $car->driver->mobile : null,
+                'imei' => $car->imei,
+                'plate_number' => $car->plate_number,
+                'model' => $car->model,
+                'color' => $car->color,
+                'contact_person' => $car->contact_person,
+                'status' => $car->status, // 1: enabled, 2: disabled
+                'created_at' => $car->created_at ? $car->created_at->format('Y-m-d H:i') : null,
+            ];
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'rows' => $rows,
+                'total' => $total
+            ]);
+        }
+
+        // Inertia SPA Route Fallback (Initial Page Load)
+        if (str_starts_with($request->path(), 'app/')) {
+            return \Inertia\Inertia::render('Cars/CarsList', [
+                'initialRows' => $rows,
+                'initialTotal' => $total,
+                'can' => [
+                    'car_create' => Gate::allows('car_create'),
+                    'car_edit'   => Gate::allows('car_edit'),
+                    'car_show'   => Gate::allows('car_show'),
+                    'car_delete' => Gate::allows('car_delete'),
+                ],
+                'filters' => [
+                    'drivers' => Driver::select('id as value', 'name as label')->get(),
+                ]
+            ]);
+        }
+
+        // Classic Blade Fallback
+        if ($request->ajax()) { // Just to keep DataTables working for the old view if it still hits here
+            $query = Car::withoutGlobalScope('enabled')->with(['driver'])->select(sprintf('%s.*', (new Car)->table));
+            $table = Datatables::of($query);
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
-
             $table->editColumn('actions', function ($row) {
                 $viewGate      = 'car_show';
                 $editGate      = 'car_edit';
                 $deleteGate    = 'car_delete';
                 $crudRoutePart = 'cars';
-
-                return view('partials.datatablesActions', compact(
-                    'viewGate',
-                    'editGate',
-                    'deleteGate',
-                    'crudRoutePart',
-                    'row'
-                ));
+                return view('partials.datatablesActions', compact('viewGate', 'editGate', 'deleteGate', 'crudRoutePart', 'row'));
             });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->addColumn('driver_name', function ($row) {
-                return $row->driver ? $row->driver->name : '';
-            });
-
-            $table->editColumn('driver.mobile', function ($row) {
-                return $row->driver ? (is_string($row->driver) ? $row->driver : $row->driver->mobile) : '';
-            });
-            $table->editColumn('imei', function ($row) {
-                return $row->imei ? $row->imei : '';
-            });
-            $table->editColumn('plate_number', function ($row) {
-                return $row->plate_number ? $row->plate_number : '';
-            });
-            $table->editColumn('model', function ($row) {
-                return $row->model ? $row->model : '';
-            });
-            $table->editColumn('color', function ($row) {
-                return $row->color ? $row->color : '';
-            });
-            $table->editColumn('contact_person', function ($row) {
-                return $row->contact_person ? $row->contact_person : '';
-            });
-            $table->editColumn('description', function ($row) {
-                return $row->description ? $row->description : '';
-            });
-            $table->editColumn('status', function ($row) {
-                if ($row->status == 1) {
-                    return '<span class="badge bg-success">Enabled</span>';
-                }
-                if ($row->status == 2) {
-                    return '<span class="badge bg-danger">Disabled</span>';
-                }
-                return '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder', 'driver', 'status']);
-
             return $table->make(true);
         }
 
         return view('admin.cars.index');
     }
 
-    public function create()
+    public function create(Request $request)
     {
         abort_if(Gate::denies('car_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $drivers = Driver::select('id as value', 'name as label')->get();
 
-        return view('admin.cars.create', compact('drivers'));
+        if (str_starts_with($request->path(), 'app/')) {
+            return \Inertia\Inertia::render('Cars/CarForm', [
+                'drivers' => $drivers,
+            ]);
+        }
+
+        $driversMap = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        return view('admin.cars.create', ['drivers' => $driversMap]);
     }
 
     public function store(StoreCarRequest $request)
@@ -122,21 +145,31 @@ class CarsController extends Controller
         }
         $car = Car::create($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.cars.index')->with('success', 'Car created successfully.');
+        }
+
         return redirect()->route('admin.cars.index');
     }
 
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
         abort_if(Gate::denies('car_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $drivers = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
         $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
-
         $car->load('driver');
+        
+        $drivers = Driver::select('id as value', 'name as label')->get();
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return \Inertia\Inertia::render('Cars/CarForm', [
+                'car' => $car,
+                'drivers' => $drivers,
+            ]);
+        }
 
-        return view('admin.cars.edit', compact('car', 'drivers'));
+        $driversMap = Driver::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        return view('admin.cars.edit', ['car' => $car, 'drivers' => $driversMap]);
     }
 
     public function update(UpdateCarRequest $request, $id)
@@ -201,20 +234,42 @@ class CarsController extends Controller
             }
 
             if ($message) {
+                if (str_starts_with($request->path(), 'app/')) {
+                    return redirect()->route('app.admin.cars.index')->with('success', $message);
+                }
                 return redirect()->route('admin.cars.index')->with('success', $message);
             }
+        }
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.cars.index')->with('success', 'Car updated successfully.');
         }
 
         return redirect()->route('admin.cars.index');
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         abort_if(Gate::denies('car_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
-        $car->load('driver', 'carCarLinkHistories', 'carTasks');
+        $car->load(['driver', 'carCarLinkHistories.driver', 'carTasks.from_location', 'carTasks.to_location', 'carTracking', 'containers', 'media']);
+
+        if (str_starts_with($request->path(), 'app/')) {
+            $mediaUrls = [];
+            $directions = ['signature', 'image_front', 'image_back', 'image_right', 'image_left', 'image_inside1', 'image_inside2'];
+            foreach($directions as $dir) {
+                if ($car->hasMedia($dir)) {
+                    $mediaUrls[$dir] = asset($car->firstMedia($dir)->getDiskPath());
+                }
+            }
+
+            return \Inertia\Inertia::render('Cars/CarView', [
+                'car' => $car,
+                'mediaUrls' => $mediaUrls,
+            ]);
+        }
 
         return view('admin.cars.show', compact('car'));
     }
