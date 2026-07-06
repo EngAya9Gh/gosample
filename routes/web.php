@@ -46,6 +46,10 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
 
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks.index');
     Route::get('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('app.admin.scheduled-tasks.index');
+
+    // System Calendar (SPA rebuild of Admin\SystemCalendarController)
+    Route::get('admin/system-calendar', [\App\Http\Controllers\App\SystemCalendarController::class, 'index'])->name('app.admin.system-calendar');
+    Route::get('admin/system-calendar/export', [\App\Http\Controllers\App\SystemCalendarController::class, 'export'])->name('app.admin.system-calendar.export');
     Route::get('admin/tasks/unused', [\App\Http\Controllers\App\TasksController::class, 'unused'])->name('app.admin.tasks.unused');
     // Task create/edit popup (SPA modals) — distinct "popup" paths so they never
     // collide with page-style create/edit routes or the {task} wildcard below.
@@ -70,6 +74,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
 
     // Reports Dashboard
     Route::get('reports', [\App\Http\Controllers\App\ReportsController::class, 'index'])->name('app.reports');
+    Route::get('reports/export', [\App\Http\Controllers\App\ReportsController::class, 'export'])->name('app.reports.export');
 
     // Live Map
     Route::get('map', [\App\Http\Controllers\App\MapController::class, 'index'])->name('app.map');

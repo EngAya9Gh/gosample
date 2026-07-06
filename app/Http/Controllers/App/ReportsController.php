@@ -58,6 +58,76 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Clean .xlsx export of the current tab (same filters as the on-screen table).
+     */
+    public function export(Request $request)
+    {
+        abort_if(Gate::denies('report_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $tab = $request->input('tab', 'performance');
+        [$title, $headings, $rows] = $this->reportMatrix($tab, $request, auth()->user());
+
+        $filename = 'report-' . $tab . '-' . now()->format('Ymd_His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ReportExport($rows, $headings, $title),
+            $filename
+        );
+    }
+
+    /**
+     * Build [sheetTitle, headings[], rows[][]] for a tab — reuses the same data
+     * builders the on-screen tables use, so the export matches the UI 1:1.
+     */
+    private function reportMatrix(string $tab, Request $request, $user): array
+    {
+        switch ($tab) {
+            case 'weekly':
+                $drivers = $this->getWeeklyData($request, $user)['drivers'] ?? collect();
+                return ['Weekly Consistency',
+                    ['Driver', 'Days Worked', 'Total Delays', 'Overtime (hrs)', 'Avg Punctuality %'],
+                    collect($drivers)->map(fn ($d) => [
+                        $d['name'], $d['days_worked'], $d['total_delays'],
+                        round(($d['overtime'] ?? 0) / 60, 1), $d['punctuality'],
+                    ])->all(),
+                ];
+
+            case 'monthly':
+                $drivers = collect($this->getMonthlyData($request, $user)['drivers'] ?? [])
+                    ->sortByDesc('performance_score')->values();
+                return ['Monthly Evaluation',
+                    ['Rank', 'Driver', 'Present', 'Absent', 'Late Days', 'Violations', 'Delay (Min)', 'Hrs Balance', 'Score %'],
+                    $drivers->map(fn ($d, $i) => [
+                        $i + 1, $d['name'], $d['days_present'], $d['days_absent'], $d['days_late'],
+                        $d['kpi_violations'], $d['total_delay'], round(($d['hrs_balance'] ?? 0) / 60, 1),
+                        $d['performance_score'],
+                    ])->all(),
+                ];
+
+            case 'daily':
+                $drivers = $this->getDailyData($request, $user)['drivers'] ?? collect();
+                return ['Daily Report',
+                    ['Driver', 'Check-in', 'Check-out', 'Late (min)', 'Operational Delays', 'Status'],
+                    collect($drivers)->map(fn ($d) => [
+                        $d['name'], $d['check_in'], $d['check_out'],
+                        $d['is_late'] ? $d['delay_mins'] : 0, $d['delayed_tasks'],
+                        $d['has_attendance'] ? 'Present' : 'Absent',
+                    ])->all(),
+                ];
+
+            case 'performance':
+            default:
+                $drivers = $this->getPerformanceData($request, $user)['drivers'] ?? collect();
+                return ['KPI Performance',
+                    ['Driver', 'Punctuality %', 'Operation Speed (min)', 'Violations'],
+                    collect($drivers)->map(fn ($d) => [
+                        $d['name'], $d['punctuality'], $d['avg_speed_mins'], $d['delayed_tasks'],
+                    ])->all(),
+                ];
+        }
+    }
+
     private function getPerformanceData(Request $request, $user)
     {
         $dateFrom = $request->input('date_from', now()->subDays(30)->toDateString());

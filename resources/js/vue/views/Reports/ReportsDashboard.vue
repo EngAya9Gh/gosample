@@ -73,9 +73,108 @@ const getDriverGradient = (id) => driverGradients[(id || 0) % driverGradients.le
 const getPunctColor = (p) => p >= 90 ? '#0ab39c' : (p >= 75 ? '#f7b84b' : '#dc2626');
 const getPunctBg = (p) => p >= 90 ? 'rgba(10,179,156,0.12)' : (p >= 75 ? 'rgba(247,184,75,0.12)' : 'rgba(220,38,38,0.12)');
 
-const doPrint = () => {
-  window.print();
+const TAB_LABEL = {
+  performance: 'KPI Performance', weekly: 'Weekly Consistency',
+  monthly: 'Monthly Evaluation', daily: 'Daily Report',
 };
+
+// Build { title, headers, rows } for the current tab — mirrors the on-screen
+// table so Print and Export show exactly what the user sees.
+function buildMatrix() {
+  const drivers = props.reportData?.drivers || [];
+  switch (currentTab.value) {
+    case 'weekly':
+      return {
+        title: TAB_LABEL.weekly,
+        headers: ['Driver', 'Days Worked', 'Total Delays', 'Overtime (hrs)', 'Avg Punctuality %'],
+        rows: drivers.map((d) => [d.name, d.days_worked, d.total_delays, (Number(d.overtime || 0) / 60).toFixed(1), `${d.punctuality}%`]),
+      };
+    case 'monthly': {
+      const sorted = [...drivers].sort((a, b) => b.performance_score - a.performance_score);
+      return {
+        title: TAB_LABEL.monthly,
+        headers: ['Rank', 'Driver', 'Present', 'Absent', 'Late Days', 'Violations', 'Delay (Min)', 'Hrs Balance', 'Score %'],
+        rows: sorted.map((d, i) => [i + 1, d.name, d.days_present, d.days_absent, d.days_late, d.kpi_violations, d.total_delay, `${(Number(d.hrs_balance || 0) / 60).toFixed(1)}h`, `${d.performance_score}%`]),
+      };
+    }
+    case 'daily':
+      return {
+        title: TAB_LABEL.daily,
+        headers: ['Driver', 'Check-in', 'Check-out', 'Late (min)', 'Operational Delays', 'Status'],
+        rows: drivers.map((d) => [d.name, d.check_in, d.check_out, d.is_late ? d.delay_mins : 0, d.delayed_tasks, d.has_attendance ? 'Present' : 'Absent']),
+      };
+    default:
+      return {
+        title: TAB_LABEL.performance,
+        headers: ['Driver', 'Punctuality %', 'Operation Speed (min)', 'Violations'],
+        rows: drivers.map((d) => [d.name, `${d.punctuality}%`, d.avg_speed_mins, d.delayed_tasks]),
+      };
+  }
+}
+
+// Human-readable summary of the active filters (printed on the report header).
+function filterSummary() {
+  const f = localFilters.value;
+  const parts = [];
+  const drv = driverOpts.value.find((o) => o.value === f.driver_id);
+  if (drv) parts.push(`Driver: ${drv.label}`);
+  if (currentTab.value === 'performance') {
+    const cl = clientOpts.value.find((o) => o.value === f.client_id);
+    if (cl) parts.push(`Client: ${cl.label}`);
+  }
+  if (f.date_from) parts.push(`From: ${f.date_from}`);
+  if (f.date_to) parts.push(`To: ${f.date_to}`);
+  if (currentTab.value === 'monthly' && f.month) parts.push(`Month: ${f.month}`);
+  if (currentTab.value === 'daily' && f.search_date) parts.push(`Date: ${f.search_date}`);
+  return parts.join('  ·  ') || 'All records';
+}
+
+// Clean print — renders ONLY the report (title, filters, table) in a fresh
+// window, so the sidebar/topbar/filter chrome is never printed.
+function doPrint() {
+  const { title, headers, rows } = buildMatrix();
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const th = headers.map((h) => `<th>${esc(h)}</th>`).join('');
+  const tr = rows.length
+    ? rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')
+    : `<tr><td colspan="${headers.length}" style="text-align:center;color:#94a3b8;padding:24px">No data for this selection.</td></tr>`;
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+    <style>
+      *{font-family:Poppins,Arial,sans-serif;box-sizing:border-box}
+      body{margin:24px;color:#16282b}
+      .head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #005D69;padding-bottom:12px}
+      h1{font-size:20px;margin:0;color:#005D69}
+      .sub{font-size:12px;color:#7e9094;margin-top:2px}
+      .meta{font-size:11px;color:#7e9094;text-align:right;line-height:1.5}
+      .filters{font-size:12px;color:#52656a;margin:12px 0 16px}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th{background:#005D69;color:#fff;text-align:left;padding:8px 10px;font-weight:600}
+      td{border:1px solid #e3eaea;padding:7px 10px}
+      tr:nth-child(even) td{background:#f6f9f9}
+      @media print{body{margin:0}}
+    </style></head><body>
+    <div class="head">
+      <div><h1>Performance Tracking</h1><div class="sub">${esc(title)}</div></div>
+      <div class="meta"><b>MTC · GoSample</b><br>${esc(new Date().toLocaleString('en-GB'))}</div>
+    </div>
+    <div class="filters"><b>Filters:</b> ${esc(filterSummary())}</div>
+    <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
+  </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
+}
+
+// Clean Excel — real .xlsx from the backend, current tab + active filters.
+function doExport() {
+  const f = localFilters.value;
+  const params = new URLSearchParams({ tab: currentTab.value });
+  ['driver_id', 'client_id', 'date_from', 'date_to', 'month', 'search_date']
+    .forEach((k) => { if (f[k]) params.set(k, f[k]); });
+  window.location.href = `/app/reports/export?${params.toString()}`;
+}
 
 watch(currentTab, (newTab) => {
   // Clear filters that don't apply to the new tab, if desired
@@ -110,7 +209,7 @@ function onDateRange(range) {
         <button class="h-[38px] px-4 rounded-[10px] border border-[#e3eaea] dark:border-[#1d2c2e] bg-white dark:bg-[#0f1c1e] text-[#16282b] dark:text-[#e8f0f0] text-[13.5px] font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-[#13201f] transition-colors" @click="doPrint">
           <i class="ri-printer-line text-[16px]"></i> Print
         </button>
-        <button class="h-[38px] px-4 rounded-[10px] border-none text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_8px_18px_rgba(0,93,105,0.22)] hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#0d9488,#005D69);">
+        <button class="h-[38px] px-4 rounded-[10px] border-none text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_8px_18px_rgba(0,93,105,0.22)] hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#0d9488,#005D69);" @click="doExport">
           <i class="ri-file-excel-2-line text-[16px]"></i> Export Excel
         </button>
       </div>
@@ -121,7 +220,9 @@ function onDateRange(range) {
       <TabGroup :tabs="tabs" v-model:active="currentTab" variant="pills" />
     </div>
 
-    <div class="bg-surface dark:bg-surface-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm mb-6 relative z-10">
+    <!-- Positioning wrapper only (z-10 keeps the filter dropdowns above the results);
+         FilterBar renders its own card, so no card styling here — avoids a double card. -->
+    <div class="relative z-10">
       <FilterBar :loading="loading" subtitle="Refine your report data" @search="doSearch" @reset="doReset">
         <!-- Shared Driver Filter -->
         <FormSelect v-model="localFilters.driver_id" label="Driver" :options="driverOpts" placeholder="All Drivers" />
@@ -139,18 +240,12 @@ function onDateRange(range) {
 
         <!-- Monthly Filters -->
         <template v-if="currentTab === 'monthly'">
-          <div class="space-y-1">
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Month</label>
-            <input type="month" v-model="localFilters.month" class="w-full h-10 px-3 border border-slate-300 dark:border-white/10 rounded-xl bg-surface dark:bg-surface-dark-card text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm" />
-          </div>
+          <FormDate v-model="localFilters.month" label="Month" mode="month" placeholder="Select month" />
         </template>
 
         <!-- Daily Filters -->
         <template v-if="currentTab === 'daily'">
-          <div class="space-y-1">
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Date</label>
-            <input type="date" v-model="localFilters.search_date" class="w-full h-10 px-3 border border-slate-300 dark:border-white/10 rounded-xl bg-surface dark:bg-surface-dark-card text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm" />
-          </div>
+          <FormDate v-model="localFilters.search_date" label="Date" mode="date" placeholder="Select date" />
         </template>
       </FilterBar>
     </div>

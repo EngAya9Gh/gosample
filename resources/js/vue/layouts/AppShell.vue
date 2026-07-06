@@ -39,7 +39,13 @@ const showTop = ref(false);
 // /app); Blade-only targets (login/logout) do a full page navigation.
 function onNavigate(target) {
   if (!target) return;
-  if (target.startsWith('/admin') && !['/admin/tasks', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks'].includes(target)) {
+  // Migrated SPA routes go through Inertia (/app); every other /admin route still
+  // loads its classic Blade page. Add a route here when its SPA page ships.
+  const SPA_ADMIN_ROUTES = [
+    '/admin/tasks', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks',
+    '/admin/system-calendar', '/admin/tasks/reconcile', '/admin/drivers', '/admin/lost',
+  ];
+  if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.includes(target)) {
     window.location.href = target;
   } else if (target.startsWith('http')) {
     window.open(target, '_blank');

@@ -135,9 +135,11 @@ function setMode(m) {
 
 // ---- stats ----
 const stats = computed(() => {
-  const total = expected.value;
-  const pending = samples.value.length;
-  const pct = total ? Math.round((received.value / total) * 100) : 0;
+  // `expected` is seeded from the DB on load; guard so it never reads below the
+  // resolved count if loose (out-of-batch) actions push received/lost higher.
+  const total = Math.max(expected.value, received.value + lost.value);
+  const pending = Math.max(0, total - received.value - lost.value);
+  const pct = total ? Math.min(100, Math.round((received.value / total) * 100)) : 0;
   return { total, received: received.value, pending, lost: lost.value, pct };
 });
 
@@ -154,9 +156,11 @@ async function getSamples() {
     if (data.status) {
       const rows = Array.isArray(data.data) ? data.data : [];
       samples.value = rows.map((r) => ({ barcode: r.barcode_id }));
-      expected.value = rows.length;
-      received.value = 0;
-      lost.value = 0;
+      // Seed the stat cards from the real DB breakdown for this driver+location.
+      const s = data.stats || {};
+      expected.value = s.expected ?? rows.length;
+      received.value = s.received ?? 0;
+      lost.value = s.lost ?? 0;
       if (rows.length) {
         push({ type: 'success', title: 'Batch loaded', message: `${rows.length} pending sample(s).` });
       } else {
@@ -237,10 +241,14 @@ async function openLookup(barcode, fromScan = false) {
   }
 }
 
-// If a triaged sample also sits in the pending batch, drop it and tally it —
-// so the batch list stays consistent with the classic "remove when resolved".
-function tallyResolved(barcode, kind) {
-  if (removeFromBatch(barcode)) { if (kind === 'received') received.value++; else lost.value++; }
+// Move a sample between stat buckets based on its previous status → new status.
+// Runs for ANY sample (batch or loose), so triage/chip actions update the cards.
+function applyTransition(prev, next) {
+  if (prev === next) return;
+  if (prev === 'received') received.value = Math.max(0, received.value - 1);
+  if (prev === 'lost')     lost.value     = Math.max(0, lost.value - 1);
+  if (next === 'received') received.value++;
+  if (next === 'lost')     lost.value++;
 }
 
 async function lookupConfirm() {
@@ -248,8 +256,9 @@ async function lookupConfirm() {
   try {
     const { data } = await axios.post(URL.confirm, { samples: [l.barcode], method: 'MARK_CONFIRMED' });
     if (data.status) {
+      applyTransition(l.status, 'received');
       l.status = 'received'; l.method = 'MARK_CONFIRMED';
-      tallyResolved(l.barcode, 'received');
+      removeFromBatch(l.barcode);
       push({ type: 'success', title: 'Confirmed', message: l.barcode });
     } else { push({ type: 'error', title: 'Blocked', message: data.message || l.barcode }); }
   } catch (e) { push({ type: 'error', title: 'Request failed', message: e.response?.data?.message || 'Server error.' }); }
@@ -261,8 +270,9 @@ async function lookupLost() {
   try {
     const { data } = await axios.post(URL.lost, { sample: l.barcode });
     if (data.status) {
+      applyTransition(l.status, 'lost');
       l.status = 'lost'; l.method = 'MARK_LOST';
-      tallyResolved(l.barcode, 'lost');
+      removeFromBatch(l.barcode);
       push({ type: 'success', title: 'Marked lost', message: l.barcode });
     } else { push({ type: 'error', title: 'Blocked', message: data.message || l.barcode }); }
   } catch (e) { push({ type: 'error', title: 'Request failed', message: e.response?.data?.message || 'Server error.' }); }
@@ -279,8 +289,8 @@ async function confirmAll() {
   try {
     const { data } = await axios.post(URL.confirmAll, { driver_id: driverId.value, to_location: locationId.value });
     if (data.status) {
-      // Classic scan logic confirms every pending sample then reloads (empty batch).
-      const n = samples.value.length;
+      // Confirms every still-pending sample for this driver+location.
+      const n = stats.value.pending;
       received.value += n;
       samples.value = [];
       push({ type: 'success', title: 'Confirmed all', message: `${n} pending sample(s) received.` });

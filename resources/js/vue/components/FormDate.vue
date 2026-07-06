@@ -11,11 +11,13 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
+import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect';
+import 'flatpickr/dist/plugins/monthSelect/style.css';
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   label:    { type: String, default: '' },
-  mode:     { type: String, default: 'date' }, // date | time | datetime
+  mode:     { type: String, default: 'date' }, // date | time | datetime | month | range
   placeholder: { type: String, default: '' },
   helper:   { type: String, default: '' },
   error:    { type: String, default: '' },
@@ -33,13 +35,17 @@ let fp = null;
 const icon = computed(() => (props.mode === 'time' ? 'ri-time-line' : 'ri-calendar-line'));
 const ph = computed(() =>
   props.placeholder ||
-  (props.mode === 'time' ? 'hh:mm' : props.mode === 'datetime' ? 'dd/mm/yyyy, hh:mm' : 'dd/mm/yyyy')
+  (props.mode === 'time' ? 'hh:mm'
+    : props.mode === 'datetime' ? 'dd/mm/yyyy, hh:mm'
+    : props.mode === 'month' ? 'mm/yyyy'
+    : 'dd/mm/yyyy')
 );
 // Friendly, theme-style display of the selected value (e.g. "01 Jun 2026, 9:00 AM").
 // flatpickr's altInput shows this while the real input keeps the raw Y-m-d H:i value.
 const altFmt = computed(() =>
   props.mode === 'time' ? 'h:i K'
   : props.mode === 'datetime' ? 'd M Y, h:i K'
+  : props.mode === 'month' ? 'F Y'
   : 'd M Y'
 );
 
@@ -130,6 +136,14 @@ function buildConfig() {
   }
   if (props.mode === 'time') {
     return { ...base, enableTime: true, noCalendar: true, time_24hr: false, dateFormat: 'H:i' };
+  }
+  if (props.mode === 'month') {
+    // Branded month picker (Y-m value, "June 2026" display) via the monthSelect plugin.
+    return {
+      ...base,
+      dateFormat: 'Y-m',
+      plugins: [monthSelectPlugin({ shorthand: true, dateFormat: 'Y-m', altFormat: 'F Y' })],
+    };
   }
   if (props.mode === 'range') {
     return { ...base, mode: 'range', dateFormat: 'Y-m-d' };
