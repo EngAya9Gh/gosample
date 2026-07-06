@@ -254,7 +254,7 @@ class CarsController extends Controller
 
         $car = Car::withoutGlobalScope('enabled')->findOrFail($id);
 
-        $car->load(['driver', 'carCarLinkHistories.driver', 'carTasks.from_location', 'carTasks.to_location', 'carTracking', 'containers', 'media']);
+        $car->load(['driver', 'carCarLinkHistories.driver', 'carTasks.from', 'carTasks.to', 'carTasks.client', 'carTasks.driver', 'carTracking', 'containers', 'media']);
 
         if (str_starts_with($request->path(), 'app/')) {
             $mediaUrls = [];

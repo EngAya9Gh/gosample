@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import StatusBadge from '../../components/StatusBadge.vue';
 
 const props = defineProps({
   car: {
@@ -159,24 +160,33 @@ const editCar = () => {
              </a>
           </div>
           <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/5">
-            <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
-              <thead class="bg-slate-50 dark:bg-black/20">
+            <table class="min-w-full divide-y divide-slate-100 dark:divide-white/5">
+              <thead class="bg-slate-50/50 dark:bg-black/20">
                 <tr>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Model</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">ID</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Model</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="px-5 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 dark:divide-white/5">
-                <tr v-for="container in props.car.containers" :key="container.id" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">#{{ container.id }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ container.type }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ container.model }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ container.status }}</td>
+              <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                <tr v-for="container in props.car.containers" :key="container.id" class="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
+                  <td class="px-5 py-3 whitespace-nowrap text-sm font-black text-primary-600 dark:text-primary-400">#{{ container.id }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-700 dark:text-slate-300 font-medium">{{ container.type }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ container.model }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    <span v-if="container.status === 'ACTIVE'" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-success/10 text-success">Active</span>
+                    <span v-else class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">{{ container.status }}</span>
+                  </td>
+                  <td class="px-5 py-3 whitespace-nowrap text-right">
+                    <a :href="`/admin/containers/${container.id}/edit`" class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-600 transition-colors" title="Edit Container">
+                      <i class="ri-pencil-line text-lg"></i>
+                    </a>
+                  </td>
                 </tr>
                 <tr v-if="!props.car.containers?.length">
-                  <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">No containers associated with this car.</td>
+                  <td colspan="5" class="px-5 py-8 text-center text-sm text-slate-500">No containers associated with this car.</td>
                 </tr>
               </tbody>
             </table>
@@ -186,30 +196,34 @@ const editCar = () => {
         <!-- Link History Tab -->
         <div v-show="activeTab === 'history'" class="space-y-4">
           <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/5">
-            <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
-              <thead class="bg-slate-50 dark:bg-black/20">
+            <table class="min-w-full divide-y divide-slate-100 dark:divide-white/5">
+              <thead class="bg-slate-50/50 dark:bg-black/20">
                 <tr>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Driver</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Driver</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Action</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 dark:divide-white/5">
-                <tr v-for="history in props.car.car_car_link_histories" :key="history.id" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">
+              <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                <tr v-for="history in props.car.car_car_link_histories" :key="history.id" class="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
+                  <td class="px-5 py-3 whitespace-nowrap text-sm font-bold text-slate-800 dark:text-slate-200">
                     <div class="flex items-center gap-2">
-                      <BaseAvatar :name="history.driver?.name || 'Unknown'" :size="24" />
+                      <BaseAvatar :name="history.driver?.name || 'Unknown'" :size="28" />
                       {{ history.driver?.name || 'Unknown' }}
                     </div>
                   </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    <span v-if="history.action === 'linked'" class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs font-bold dark:bg-emerald-500/10 dark:text-emerald-400">Linked</span>
-                    <span v-else class="text-danger bg-danger/5 px-2 py-0.5 rounded text-xs font-bold dark:bg-danger/10 dark:text-danger-400">Unlinked</span>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm">
+                    <span v-if="history.action === 'linked'" class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-bold dark:bg-emerald-500/10 dark:text-emerald-400">
+                      <i class="ri-link-m mr-1"></i>Linked
+                    </span>
+                    <span v-else class="text-danger bg-danger/5 px-2 py-0.5 rounded text-[11px] font-bold dark:bg-danger/10 dark:text-danger-400">
+                      <i class="ri-link-unlink-m mr-1"></i>Unlinked
+                    </span>
                   </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ formatDate(history.created_at) }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-medium">{{ formatDate(history.created_at) }}</td>
                 </tr>
                 <tr v-if="!props.car.car_car_link_histories?.length">
-                  <td colspan="3" class="px-4 py-8 text-center text-sm text-slate-500">No link history found.</td>
+                  <td colspan="3" class="px-5 py-8 text-center text-sm text-slate-500">No link history found.</td>
                 </tr>
               </tbody>
             </table>
@@ -219,28 +233,43 @@ const editCar = () => {
         <!-- Tasks Tab -->
         <div v-show="activeTab === 'tasks'" class="space-y-4">
           <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/5">
-            <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
-              <thead class="bg-slate-50 dark:bg-black/20">
+            <table class="min-w-full divide-y divide-slate-100 dark:divide-white/5">
+              <thead class="bg-slate-50/50 dark:bg-black/20">
                 <tr>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Route</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">ID</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Route</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Billing Client</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Driver</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Created</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 dark:divide-white/5">
-                <tr v-for="task in props.car.car_tasks" :key="task.id" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-primary-600 dark:text-primary-400">
-                    <a :href="`/admin/tasks/${task.id}`" target="_blank">#{{ task.id }}</a>
+              <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                <tr v-for="task in props.car.car_tasks" :key="task.id" class="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
+                  <td class="px-5 py-3 whitespace-nowrap text-sm font-black text-info dark:text-info">
+                    <a :href="`/admin/tasks/${task.id}`" class="hover:underline" target="_blank">#{{ task.id }}</a>
                   </td>
-                  <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
-                    {{ task.from_location?.name || '—' }} <i class="ri-arrow-right-line text-slate-400 text-[10px] mx-1"></i> {{ task.to_location?.name || '—' }}
+                  <td class="px-5 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <span class="inline-flex items-center gap-1"><i class="ri-map-pin-fill text-red-500 text-[11px]"></i> {{ task.from?.name || '—' }}</span>
+                    <i class="ri-arrow-right-line text-slate-400 text-[11px] mx-1"></i>
+                    <span class="inline-flex items-center gap-1"><i class="ri-map-pin-fill text-green-500 text-[11px]"></i> {{ task.to?.name || '—' }}</span>
                   </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ task.status }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ formatDate(task.created_at) }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200 font-medium">
+                    {{ task.client?.name || '—' }}
+                  </td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
+                    <div class="flex items-center gap-2">
+                      <BaseAvatar v-if="task.driver" :name="task.driver.name" :size="20" />
+                      {{ task.driver?.name || '—' }}
+                    </div>
+                  </td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm">
+                    <StatusBadge :status="String(task.status || '')" />
+                  </td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-medium">{{ formatDate(task.created_at) }}</td>
                 </tr>
                 <tr v-if="!props.car.car_tasks?.length">
-                  <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">No tasks assigned to this car.</td>
+                  <td colspan="6" class="px-5 py-8 text-center text-sm text-slate-500">No tasks assigned to this car.</td>
                 </tr>
               </tbody>
             </table>
@@ -250,24 +279,34 @@ const editCar = () => {
         <!-- Tracking Tab -->
         <div v-show="activeTab === 'tracking'" class="space-y-4">
           <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/5">
-            <table class="min-w-full divide-y divide-slate-200 dark:divide-white/5">
-              <thead class="bg-slate-50 dark:bg-black/20">
+            <table class="min-w-full divide-y divide-slate-100 dark:divide-white/5">
+              <thead class="bg-slate-50/50 dark:bg-black/20">
                 <tr>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Lat</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Lng</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">ID</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Location</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Temp 1 (5)</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Temp 2 (6)</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Temp 3 (7)</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Temp 4 (8)</th>
+                  <th scope="col" class="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 dark:divide-white/5">
-                <tr v-for="track in props.car.car_tracking" :key="track.id" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">#{{ track.id }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ track.lat }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ track.lng }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ formatDate(track.created_at) }}</td>
+              <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                <tr v-for="track in props.car.car_tracking" :key="track.id" class="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
+                  <td class="px-5 py-3 whitespace-nowrap text-sm font-black text-slate-900 dark:text-slate-100">#{{ track.id }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm">
+                    <a :href="`https://www.google.com/maps/place/${track.lat},${track.lng}`" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold bg-info/10 text-info hover:bg-info/20 transition-colors">
+                      <i class="ri-map-pin-line"></i> View on Map
+                    </a>
+                  </td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{{ track.temp5 || '—' }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{{ track.temp6 || '—' }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{{ track.temp7 || '—' }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{{ track.temp8 || '—' }}</td>
+                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-medium">{{ formatDate(track.created_at) }}</td>
                 </tr>
                 <tr v-if="!props.car.car_tracking?.length">
-                  <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">No tracking data available.</td>
+                  <td colspan="7" class="px-5 py-8 text-center text-sm text-slate-500">No tracking data available.</td>
                 </tr>
               </tbody>
             </table>
