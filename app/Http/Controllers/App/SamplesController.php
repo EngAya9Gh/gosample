@@ -21,6 +21,81 @@ class SamplesController extends Controller
             return (string) $date;
         }
     }
+    public function index(Request $request)
+    {
+        abort_if(Gate::denies('sample_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $user = auth()->user();
+
+        $sortColumn = $request->input('sort_by', 'samples.created_at');
+        if (!in_array($sortColumn, ['samples.created_at', 'samples.updated_at'], true)) {
+            $sortColumn = 'samples.created_at';
+        }
+        $sortOrder = $request->input('sort_order', 'desc');
+        if (!in_array($sortOrder, ['asc', 'desc'], true)) {
+            $sortOrder = 'desc';
+        }
+
+        $query = Sample::with(['location', 'task.driver', 'task.to', 'container'])->select('samples.*');
+
+        if ($user && !empty($user->assigned_client_ids)) {
+            $query->join('tasks', 'samples.task_id', '=', 'tasks.id');
+            $query->whereIn('tasks.billing_client', $user->assigned_client_ids);
+        }
+
+        if ($request->filled('confirmed_by_client')) {
+            $query->where('samples.confirmed_by_client', $request->confirmed_by_client);
+        }
+
+        $query->when($request->barcode_id, fn ($q, $v) => $q->where('samples.barcode_id', 'like', "%{$v}%"));
+
+        $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;
+        $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
+        if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+        }
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween('samples.created_at', [$dateFrom->toDateTimeString(), $dateTo->toDateTimeString()]);
+        } elseif ($dateFrom) {
+            $query->where('samples.created_at', '>=', $dateFrom);
+        } elseif ($dateTo) {
+            $query->where('samples.created_at', '<=', $dateTo);
+        }
+
+        $query->orderBy($sortColumn, $sortOrder);
+
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->count();
+        $offset = ($page - 1) * $pageSize;
+
+        $seq = $offset;
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function (Sample $s) use (&$seq) {
+            return [
+                'sequence'           => ++$seq,
+                'id'                 => $s->id,
+                'barcode_id'         => $s->barcode_id,
+                'location_name'      => optional($s->location)->name,
+                'task_id'            => $s->task_id,
+                'driver_name'        => optional(optional($s->task)->driver)->name,
+                'collection_date'    => $this->fmt(optional($s->task)->collection_date),
+                'to_location_name'   => optional(optional($s->task)->to)->name,
+                'close_date'         => $this->fmt(optional($s->task)->close_date),
+                'confirmed_by_client'=> $s->confirmed_by_client,
+                'created_at'         => $this->fmt($s->created_at),
+            ];
+        });
+
+        $filters = $request->only(['barcode_id', 'confirmed_by_client', 'date_from', 'date_to', 'sort_by', 'sort_order']);
+
+        return Inertia::render('Samples/SamplesList', [
+            'rows'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'pageSize' => $pageSize,
+            'filters'  => $filters,
+        ]);
+    }
 
     public function lost(Request $request)
     {

@@ -12,6 +12,24 @@ use App\Http\Controllers\EmergencyController;
 // added here one module at a time; everything else falls back to a ComingSoon page.
 Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('/', fn () => redirect('/app/dashboard'));
+    Route::get('/debug-count', function () {
+        $user = auth()->user();
+        $q1 = \App\Models\Sample::count();
+        $q2 = \App\Models\Sample::where('confirmed_by_client', 'LOST')->count();
+        $q3 = \App\Models\Sample::query();
+        if ($user && !empty($user->assigned_client_ids)) {
+            $q3->join('tasks', 'samples.task_id', '=', 'tasks.id');
+            $q3->whereIn('tasks.billing_client', $user->assigned_client_ids);
+        }
+        $q4 = $q3->count();
+        return response()->json([
+            'total_samples' => $q1,
+            'lost_samples' => $q2,
+            'assigned_samples' => $q4,
+            'user' => $user->name,
+            'assigned_clients' => $user->assigned_client_ids,
+        ]);
+    });
     Route::get('dashboard', [\App\Http\Controllers\App\DashboardController::class, 'index'])->name('app.dashboard');
     Route::get('delayeddashboard', [\App\Http\Controllers\App\DelayedDashboardController::class, 'index'])->name('app.delayeddashboard');
     Route::get('car-dashboard', [\App\Http\Controllers\App\CarDashboardController::class, 'index'])->name('app.car-dashboard');
@@ -47,6 +65,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('daily-operation/export/download/{token}', [\App\Http\Controllers\App\DailyOperationController::class, 'downloadExport'])->name('app.daily-operation.export.download');
 
     // Samples
+    Route::get('admin/samples', [\App\Http\Controllers\App\SamplesController::class, 'index'])->name('app.admin.samples.index');
     Route::get('admin/lost', [\App\Http\Controllers\App\SamplesController::class, 'lost'])->name('app.admin.lost');
 
     // Reports Dashboard

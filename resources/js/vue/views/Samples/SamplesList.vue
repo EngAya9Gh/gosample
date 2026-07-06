@@ -8,6 +8,7 @@ import FormInput from '../../components/FormInput.vue';
 import FormSelect from '../../components/FormSelect.vue';
 import FormDate from '../../components/FormDate.vue';
 import BaseModal from '../../components/BaseModal.vue';
+import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import { usePermissions } from '../../composables/usePermissions';
 import { useToast } from '../../composables/useToast';
@@ -25,7 +26,7 @@ const props = defineProps({
 });
 
 const DEFAULT_FILTERS = {
-  barcode_id: '', confirmed_by_client: 'LOST', date_from: '', date_to: '',
+  barcode_id: '', confirmed_by_client: '', date_from: '', date_to: '',
   sort_by: '', sort_order: '',
 };
 const filters = reactive({ ...DEFAULT_FILTERS, ...props.filters });
@@ -39,7 +40,7 @@ function onDateRange({ from, to }) {
 
 const sortByOpts = [
   { value: '',                label: '— Default —' },
-  { value: 'created_at',      label: 'Creation Date' },
+  { value: 'samples.created_at', label: 'Creation Date' },
 ];
 const sortOrderOpts = [
   { value: '',     label: '— Default —' },
@@ -48,7 +49,7 @@ const sortOrderOpts = [
 ];
 
 const confirmedByClientOpts = [
-  { value: 'ALL',   label: 'All' },
+  { value: '',      label: 'All' },
   { value: 'LOST',  label: 'LOST' },
   { value: 'YES',   label: 'RECEIVED' },
   { value: 'NO',    label: 'PENDING' },
@@ -62,20 +63,19 @@ const columns = [
   { key: 'sequence',          label: '#',                 sticky: 'start', width: '52px' },
   { key: 'id',                label: 'ID',                sticky: 'start', width: '80px' },
   { key: 'barcode_id',        label: 'Barcode',           ltr: true },
-  { key: 'location_name',     label: 'Location',          wrap: true, width: '200px' },
-  { key: 'task_id',           label: 'Task ID',           width: '100px' },
-  { key: 'container_imei',    label: 'Container',         width: '140px' },
-  { key: 'sample_type',       label: 'Sample Type',       width: '140px' },
-  { key: 'temperature_type',  label: 'Temp Type',         width: '140px' },
-  { key: 'bag_code',          label: 'Bag Code',          width: '140px' },
+  { key: 'location_name',     label: 'From Location',     wrap: true, width: '180px' },
+  { key: 'to_location_name',  label: 'To Location',       wrap: true, width: '180px' },
+  { key: 'task_id',           label: 'Task',              width: '90px' },
+  { key: 'driver_name',       label: 'Driver',            width: '140px' },
+  { key: 'collection_date',   label: 'Collection Date',   ltr: true, width: '130px' },
+  { key: 'close_date',        label: 'Close Date',        ltr: true, width: '130px' },
   { key: 'confirmed_by_client',label: 'Status',           width: '140px' },
-  { key: 'created_at',        label: 'Time',              ltr: true },
   { key: 'actions',           label: 'Actions',           sticky: 'end', width: '80px', align: 'center' },
 ];
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/lost', { ...filters, ...extra }, {
+  router.get('/app/admin/samples', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters'],
@@ -109,9 +109,9 @@ async function confirmDelete() {
 
 <template>
   <div class="px-4 py-6 md:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-6">
-    <Breadcrumb title="Lost Samples" :trail="[{ label: 'Samples' }, { label: 'Lost Samples' }]" />
+    <Breadcrumb title="Samples" :trail="[{ label: 'Samples' }, { label: 'Samples List' }]" />
 
-    <FilterBar :loading="loading" subtitle="filter lost samples" @search="doSearch" @reset="doReset">
+    <FilterBar :loading="loading" subtitle="filter samples list" @search="doSearch" @reset="doReset">
       <FormInput  v-model="filters.barcode_id"          label="Barcode"        placeholder="Enter barcode" />
       <FormDate   v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
       <FormSelect v-model="filters.sort_by"        label="Sort By"        :options="sortByOpts"     :searchable="false" placeholder="Default order" />
@@ -161,36 +161,15 @@ async function confirmDelete() {
         <span v-else class="text-slate-400">—</span>
       </template>
 
+      <template #cell-driver_name="{ value }">
+        <span v-if="value" class="inline-flex items-center gap-1.5">
+          <BaseAvatar :name="value" :size="22" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
+        </span>
+        <span v-else class="text-slate-400">—</span>
+      </template>
+
       <template #cell-confirmed_by_client="{ row }">
         <StatusBadge :status="row.confirmed_by_client === 'YES' ? 'RECEIVED' : (row.confirmed_by_client === 'NO' ? 'PENDING' : 'LOST')" />
-      </template>
-
-      <template #cell-sample_type="{ row }">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 shrink-0">
-            <i class="ri-test-tube-line text-[10px] text-indigo-500 dark:text-indigo-400"></i>
-          </div>
-          <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ row.sample_type || '—' }}</span>
-        </div>
-      </template>
-
-      <template #cell-temperature_type="{ row }">
-        <div class="flex items-center gap-2">
-          <div :class="[
-            'w-6 h-6 rounded-full flex items-center justify-center border shrink-0',
-            String(row.temperature_type).toLowerCase().includes('room') ? 'bg-amber-50 border-amber-100 text-amber-500 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400' :
-            String(row.temperature_type).toLowerCase().includes('frozen') ? 'bg-cyan-50 border-cyan-100 text-cyan-500 dark:bg-cyan-500/10 dark:border-cyan-500/20 dark:text-cyan-400' :
-            'bg-blue-50 border-blue-100 text-blue-500 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400'
-          ]">
-            <i :class="[
-              'text-[10px]',
-              String(row.temperature_type).toLowerCase().includes('room') ? 'ri-sun-line' :
-              String(row.temperature_type).toLowerCase().includes('frozen') ? 'ri-snowflake-line' :
-              'ri-temp-cold-line'
-            ]"></i>
-          </div>
-          <span class="text-sm text-slate-600 dark:text-slate-400">{{ row.temperature_type || '—' }}</span>
-        </div>
       </template>
 
       <template #cell-actions="{ row }">
@@ -202,9 +181,9 @@ async function confirmDelete() {
       <template #empty>
         <div class="py-12 flex flex-col items-center justify-center text-center">
           <div class="w-16 h-16 bg-slate-100 dark:bg-surface-dark-solid rounded-full flex items-center justify-center mb-4">
-            <i class="ri-flask-line text-2xl text-slate-400"></i>
+            <i class="ri-test-tube-line text-2xl text-slate-400"></i>
           </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">No Lost Samples Found</h3>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">No Samples Found</h3>
           <p class="text-sm text-slate-500 max-w-sm">Try adjusting your filters or date range.</p>
         </div>
       </template>
