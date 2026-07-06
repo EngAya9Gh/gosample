@@ -18,6 +18,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Http;
+use Inertia\Inertia;
+use Carbon\Carbon;
 
 
 class ShipmentsController extends Controller
@@ -26,103 +28,96 @@ class ShipmentsController extends Controller
     {
         abort_if(Gate::denies('shipment_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->ajax()) {
-            $query = Shipment::with(['task'])->select(sprintf('shipment.*', (new Shipment())->table));
-            $table = Datatables::of($query);
+        $query = Shipment::with(['task.from', 'task.to', 'task.driver']);
 
-            $table->addColumn('placeholder', '&nbsp;');
-            $table->addColumn('actions', '&nbsp;');
-
-            $table->editColumn('actions', function ($row) {
-                $viewGate = 'shipment_show';
-                $editGate = 'shipment_edit';
-                $deleteGate = 'shipment_delete';
-                $crudRoutePart = 'shipments';
-
-                return view('partials.datatablesActions', compact(
-                'viewGate',
-                'editGate',
-                'deleteGate',
-                'crudRoutePart',
-                'row'
-            ));
+        if ($request->filled('keyword')) {
+            $kw = $request->keyword;
+            $query->where(function($q) use ($kw) {
+                $q->where('reference_number', 'LIKE', "%{$kw}%")
+                  ->orWhere('carrier', 'LIKE', "%{$kw}%");
             });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->editColumn('carrier', function ($row) {
-                return $row->carrier ? $row->carrier : '';
-            });
-            $table->editColumn('to_location', function ($row) {
-		if (isset($row->task) && isset($row->task->to)){
-                    return $row->task->to->name ?? '';
-                }
-                return '';
-                //return $row->to_location ? $row->to_location : '';
-            });
-            $table->editColumn('from_location', function ($row) {
-                 if (isset($row->task) && isset($row->task->from)){
-                    return $row->task->from->name ?? '';
-                }
-                return '';
-                //return $row->from_location ? $row->from_location : '';
-            });
-            // $table->editColumn('sender_lat', function ($row) {
-            //     return $row->sender_lat ? $row->sender_lat : '';
-            // });
-            // $table->editColumn('sender_mobile', function ($row) {
-            //     return $row->sender_mobile ? $row->sender_mobile : '';
-            // });
-            // $table->editColumn('receiver_name', function ($row) {
-            //     return $row->receiver_name ? $row->receiver_name : '';
-            // });
-            // $table->editColumn('receiver_long', function ($row) {
-            //     return $row->receiver_long ? $row->receiver_long : '';
-            // });
-            // $table->editColumn('receiver_lat', function ($row) {
-            //     return $row->receiver_lat ? $row->receiver_lat : '';
-            // });
-            // $table->editColumn('receiver_mobile', function ($row) {
-            //     return $row->receiver_mobile ? $row->receiver_mobile : '';
-            // });
-            $table->editColumn('reference_number', function ($row) {
-                return $row->reference_number ? $row->reference_number : '';
-            });
-            $table->editColumn('pickup_otp', function ($row) {
-                return $row->pickup_otp ? $row->pickup_otp : '';
-            });
-            $table->editColumn('status_code', function ($row) {
-                $map = [
-                    'Assigned'   => ['bg-primary', 'Assigned'],
-                    'confirmed'  => ['bg-info',    'Confirmed'],
-                    'dispatched' => ['bg-warning', 'Dispatched'],
-                    'delivered'  => ['bg-success', 'Delivered'],
-                ];
-                if (isset($map[$row->status_code])) {
-                    return '<span class="badge ' . $map[$row->status_code][0] . '">' . $map[$row->status_code][1] . '</span>';
-                }
-                return $row->status_code ?? '';
-            });
-            $table->editColumn('batch', function ($row) {
-                return $row->batch ? $row->batch : '';
-            });
-            $table->editColumn('journey_type', function ($row) {
-                return $row->journey_type ? $row->journey_type : '';
-            });
-            $table->editColumn('sla_code', function ($row) {
-                return $row->sla_code ? $row->sla_code : '';
-            });
-            $table->editColumn('created_at', function ($row) {
-                return $row->created_at ? $row->created_at : '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder', 'task', 'status_code']);
-
-            return $table->make(true);
         }
 
-        return view('admin.shipments.index');
+        if ($request->filled('status')) {
+            $query->where('status_code', $request->status);
+        }
+        if ($request->filled('carrier')) {
+            $query->where('carrier', $request->carrier);
+        }
+        if ($request->filled('from_location')) {
+            $loc = $request->from_location;
+            $query->whereHas('task', function($q) use ($loc) {
+                $q->where('from_location', $loc);
+            });
+        }
+        if ($request->filled('to_location')) {
+            $loc = $request->to_location;
+            $query->whereHas('task', function($q) use ($loc) {
+                $q->where('to_location', $loc);
+            });
+        }
+        if ($request->filled('driver_id')) {
+            $drv = $request->driver_id;
+            $query->whereHas('task', function($q) use ($drv) {
+                $q->where('driver_id', $drv);
+            });
+        }
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('created_at', [
+                Carbon::parse($request->date_from)->startOfDay(),
+                Carbon::parse($request->date_to)->endOfDay()
+            ]);
+        }
+
+        $sortBy = $request->filled('sort_by') ? $request->sort_by : 'id';
+        $sortOrder = $request->filled('sort_order') ? $request->sort_order : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->count();
+        $offset = ($page - 1) * $pageSize;
+
+        $seq = $offset;
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($s) use (&$seq) {
+            return [
+                'sequence'           => ++$seq,
+                'id'                 => $s->id,
+                'carrier'            => $s->carrier,
+                'reference_number'   => $s->reference_number,
+                'pickup_otp'         => $s->pickup_otp,
+                'dropoff_otp'        => $s->dropoff_otp,
+                'status_code'        => $s->status_code,
+                'batch'              => $s->batch,
+                'journey_type'       => $s->journey_type,
+                'sla_code'           => $s->sla_code,
+                'created_at'         => $s->created_at ? $s->created_at->format('Y-m-d H:i') : null,
+                'task_id'            => $s->task_id,
+                'from_location_name' => optional(optional($s->task)->from)->name,
+                'to_location_name'   => optional(optional($s->task)->to)->name,
+                'driver_name'        => optional(optional($s->task)->driver)->name,
+            ];
+        });
+
+        $filters = $request->only([
+            'keyword', 'status', 'carrier', 'driver_id', 'from_location', 'to_location', 'date_from', 'date_to', 'sort_by', 'sort_order'
+        ]);
+
+        $drivers = Driver::select('id', 'name')->get()->map(fn($d) => ['value' => $d->id, 'label' => $d->name]);
+        $locations = Location::select('id', 'name')->get()->map(fn($l) => ['value' => $l->id, 'label' => $l->name]);
+        $carriers = Shipment::select('carrier')->whereNotNull('carrier')->distinct()->pluck('carrier')->map(fn($c) => ['value' => $c, 'label' => $c]);
+
+        return Inertia::render('Shipments/ShipmentsList', [
+            'rows'      => $rows,
+            'total'     => $total,
+            'page'      => $page,
+            'pageSize'  => $pageSize,
+            'filters'   => $filters,
+            'drivers'   => $drivers,
+            'locations' => $locations,
+            'carriers'  => $carriers,
+        ]);
     }
 
     public function show(Shipment $shipment)

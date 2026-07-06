@@ -25,6 +25,10 @@ const MAP = {
   ENABLED:       ['bg-status-closed/10',    'text-status-closed',    'bg-status-closed'],
   RECEIVED:      ['bg-success/10',          'text-success',          'bg-success'],
   PENDING:       ['bg-warning/15',          'text-amber-600',        'bg-warning'],
+  ASSIGNED:      ['bg-danger/10',           'text-danger',           'bg-danger'],
+  CONFIRMED:     ['bg-info/10',             'text-info',             'bg-info'],
+  DISPATCHED:    ['bg-warning/15',          'text-warning',          'bg-warning'],
+  DELIVERED:     ['bg-success/10',          'text-success',          'bg-success'],
   DISABLED:      ['bg-status-lost/10',      'text-status-lost',      'bg-status-lost'],
   LOST:          ['bg-status-lost/10',      'text-status-lost',      'bg-status-lost'],
 };
@@ -36,9 +40,9 @@ const LABELS = {
   OUT_FREEZER: 'OUT CONTAINER',
 };
 
-const tone = computed(() => MAP[props.status?.toUpperCase()] || FALLBACK);
+const tone = computed(() => MAP[props.status?.trim().toUpperCase()] || FALLBACK);
 const text = computed(() =>
-  props.label || LABELS[props.status?.toUpperCase()] || props.status?.replace(/_/g, ' ')
+  props.label || LABELS[props.status?.trim().toUpperCase()] || props.status?.trim().replace(/_/g, ' ')
 );
 </script>
 
