@@ -28,11 +28,11 @@ defineEmits(['update:active']);
         variant === 'pills'
           ? ['px-3.5 h-9 rounded-lg',
              active === t.key
-               ? 'bg-surface dark:bg-white/10 text-primary-700 dark:text-primary-300 shadow-sm'
+               ? [t.activeClass || 'bg-surface dark:bg-white/10 text-primary-700 dark:text-primary-300', 'shadow-sm']
                : 'text-slate-500 hover:text-ink dark:hover:text-slate-200']
           : ['px-1 pb-3 pt-1 -mb-px border-b-2',
              active === t.key
-               ? 'border-primary-600 text-primary-700 dark:text-primary-300'
+               ? [t.activeClass || 'border-primary-600 text-primary-700 dark:text-primary-300']
                : 'border-transparent text-slate-500 hover:text-ink dark:hover:text-slate-200'],
       ]"
     >

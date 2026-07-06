@@ -15,6 +15,8 @@ const props = defineProps({
   disabled:{ type: Boolean, default: false },
   block:   { type: Boolean, default: false },
   type:    { type: String, default: 'button' },
+  as:      { type: [String, Object], default: 'button' },
+  href:    { type: String, default: null },
 });
 
 // `group` lets the inner icon react to button hover (see iconAnim).
@@ -59,9 +61,9 @@ const cls = computed(() => [
 </script>
 
 <template>
-  <button :type="type" :disabled="disabled || loading" :class="cls">
-    <i v-if="loading" class="ri-loader-4-line animate-spin text-base"></i>
-    <i v-else-if="icon" :class="[icon, 'text-base transition-transform duration-300 ease-out motion-reduce:transition-none', iconAnim]"></i>
+  <component :is="href ? 'a' : as" :href="href" :type="!href ? type : null" :disabled="disabled || loading" :class="[base, variants[variant], sizes[size], block ? 'w-full' : '']">
+    <i v-if="loading" class="ri-loader-4-line animate-spin text-[1.1em]"></i>
+    <i v-else-if="icon" :class="[icon, 'text-[1.1em] transition-transform duration-300', iconAnim]"></i>
     <slot></slot>
-  </button>
+  </component>
 </template>

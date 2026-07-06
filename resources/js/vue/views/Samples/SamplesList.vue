@@ -153,6 +153,22 @@ async function confirmDelete() {
         <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
       </template>
 
+      <template #cell-location_name="{ value }">
+        <span v-if="value" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[12.5px] font-bold truncate max-w-[170px] border border-emerald-100 dark:border-emerald-500/20" :title="value">
+          <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
+          <span class="truncate">{{ value }}</span>
+        </span>
+        <span v-else class="text-slate-400">—</span>
+      </template>
+
+      <template #cell-to_location_name="{ value }">
+        <span v-if="value" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 text-[12.5px] font-bold truncate max-w-[170px] border border-sky-100 dark:border-sky-500/20" :title="value">
+          <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
+          <span class="truncate">{{ value }}</span>
+        </span>
+        <span v-else class="text-slate-400">—</span>
+      </template>
+
       <template #cell-task_id="{ row }">
         <a v-if="row.task_id" :href="`/app/admin/tasks/${row.task_id}`" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#005D69]/10 border border-[#005D69]/20 text-[12px] font-black text-[#0ab39c] hover:bg-[#005D69]/20 transition-colors">
           <i class="ri-hashtag"></i>
@@ -162,9 +178,10 @@ async function confirmDelete() {
       </template>
 
       <template #cell-driver_name="{ value }">
-        <span v-if="value" class="inline-flex items-center gap-1.5">
-          <BaseAvatar :name="value" :size="22" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
-        </span>
+        <div v-if="value" class="flex items-center gap-2">
+          <BaseAvatar :name="value" :size="26" />
+          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
+        </div>
         <span v-else class="text-slate-400">—</span>
       </template>
 

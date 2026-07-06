@@ -345,10 +345,10 @@ async function bulkDelete(ids) {
       @query="onQuery" @bulk-delete="bulkDelete" @export="onExport"
     >
       <template #cell-id="{ value }">
-        <span class="font-black text-primary-500 dark:text-primary-300">#{{ value }}</span>
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
       </template>
       <template #cell-client="{ value }">
-        <span class="font-semibold text-ink dark:text-slate-100 whitespace-normal leading-snug">{{ value || '—' }}</span>
+        <span class="font-extrabold text-slate-800 dark:text-white whitespace-normal leading-snug">{{ value || '—' }}</span>
       </template>
       <template #cell-route="{ row }">
         <div dir="ltr" class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal leading-snug">
@@ -364,9 +364,10 @@ async function bulkDelete(ids) {
         </div>
       </template>
       <template #cell-driver_name="{ value }">
-        <span v-if="value" class="inline-flex items-center gap-1.5">
-          <BaseAvatar :name="value" :size="22" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
-        </span>
+        <div v-if="value" class="flex items-center gap-2">
+          <BaseAvatar :name="value" :size="26" />
+          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
+        </div>
         <span v-else class="text-slate-400">—</span>
       </template>
       <template #cell-eta="{ value }">

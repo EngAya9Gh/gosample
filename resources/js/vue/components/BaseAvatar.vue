@@ -19,12 +19,12 @@ const initials = computed(() => {
 
 // 6 on-brand gradient pairs; pick deterministically.
 const GRADS = [
-  'from-primary-500 to-primary-700',
-  'from-info to-secondary',
-  'from-success to-primary-600',
-  'from-danger to-primary-700',
-  'from-amber-400 to-primary-600',
-  'from-secondary to-primary-700',
+  'from-emerald-500 to-emerald-600',
+  'from-indigo-500 to-indigo-600',
+  'from-amber-500 to-amber-600',
+  'from-pink-500 to-pink-600',
+  'from-violet-500 to-violet-600',
+  'from-cyan-500 to-cyan-600',
 ];
 const grad = computed(() => {
   let h = 0;
@@ -33,13 +33,19 @@ const grad = computed(() => {
 });
 
 const dim = computed(() => `${parseInt(props.size)}px`);
-const fz = computed(() => `${Math.max(11, parseInt(props.size) * 0.38)}px`);
+const fz = computed(() => {
+  if (parseInt(props.size) === 26) return '10px';
+  if (parseInt(props.size) <= 26) return '10px';
+  return `${Math.max(10, parseInt(props.size) * 0.4)}px`;
+});
 </script>
 
 <template>
   <span
-    class="inline-grid place-items-center rounded-full text-white font-semibold shrink-0 shadow-sm ring-2 ring-white/70 dark:ring-white/10 overflow-hidden bg-gradient-to-br"
-    :class="grad"
+    :class="[
+      'inline-flex items-center justify-center shrink-0 rounded-full text-white font-bold select-none overflow-hidden bg-gradient-to-br',
+      !src ? grad : 'bg-surface-muted',
+    ]"
     :style="{ width: dim, height: dim, fontSize: fz }"
   >
     <img v-if="src" :src="src" :alt="name" class="w-full h-full object-cover" />

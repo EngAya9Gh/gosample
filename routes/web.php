@@ -44,8 +44,8 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::post('admin/tasks/reconcile/details', [\App\Http\Controllers\App\SampleReconciliationController::class, 'details'])->name('app.admin.tasks.reconcile.details');
     Route::post('admin/tasks/reconcile/lost', [\App\Http\Controllers\App\SampleReconciliationController::class, 'lost'])->name('app.admin.tasks.reconcile.lost');
 
-    // Tasks (plan 08-tasks.md)
-    Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks');
+    Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks.index');
+    Route::get('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('app.admin.scheduled-tasks.index');
     Route::get('admin/tasks/unused', [\App\Http\Controllers\App\TasksController::class, 'unused'])->name('app.admin.tasks.unused');
     // Task create/edit popup (SPA modals) — distinct "popup" paths so they never
     // collide with page-style create/edit routes or the {task} wildcard below.
