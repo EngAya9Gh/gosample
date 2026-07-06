@@ -29,6 +29,8 @@ const MAP = {
   CONFIRMED:     ['bg-info/10',             'text-info',             'bg-info'],
   DISPATCHED:    ['bg-warning/15',          'text-warning',          'bg-warning'],
   DELIVERED:     ['bg-success/10',          'text-success',          'bg-success'],
+  AMOUNT_RECEIVED:['bg-success/10',         'text-success',          'bg-success'],
+  CANCELLED:     ['bg-danger/10',           'text-danger',           'bg-danger'],
   DISABLED:      ['bg-status-lost/10',      'text-status-lost',      'bg-status-lost'],
   LOST:          ['bg-status-lost/10',      'text-status-lost',      'bg-status-lost'],
 };

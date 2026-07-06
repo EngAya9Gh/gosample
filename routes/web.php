@@ -89,6 +89,10 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::post('admin/drivers/{driver}/tasks/reorder', [\App\Http\Controllers\App\DriversController::class, 'reorderTasks'])->name('app.admin.drivers.tasks.reorder');
     Route::post('admin/drivers/{driver}/tasks/smartSort', [\App\Http\Controllers\App\DriversController::class, 'smartSortTasks'])->name('app.admin.drivers.tasks.smartSort');
 
+    // New Vue Screens (using existing Admin controllers)
+    Route::get('admin/shipments', [\App\Http\Controllers\Admin\ShipmentsController::class, 'index'])->name('app.admin.shipments.index');
+    Route::get('admin/money-transfers', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'index'])->name('app.admin.money-transfers.index');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

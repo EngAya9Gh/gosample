@@ -21,73 +21,96 @@ class MoneyTransferController extends Controller
     {
         abort_if(Gate::denies('money_transfer_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->ajax()) {
-            $query = MoneyTransfer::with(['driver', 'client', 'from_location', 'to_location'])->select(sprintf('%s.*', (new MoneyTransfer)->table));
-            $table = Datatables::of($query);
+        $query = MoneyTransfer::with(['driver', 'client', 'from_location', 'to_location']);
 
-            $table->addColumn('placeholder', '&nbsp;');
-            $table->addColumn('actions', '&nbsp;');
-
-            $table->editColumn('actions', function ($row) {
-                $viewGate      = 'money_transfer_show';
-                $editGate      = 'money_transfer_edit';
-                $deleteGate    = 'money_transfer_delete';
-                $crudRoutePart = 'money-transfers';
-
-                return view('partials.datatablesActions', compact(
-                    'viewGate',
-                    'editGate',
-                    'deleteGate',
-                    'crudRoutePart',
-                    'row'
-                ));
+        if ($request->filled('keyword')) {
+            $kw = $request->keyword;
+            $query->where(function($q) use ($kw) {
+                $q->where('id', 'LIKE', "%{$kw}%")
+                  ->orWhereHas('client', function($q2) use ($kw) {
+                      $q2->where('english_name', 'LIKE', "%{$kw}%");
+                  })
+                  ->orWhereHas('driver', function($q2) use ($kw) {
+                      $q2->where('name', 'LIKE', "%{$kw}%");
+                  });
             });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->addColumn('driver_name', function ($row) {
-                return $row->driver ? $row->driver->name : '';
-            });
-
-            $table->addColumn('client_english_name', function ($row) {
-                return $row->client ? $row->client->english_name : '';
-            });
-
-            $table->addColumn('from_location_name', function ($row) {
-                return $row->from_location ? $row->from_location->name : '';
-            });
-
-            $table->addColumn('to_location_name', function ($row) {
-                return $row->to_location ? $row->to_location->name : '';
-            });
-
-            $table->editColumn('status', function ($row) {
-                $map = [
-                    'new'             => ['bg-primary',   'New'],
-                    'confirmed'       => ['bg-info',      'Confirmed'],
-                    'amount_received' => ['bg-success',   'Amount Received'],
-                    'closed'          => ['bg-secondary', 'Closed'],
-                    'cancelled'       => ['bg-danger',    'Cancelled'],
-                ];
-                if (isset($map[$row->status])) {
-                    return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
-                }
-                return $row->status ?? '';
-            });
-            $table->editColumn('from_location_otp', function ($row) {
-                return $row->from_location_otp ? $row->from_location_otp : '';
-            });
-            $table->editColumn('to_otp', function ($row) {
-                return $row->to_otp ? $row->to_otp : '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder', 'driver', 'client', 'from_location', 'to_location', 'status']);
-
-            return $table->make(true);
         }
 
-        return view('admin.moneyTransfers.index');
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+        if ($request->filled('from_location')) {
+            $query->where('from_location_id', $request->from_location);
+        }
+        if ($request->filled('to_location')) {
+            $query->where('to_location_id', $request->to_location);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $sortBy = $request->filled('sort_by') ? $request->sort_by : 'id';
+        $sortOrder = $request->filled('sort_order') ? $request->sort_order : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->count();
+        $offset = ($page - 1) * $pageSize;
+
+        $seq = $offset;
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($s) use (&$seq) {
+            $seq++;
+            return [
+                'sequence'           => $seq,
+                'id'                 => $s->id,
+                'driver_name'        => $s->driver ? $s->driver->name : null,
+                'client_name'        => $s->client ? $s->client->english_name : null,
+                'from_location_name' => $s->from_location ? $s->from_location->name : null,
+                'to_location_name'   => $s->to_location ? $s->to_location->name : null,
+                'amount'             => (float) $s->amount,
+                'status'             => $s->status,
+                'from_location_otp'  => $s->from_location_otp,
+                'to_otp'             => $s->to_location_otp,
+                'created_at'         => $s->created_at ? $s->created_at->format('Y-m-d H:i') : null,
+            ];
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'rows' => $rows,
+                'total' => $total,
+            ]);
+        }
+
+        $drivers = Driver::select('id', 'name')->get()->map(fn($d) => ['value' => $d->id, 'label' => $d->name]);
+        $clients = Client::select('id', 'english_name')->get()->map(fn($c) => ['value' => $c->id, 'label' => $c->english_name]);
+        $locations = Location::select('id', 'name')->get()->map(fn($l) => ['value' => $l->id, 'label' => $l->name]);
+
+        return \Inertia\Inertia::render('MoneyTransfers/MoneyTransfersList', [
+            'initialRows' => $rows,
+            'initialTotal' => $total,
+            'filters' => [
+                'drivers' => $drivers,
+                'clients' => $clients,
+                'locations' => $locations,
+            ],
+            'can' => [
+                'money_transfer_create' => Gate::allows('money_transfer_create'),
+                'money_transfer_edit'   => Gate::allows('money_transfer_edit'),
+                'money_transfer_delete' => Gate::allows('money_transfer_delete'),
+                'money_transfer_show'   => Gate::allows('money_transfer_show'),
+            ],
+        ]);
     }
 
     public function create()
@@ -164,10 +187,14 @@ class MoneyTransferController extends Controller
 
     public function destroy(MoneyTransfer $moneyTransfer)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('money_transfer_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $moneyTransfer->delete();
 
+        if (request()->wantsJson()) {
+            return response(null, Response::HTTP_NO_CONTENT);
+        }
+        
         return back();
     }
 
