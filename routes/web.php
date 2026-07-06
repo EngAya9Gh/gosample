@@ -94,6 +94,16 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::post('admin/drivers/{driver}/tasks/reorder', [\App\Http\Controllers\App\DriversController::class, 'reorderTasks'])->name('app.admin.drivers.tasks.reorder');
     Route::post('admin/drivers/{driver}/tasks/smartSort', [\App\Http\Controllers\App\DriversController::class, 'smartSortTasks'])->name('app.admin.drivers.tasks.smartSort');
 
+    // New Vue Screens (using existing Admin controllers)
+    Route::get('admin/shipments', [\App\Http\Controllers\Admin\ShipmentsController::class, 'index'])->name('app.admin.shipments.index');
+    Route::get('admin/money-transfers', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'index'])->name('app.admin.money-transfers.index');
+    Route::get('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'index'])->name('app.admin.cars.index');
+    Route::get('admin/cars/create', [\App\Http\Controllers\Admin\CarsController::class, 'create'])->name('app.admin.cars.create');
+    Route::post('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'store'])->name('app.admin.cars.store');
+    Route::get('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'show'])->name('app.admin.cars.show');
+    Route::get('admin/cars/{car}/edit', [\App\Http\Controllers\Admin\CarsController::class, 'edit'])->name('app.admin.cars.edit');
+    Route::put('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'update'])->name('app.admin.cars.update');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

@@ -44,6 +44,7 @@ function onNavigate(target) {
   const SPA_ADMIN_ROUTES = [
     '/admin/tasks', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks',
     '/admin/system-calendar', '/admin/tasks/reconcile', '/admin/drivers', '/admin/lost',
+    '/admin/shipments', '/admin/money-transfers', '/admin/cars',
   ];
   if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.includes(target)) {
     window.location.href = target;
