@@ -126,12 +126,12 @@ onBeforeUnmount(() => {
           <li
             v-for="o in filtered" :key="o.value"
             @click="pick(o.value)"
-            class="flex items-center gap-2.5 px-2.5 h-9 rounded-lg text-sm cursor-pointer text-ink dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-white/5"
+            class="flex items-center gap-2.5 px-2.5 min-h-[36px] py-2 rounded-lg text-sm cursor-pointer text-ink dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-white/5"
           >
-            <span class="grid place-items-center w-4 h-4 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
+            <span class="grid place-items-center w-4 h-4 shrink-0 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
               <i v-if="isSel(o.value)" class="ri-check-line text-xs"></i>
             </span>
-            {{ o.label }}
+            <span class="flex-1 leading-tight break-words">{{ o.label }}</span>
           </li>
           <li v-if="!filtered.length" class="px-2.5 py-3 text-sm text-slate-400 text-center">No matches</li>
         </ul>

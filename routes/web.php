@@ -107,6 +107,15 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
 
     Route::get('admin/car-link-histories', [\App\Http\Controllers\Admin\CarLinkHistoryController::class, 'index'])->name('app.admin.car-link-histories.index');
 
+    // --- Swap Requests ---
+    Route::get('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'index'])->name('app.admin.swaprequests.index');
+    Route::get('admin/swaprequests/create', [\App\Http\Controllers\Admin\SwaprequestController::class, 'create'])->name('app.admin.swaprequests.create');
+    Route::post('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'store'])->name('app.admin.swaprequests.store');
+    Route::get('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'show'])->name('app.admin.swaprequests.show');
+    Route::get('admin/swaprequests/{swaprequest}/edit', [\App\Http\Controllers\Admin\SwaprequestController::class, 'edit'])->name('app.admin.swaprequests.edit');
+    Route::put('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'update'])->name('app.admin.swaprequests.update');
+    Route::delete('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'destroy'])->name('app.admin.swaprequests.destroy');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
@@ -330,6 +339,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::post('delete-permissions', 'DeletePermissionsController@store')->name('delete-permissions.store');
     Route::delete('delete-permissions/{userId}', 'DeletePermissionsController@destroy')->name('delete-permissions.destroy');
 
+    // --- Swap Requests ---
+    Route::get('swaprequests', [SwaprequestController::class, 'index'])->name('swaprequests.index');
+    Route::get('swaprequests/create', [SwaprequestController::class, 'create'])->name('swaprequests.create');
+    Route::post('swaprequests', [SwaprequestController::class, 'store'])->name('swaprequests.store');
+    Route::get('swaprequests/{swaprequest}', [SwaprequestController::class, 'show'])->name('swaprequests.show');
+    Route::get('swaprequests/{swaprequest}/edit', [SwaprequestController::class, 'edit'])->name('swaprequests.edit');
+    Route::put('swaprequests/{swaprequest}', [SwaprequestController::class, 'update'])->name('swaprequests.update');
+    Route::delete('swaprequests/{swaprequest}', [SwaprequestController::class, 'destroy'])->name('swaprequests.destroy');
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Http\Controllers\Auth', 'middleware' => ['auth']], function () {
     // Change password

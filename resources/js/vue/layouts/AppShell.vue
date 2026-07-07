@@ -42,11 +42,12 @@ function onNavigate(target) {
   // Migrated SPA routes go through Inertia (/app); every other /admin route still
   // loads its classic Blade page. Add a route here when its SPA page ships.
   const SPA_ADMIN_ROUTES = [
-    '/admin/tasks', '/admin/tasks/create', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks',
-    '/admin/system-calendar', '/admin/tasks/reconcile', '/admin/drivers', '/admin/lost',
+    '/admin/tasks', '/admin/samples', '/admin/scheduled-tasks',
+    '/admin/system-calendar', '/admin/drivers', '/admin/lost',
     '/admin/shipments', '/admin/money-transfers', '/admin/cars', '/admin/car-link-histories',
+    '/admin/swaprequests',
   ];
-  if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.includes(target)) {
+  if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.some(route => target.startsWith(route))) {
     window.location.href = target;
   } else if (target.startsWith('http')) {
     window.open(target, '_blank');
