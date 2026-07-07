@@ -63,7 +63,7 @@ class CarLinkHistoryController extends Controller
             $paginator = $query->paginate($pageSize);
 
             // If it's an AJAX request (from axios in the Vue component)
-            if ($request->wantsJson() || $request->ajax()) {
+            if ($request->wantsJson() && !$request->header('X-Inertia')) {
                 return response()->json([
                     'rows' => $paginator->items(),
                     'total' => $paginator->total(),
