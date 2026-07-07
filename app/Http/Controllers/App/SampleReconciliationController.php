@@ -82,7 +82,9 @@ class SampleReconciliationController extends Controller
         // getConfirmedSamplesPerDriverId() validates task_id is present but never uses it.
         $request->merge(['task_id' => $request->input('task_id', 0)]);
 
-        $payload = $samples->getConfirmedSamplesPerDriverId($request)->getData(true);
+        // The base Controller::response() helper returns a plain Illuminate\Http\Response
+        // (not a JsonResponse), so decode its JSON content rather than calling getData().
+        $payload = json_decode($samples->getConfirmedSamplesPerDriverId($request)->getContent(), true) ?: [];
         if (empty($payload['status'])) {
             return response()->json($payload); // {status:false, message:...}
         }
