@@ -173,7 +173,7 @@ class TasksController extends Controller
             dispatch(new \App\Jobs\CalculateDriverETAJob($driver->id));
         }
 
-        return redirect()->route('app.admin.tasks')->with('success', 'Task created successfully');
+        return redirect()->route('app.admin.tasks.index')->with('success', 'Task created successfully');
     }
 
     /**
@@ -208,7 +208,7 @@ class TasksController extends Controller
     {
         $classic->update($request, $task);
 
-        return redirect()->route('app.admin.tasks')->with('success', 'Task updated successfully');
+        return redirect()->route('app.admin.tasks.index')->with('success', 'Task updated successfully');
     }
 
     private function options($user): array
