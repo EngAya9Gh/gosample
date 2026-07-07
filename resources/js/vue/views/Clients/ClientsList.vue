@@ -296,6 +296,14 @@ const submitForm = () => {
         />
       </template>
 
+      <!-- Bold Names -->
+      <template #cell-arabic_name="{ row }">
+        <span class="font-bold text-ink dark:text-slate-100">{{ row.arabic_name }}</span>
+      </template>
+      <template #cell-english_name="{ row }">
+        <span class="font-bold text-ink dark:text-slate-100">{{ row.english_name }}</span>
+      </template>
+
       <!-- Status -->
       <template #cell-status="{ row }">
         <StatusBadge :status="row.status == 1 ? 'ENABLED' : 'DISABLED'" />

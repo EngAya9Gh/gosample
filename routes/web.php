@@ -126,6 +126,21 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::put('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'update'])->name('app.admin.clients.update');
     Route::delete('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'destroy'])->name('app.admin.clients.destroy');
 
+    // --- Locations ---
+    Route::get('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'index'])->name('app.admin.locations.index');
+    Route::get('admin/locations/create', [\App\Http\Controllers\Admin\LocationsController::class, 'create'])->name('app.admin.locations.create');
+    Route::post('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'store'])->name('app.admin.locations.store');
+    Route::get('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'show'])->name('app.admin.locations.show');
+    Route::get('admin/locations/{location}/edit', [\App\Http\Controllers\Admin\LocationsController::class, 'edit'])->name('app.admin.locations.edit');
+    Route::put('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'update'])->name('app.admin.locations.update');
+    Route::delete('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'destroy'])->name('app.admin.locations.destroy');
+
+    // --- Users ---
+    Route::get('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'index'])->name('app.admin.users.index');
+    Route::post('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'store'])->name('app.admin.users.store');
+    Route::put('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'update'])->name('app.admin.users.update');
+    Route::delete('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'destroy'])->name('app.admin.users.destroy');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

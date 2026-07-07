@@ -20,6 +20,50 @@ class LocationsController extends Controller
         abort_if(Gate::denies('location_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $logged_id_user = auth()->user();
+
+        if (str_starts_with($request->path(), 'app/')) {
+            $query = Location::withoutGlobalScope('enabled')->with(['createdBy', 'updatedBy']);
+
+            if ($request->filled('keyword')) {
+                $keyword = $request->keyword;
+                $query->where(function($q) use ($keyword) {
+                    $q->where('name', 'like', "%{$keyword}%")
+                      ->orWhere('arabic_name', 'like', "%{$keyword}%")
+                      ->orWhere('city', 'like', "%{$keyword}%")
+                      ->orWhere('neighborhood', 'like', "%{$keyword}%");
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('city')) {
+                $query->where('city', $request->city);
+            }
+
+            if (!empty($logged_id_user->assigned_client_ids)) {
+                $query->whereHas('locationsClients', function ($q) use ($logged_id_user) {
+                    $q->whereIn('clients.id', $logged_id_user->assigned_client_ids);
+                });
+            }
+
+            $pageSize = $request->get('pageSize', 25);
+            $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
+
+            if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                return response()->json([
+                    'rows' => $paginator->items(),
+                    'total' => $paginator->total(),
+                ]);
+            }
+
+            return \Inertia\Inertia::render('Locations/LocationsList', [
+                'initialRows' => $paginator->items(),
+                'initialTotal' => $paginator->total(),
+                'saudiCities' => \App\Models\Location::SAUDI_CITIES
+            ]);
+        }
         
         if ($request->ajax()) {
             $query = Location::withoutGlobalScope('enabled')
@@ -46,20 +90,7 @@ class LocationsController extends Controller
                 });
             }
            
-            // if ($request->filled('client_id')) {
-            //     $query->where('client_id', $request->client_id);
-            // }
-            // if ($request->filled('from_location')) {
-            //     $query->where('scheduled_tasks.from_location_id', $request->from_location);
-            // }
-            // if ($request->filled('to_location')) {
-            //     $query->where('scheduled_tasks.to_location_id', $request->to_location);
-            // }
-
-
             $table = Datatables::of($query);
-
-            
 
             $table->addColumn('placeholder', '&nbsp;');
             $table->addColumn('actions', '&nbsp;');
@@ -125,25 +156,11 @@ class LocationsController extends Controller
                 $elementId = 'copy-coordinates-' . $row->id;
             
                 return '<td>' .
-                    '<span>' . $lng . '</span>' . // Display the 'lng' value
-                    '<input id="' . $elementId . '-link" value="https://www.google.com/maps/place/' . $lat . ',' . $lng . '" type="hidden">' .
-                    '<button value="copy" class="btn btn-xs btn-info" onclick="copyToClipboard(\'' . $elementId . '-link\')">Copy</button>' .
-                    '</td>';
-            });
-            $table->addColumn('coordinates', function ($row) {
-                $lat = $row->lat ?? '';
-                $lng = $row->lng ?? '';
-            
-                // Create a unique ID for the hidden input and button elements
-                $elementId = 'copy-coordinates-' . $row->id;
-            
-                return '<td>' .
                     '<input id="' . $elementId . '-link" value="https://www.google.com/maps/place/' . $lat . ',' . $lng . '" type="hidden">' .
                     '<button value="copy" class="btn btn-sm btn-primary copy-coordinates-btn" onclick="copyToClipboard(\'' . $elementId . '-link\')">Copy</button>' .
                     '</td>';
             });
            
-
             $table->addColumn('created_by', function ($row) {
                 return $row->createdBy ? $row->createdBy->name : '';
             });
@@ -181,6 +198,10 @@ class LocationsController extends Controller
             }
         }
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.locations.index');
+        }
+
         return redirect()->route('admin.locations.index');
     }
 
@@ -197,6 +218,10 @@ class LocationsController extends Controller
         $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->update($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.locations.index');
+        }
+
         return redirect()->route('admin.locations.index');
     }
 
@@ -210,12 +235,16 @@ class LocationsController extends Controller
         return view('admin.locations.show', compact('location'));
     }
 
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
         $this->authorize('can-delete');
 
         $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->delete();
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return back();
+        }
 
         return back();
     }
