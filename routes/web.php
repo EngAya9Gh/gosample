@@ -116,6 +116,16 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::put('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'update'])->name('app.admin.swaprequests.update');
     Route::delete('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'destroy'])->name('app.admin.swaprequests.destroy');
 
+    // --- Clients ---
+    Route::get('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'index'])->name('app.admin.clients.index');
+    Route::get('admin/clients/create', [\App\Http\Controllers\Admin\ClientsController::class, 'create'])->name('app.admin.clients.create');
+    Route::post('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'store'])->name('app.admin.clients.store');
+    Route::get('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'show'])->name('app.admin.clients.show');
+    Route::get('admin/clients/{client}/relations', [\App\Http\Controllers\Admin\ClientsController::class, 'getRelations'])->name('app.admin.clients.relations');
+    Route::get('admin/clients/{client}/edit', [\App\Http\Controllers\Admin\ClientsController::class, 'edit'])->name('app.admin.clients.edit');
+    Route::put('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'update'])->name('app.admin.clients.update');
+    Route::delete('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'destroy'])->name('app.admin.clients.destroy');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
@@ -206,7 +216,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::delete('clients/destroy', 'ClientsController@massDestroy')->name('clients.massDestroy');
     Route::post('clients/media', 'ClientsController@storeMedia')->name('clients.storeMedia');
     Route::post('clients/ckmedia', 'ClientsController@storeCKEditorImages')->name('clients.storeCKEditorImages');
-    Route::resource('clients', 'ClientsController');
+    // Route::resource('clients', 'ClientsController'); // Migrated to SPA
 
     // Locations
     Route::delete('locations/destroy', 'LocationsController@massDestroy')->name('locations.massDestroy');

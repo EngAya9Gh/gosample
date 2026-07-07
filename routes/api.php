@@ -97,6 +97,8 @@ Route::middleware(['auth:drivers', 'force.driver.id'])->group(function () {
     Route::any('swap/tasks/list','App\Http\Controllers\SwapController@listTasksPerDriver');
     Route::any('swap/accept','App\Http\Controllers\SwapController@accept');
     Route::any('swap/reject','App\Http\Controllers\SwapController@reject');
+
+    // --- Clients ---
     Route::any('task/report/export','App\Http\Controllers\DailyOperationController@export');
     Route::any('swap/receive','App\Http\Controllers\SwapController@receive');
     
