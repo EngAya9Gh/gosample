@@ -105,6 +105,8 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/cars/{car}/edit', [\App\Http\Controllers\Admin\CarsController::class, 'edit'])->name('app.admin.cars.edit');
     Route::put('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'update'])->name('app.admin.cars.update');
 
+    Route::get('admin/car-link-histories', [\App\Http\Controllers\Admin\CarLinkHistoryController::class, 'index'])->name('app.admin.car-link-histories.index');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
