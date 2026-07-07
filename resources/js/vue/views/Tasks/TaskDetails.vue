@@ -376,26 +376,29 @@ function getDuration(start, end) {
           </div>
           
           <div class="flex items-center gap-4 mb-5">
-            <div class="w-16 h-16 rounded-full border-[3px] border-primary-100 dark:border-primary-900 overflow-hidden flex-shrink-0">
-              <BaseAvatar :name="task.driver?.name || 'Unknown'" :size="64" />
-            </div>
+            <BaseAvatar :name="task.driver?.name || 'Unknown'" :size="64"
+              class="ring-[3px] ring-primary-100 dark:ring-primary-900/50 shadow-md" />
             <div>
               <p class="text-base font-bold text-ink dark:text-white leading-tight">{{ task.driver?.name || '—' }}</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1 font-medium">
-                <i class="ri-star-fill text-amber-400 text-sm"></i>
-                4.9 Rating (124 Deliveries)
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium ltr:tracking-wide">
+                <i class="ri-phone-line text-primary-500 text-sm"></i>
+                <span dir="ltr">{{ task.driver?.mobile || 'No phone on file' }}</span>
               </p>
             </div>
           </div>
         </div>
         
         <div class="grid grid-cols-2 gap-3 mt-auto">
-          <button class="bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 text-sm font-bold py-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors flex items-center justify-center gap-2">
+          <a :href="task.driver?.mobile ? `tel:${task.driver.mobile}` : undefined"
+            class="bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 text-sm font-bold py-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors flex items-center justify-center gap-2"
+            :class="{ 'opacity-50 pointer-events-none': !task.driver?.mobile }">
             <i class="ri-phone-line text-lg"></i> Call
-          </button>
-          <button class="bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 text-sm font-bold py-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors flex items-center justify-center gap-2">
+          </a>
+          <a :href="task.driver?.mobile ? `sms:${task.driver.mobile}` : undefined"
+            class="bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 text-sm font-bold py-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors flex items-center justify-center gap-2"
+            :class="{ 'opacity-50 pointer-events-none': !task.driver?.mobile }">
             <i class="ri-chat-3-line text-lg"></i> Message
-          </button>
+          </a>
         </div>
       </BaseCard>
 
