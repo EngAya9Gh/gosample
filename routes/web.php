@@ -339,14 +339,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::post('delete-permissions', 'DeletePermissionsController@store')->name('delete-permissions.store');
     Route::delete('delete-permissions/{userId}', 'DeletePermissionsController@destroy')->name('delete-permissions.destroy');
 
-    // --- Swap Requests ---
-    Route::get('swaprequests', [SwaprequestController::class, 'index'])->name('swaprequests.index');
-    Route::get('swaprequests/create', [SwaprequestController::class, 'create'])->name('swaprequests.create');
-    Route::post('swaprequests', [SwaprequestController::class, 'store'])->name('swaprequests.store');
-    Route::get('swaprequests/{swaprequest}', [SwaprequestController::class, 'show'])->name('swaprequests.show');
-    Route::get('swaprequests/{swaprequest}/edit', [SwaprequestController::class, 'edit'])->name('swaprequests.edit');
-    Route::put('swaprequests/{swaprequest}', [SwaprequestController::class, 'update'])->name('swaprequests.update');
-    Route::delete('swaprequests/{swaprequest}', [SwaprequestController::class, 'destroy'])->name('swaprequests.destroy');
+    // --- Swap Requests --- (Removed duplicate routes as they clash with Route::resource above)
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Http\Controllers\Auth', 'middleware' => ['auth']], function () {
     // Change password
