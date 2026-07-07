@@ -51,6 +51,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/system-calendar', [\App\Http\Controllers\App\SystemCalendarController::class, 'index'])->name('app.admin.system-calendar');
     Route::get('admin/system-calendar/export', [\App\Http\Controllers\App\SystemCalendarController::class, 'export'])->name('app.admin.system-calendar.export');
     Route::get('admin/tasks/unused', [\App\Http\Controllers\App\TasksController::class, 'unused'])->name('app.admin.tasks.unused');
+    Route::get('admin/tasks/create', [\App\Http\Controllers\App\TasksController::class, 'create'])->name('app.admin.tasks.create');
     // Task create/edit popup (SPA modals) — distinct "popup" paths so they never
     // collide with page-style create/edit routes or the {task} wildcard below.
     Route::post('admin/tasks/popup', [\App\Http\Controllers\App\TasksController::class, 'store'])->name('app.admin.tasks.popup.store');

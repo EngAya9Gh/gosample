@@ -121,6 +121,16 @@ class TasksController extends Controller
         ]);
     }
 
+    /** Render the SPA Create-Task page (same fields/options + store endpoint as the modal). */
+    public function create()
+    {
+        abort_if(Gate::denies('task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return Inertia::render('Tasks/TaskCreate', [
+            'options' => $this->options(auth()->user()),
+        ]);
+    }
+
     /**
      * Create task(s) from the SPA modal.
      * MIRRORS Admin\TasksController@store 1:1 — same StoreTaskRequest validation
