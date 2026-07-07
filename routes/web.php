@@ -141,6 +141,12 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::put('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'update'])->name('app.admin.users.update');
     Route::delete('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'destroy'])->name('app.admin.users.destroy');
 
+    // --- Roles ---
+    Route::get('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('app.admin.roles.index');
+    Route::post('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('app.admin.roles.store');
+    Route::put('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('app.admin.roles.update');
+    Route::delete('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('app.admin.roles.destroy');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

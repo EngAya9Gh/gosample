@@ -15,9 +15,33 @@ use Illuminate\Support\Facades\Cache;
 
 class RolesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('role_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if (str_starts_with($request->path(), 'app/')) {
+            $query = Role::with(['permissions'])->withCount('users');
+
+            if ($request->filled('keyword')) {
+                $keyword = $request->keyword;
+                $query->where('name', 'like', "%{$keyword}%");
+            }
+
+            $roles = $query->get();
+
+            if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                return response()->json([
+                    'rows' => $roles,
+                ]);
+            }
+
+            $permissions = Permission::all();
+
+            return \Inertia\Inertia::render('Roles/RolesList', [
+                'initialRows' => $roles,
+                'permissions' => $permissions,
+            ]);
+        }
 
         $roles = Role::with(['permissions'])->get();
 
@@ -39,6 +63,10 @@ class RolesController extends Controller
         $role->permissions()->sync($request->input('permissions', []));
         Cache::forget('spatie.permission.cache');
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.roles.index');
+        }
+
         return redirect()->route('admin.roles.index');
     }
 
@@ -50,7 +78,6 @@ class RolesController extends Controller
 
         $role->load('permissions');
 
-
         return view('admin.roles.edit', compact('permissions', 'role'));
     }
 
@@ -59,6 +86,10 @@ class RolesController extends Controller
         $role->update($request->all());
         $role->permissions()->sync($request->input('permissions', []));
         Cache::forget('spatie.permission.cache');
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->route('app.admin.roles.index');
+        }
 
         return redirect()->route('admin.roles.index');
     }
