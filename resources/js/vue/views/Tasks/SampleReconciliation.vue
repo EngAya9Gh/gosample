@@ -313,8 +313,8 @@ focusScan();
 
 <template>
   <div>
-    <Head title="Scan & Reconcile" />
-    <Breadcrumb title="Scan & Reconcile" :trail="[{ label: 'Tasks' }, { label: 'Scan & Reconcile' }]" />
+    <Head title="Scan Sample" />
+    <Breadcrumb title="Scan Sample" :trail="[{ label: 'Tasks' }, { label: 'Scan Sample' }]" />
 
     <div class="space-y-5">
       <!-- ===================== STEP 1 — CONTEXT ===================== -->
