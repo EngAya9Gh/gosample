@@ -15,6 +15,34 @@ class AuditLogsController extends Controller
     {
         abort_if(Gate::denies('audit_log_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        if ($request->header('X-Inertia')) {
+            $query = AuditLog::with([])
+                ->when($request->search, fn ($q, $s) =>
+                    $q->where('description', 'like', "%{$s}%")
+                      ->orWhere('subject_type', 'like', "%{$s}%")
+                      ->orWhere('host', 'like', "%{$s}%")
+                      ->orWhere('user_id', 'like', "%{$s}%")
+                )
+                ->when($request->description, fn ($q, $v) =>
+                    $q->where('description', $v)
+                )
+                ->orderBy('id', 'desc')
+                ->paginate(50)
+                ->withQueryString();
+
+            // Collect unique descriptions for filter dropdown
+            $descriptions = AuditLog::select('description')
+                ->distinct()
+                ->orderBy('description')
+                ->pluck('description');
+
+            return inertia('AuditLogs/AuditLogsList', [
+                'logs'         => $query,
+                'descriptions' => $descriptions,
+                'filters'      => $request->only(['search', 'description']),
+            ]);
+        }
+
         if ($request->ajax()) {
             $query = AuditLog::query()->select(sprintf('%s.*', (new AuditLog())->table));
             $table = Datatables::of($query);
@@ -37,24 +65,12 @@ class AuditLogsController extends Controller
             ));
             });
 
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->editColumn('description', function ($row) {
-                return $row->description ? $row->description : '';
-            });
-            $table->editColumn('subject_id', function ($row) {
-                return $row->subject_id ? $row->subject_id : '';
-            });
-            $table->editColumn('subject_type', function ($row) {
-                return $row->subject_type ? $row->subject_type : '';
-            });
-            $table->editColumn('user_id', function ($row) {
-                return $row->user_id ? $row->user_id : '';
-            });
-            $table->editColumn('host', function ($row) {
-                return $row->host ? $row->host : '';
-            });
+            $table->editColumn('id', fn ($row) => $row->id ?? '');
+            $table->editColumn('description', fn ($row) => $row->description ?? '');
+            $table->editColumn('subject_id', fn ($row) => $row->subject_id ?? '');
+            $table->editColumn('subject_type', fn ($row) => $row->subject_type ?? '');
+            $table->editColumn('user_id', fn ($row) => $row->user_id ?? '');
+            $table->editColumn('host', fn ($row) => $row->host ?? '');
 
             $table->rawColumns(['actions', 'placeholder']);
 
