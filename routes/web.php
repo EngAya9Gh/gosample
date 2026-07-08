@@ -156,6 +156,9 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     // --- Audit Logs ---
     Route::get('admin/audit-logs', [\App\Http\Controllers\Admin\AuditLogsController::class, 'index'])->name('app.admin.audit-logs.index');
 
+    // --- Notifications ---
+    Route::get('admin/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('app.admin.notifications.index');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

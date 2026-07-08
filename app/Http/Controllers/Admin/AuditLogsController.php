@@ -15,7 +15,7 @@ class AuditLogsController extends Controller
     {
         abort_if(Gate::denies('audit_log_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->header('X-Inertia')) {
+        if (str_starts_with($request->path(), 'app/')) {
             $query = AuditLog::with([])
                 ->when($request->search, fn ($q, $s) =>
                     $q->where('description', 'like', "%{$s}%")

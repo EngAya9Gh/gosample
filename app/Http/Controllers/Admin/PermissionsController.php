@@ -20,7 +20,7 @@ class PermissionsController extends Controller
 
         $permissions = Permission::orderBy('name')->get();
 
-        if ($request->header('X-Inertia')) {
+        if (str_starts_with($request->path(), 'app/')) {
             return inertia('Permissions/PermissionsList', [
                 'permissions' => $permissions
             ]);
