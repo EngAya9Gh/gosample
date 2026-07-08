@@ -159,6 +159,10 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     // --- Notifications ---
     Route::get('admin/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('app.admin.notifications.index');
 
+    // --- Barcodes ---
+    Route::get('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generate'])->name('app.admin.barcodes.generate');
+    Route::post('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generateBarcodes'])->name('app.admin.barcodes.generateBarcodes');
+
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))

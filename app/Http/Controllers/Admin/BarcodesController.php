@@ -30,16 +30,27 @@ class BarcodesController extends Controller
         return view('admin.barcodes.create');
     }
 
-    public function generate()
+    public function generate(Request $request)
     {
         abort_if(Gate::denies('barcode_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $show = false;
+        
         $type = 'bag';
         $start = DB::table('barcodes')->where('type','sample')->max('last_number') + 1;
         $sequence = 10;
-        return view('admin.barcodes.generate',compact('type','start','sequence','show')
-        );
+        $show = false;
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return inertia('Barcodes/BarcodesGenerate', [
+                'type' => $type,
+                'start' => $start,
+                'sequence' => $sequence,
+                'show' => $show
+            ]);
+        }
+
+        return view('admin.barcodes.generate',compact('type','start','sequence','show'));
     }
+
     public function generateBarcodes(Request $request)
     {
         abort_if(Gate::denies('barcode_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -53,10 +64,16 @@ class BarcodesController extends Controller
         $record->last_number =  $record->last_number +  $request->range;
         $record->save();
 
-        return view('admin.barcodes.generate',compact('type','start','sequence','show')
-        
-        
-        );
+        if (str_starts_with($request->path(), 'app/')) {
+            return inertia('Barcodes/BarcodesGenerate', [
+                'type' => $type,
+                'start' => $start,
+                'sequence' => $sequence,
+                'show' => $show
+            ]);
+        }
+
+        return view('admin.barcodes.generate',compact('type','start','sequence','show'));
     }
 
     public function store(StoreBarcodeRequest $request)
