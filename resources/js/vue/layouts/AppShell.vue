@@ -45,7 +45,7 @@ function onNavigate(target) {
     '/admin/tasks', '/admin/samples', '/admin/scheduled-tasks',
     '/admin/system-calendar', '/admin/drivers', '/admin/lost',
     '/admin/shipments', '/admin/money-transfers', '/admin/cars', '/admin/car-link-histories',
-    '/admin/swaprequests', '/admin/clients', '/admin/locations', '/admin/users', '/admin/roles',
+    '/admin/swaprequests', '/admin/clients', '/admin/locations', '/admin/users', '/admin/roles', '/admin/permissions', '/admin/audit-logs',
   ];
   if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.some(route => target.startsWith(route))) {
     window.location.href = target;

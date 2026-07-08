@@ -60,10 +60,7 @@ class TasksController extends Controller
         $dateColumn = $request->input('search_date') ?: 'tasks.created_at';
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
-        if (!$dateFrom && !$dateTo && !$request->keyword) {
-            $dateFrom = Carbon::now()->subDays(30)->startOfDay();
-            $dateTo = Carbon::now()->endOfDay();
-        }
+        // No default date filter applied if left empty
         if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
             [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
         }

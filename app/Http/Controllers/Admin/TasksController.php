@@ -2315,17 +2315,22 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function destroy(Task $task)
     {
-        $this->authorize('can-delete');
+        $this->authorize('task_delete');
+        if ($task->status !== 'NEW') {
+            return back()->with('error', 'لا يمكن حذف المهمة إلا إذا كانت حالتها جديدة (NEW)');
+        }
 
         $task->delete();
 
-        return back();
+        return back()->with('message', trans('global.delete_success'));
     }
 
     public function massDestroy(MassDestroyTaskRequest $request)
     {
-        $this->authorize('can-delete');
-        Task::whereIn('id', request('ids'))->delete();
+        $this->authorize('task_delete');
+        
+        // Only delete tasks that are in NEW status
+        Task::whereIn('id', request('ids'))->where('status', 'NEW')->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
     }

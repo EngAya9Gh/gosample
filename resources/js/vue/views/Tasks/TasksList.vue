@@ -341,7 +341,7 @@ async function bulkDelete(ids) {
       title="Tasks"
       :columns="columns" :rows="rows" row-key="id"
       :loading="loading" :server-side="true" :total="total" :searchable="false"
-      :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
+      :bulk-actions="can('task_delete') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete" @export="onExport"
     >
       <template #cell-id="{ value }">
@@ -385,7 +385,7 @@ async function bulkDelete(ids) {
         <div class="inline-flex items-center gap-1">
           <button v-if="can('task_show')" @click="router.visit(`/app/admin/tasks/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
           <button v-if="can('task_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
-          <button v-if="canDelete()" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
+          <button v-if="can('task_delete') && row.status === 'NEW'" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
     </DataTable>
