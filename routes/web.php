@@ -160,8 +160,23 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('admin/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('app.admin.notifications.index');
 
     // --- Barcodes ---
+    Route::get('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'index'])->name('app.admin.barcodes.index');
+    Route::post('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'store'])->name('app.admin.barcodes.store');
+    Route::put('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'update'])->name('app.admin.barcodes.update');
+    Route::delete('admin/barcodes/destroy', [\App\Http\Controllers\Admin\BarcodesController::class, 'massDestroy'])->name('app.admin.barcodes.massDestroy');
+    Route::delete('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'destroy'])->name('app.admin.barcodes.destroy');
     Route::get('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generate'])->name('app.admin.barcodes.generate');
     Route::post('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generateBarcodes'])->name('app.admin.barcodes.generateBarcodes');
+    
+    // --- Terms ---
+    Route::get('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'index'])->name('app.admin.terms.index');
+    Route::post('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'store'])->name('app.admin.terms.store');
+    Route::put('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'update'])->name('app.admin.terms.update');
+    Route::delete('admin/terms/destroy', [\App\Http\Controllers\Admin\TermsController::class, 'massDestroy'])->name('app.admin.terms.massDestroy');
+    Route::delete('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'destroy'])->name('app.admin.terms.destroy');
+
+    // --- API Ayenati ---
+    Route::get('admin/api-ayenatis', [\App\Http\Controllers\Admin\ApiAyenatiController::class, 'index'])->name('app.admin.api-ayenatis.index');
 
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.

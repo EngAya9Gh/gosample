@@ -15,6 +15,23 @@ class ApiAyenatiController extends Controller
     {
         abort_if(Gate::denies('api_ayenati_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        if (str_starts_with($request->path(), 'app/')) {
+            $query = ApiAyenati::query()
+                ->when($request->search, fn ($q, $s) =>
+                    $q->where('api_url', 'like', "%{$s}%")
+                      ->orWhere('response', 'like', "%{$s}%")
+                      ->orWhere('response_flag', 'like', "%{$s}%")
+                )
+                ->orderBy('id', 'desc')
+                ->paginate(50)
+                ->withQueryString();
+
+            return inertia('ApiAyenati/ApiAyenatiList', [
+                'logs' => $query,
+                'filters' => $request->only(['search']),
+            ]);
+        }
+
         if ($request->ajax()) {
             $query = ApiAyenati::query()->select(sprintf('%s.*', (new ApiAyenati)->table));
             $table = Datatables::of($query);
