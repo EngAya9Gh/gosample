@@ -13,11 +13,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TermsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('term_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $terms = Term::all();
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return inertia('Terms/TermsList', [
+                'terms' => $terms,
+            ]);
+        }
 
         return view('admin.terms.index', compact('terms'));
     }
@@ -33,6 +39,9 @@ class TermsController extends Controller
     {
         $term = Term::create($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return redirect()->route('admin.terms.index');
     }
 
@@ -47,6 +56,9 @@ class TermsController extends Controller
     {
         $term->update($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return redirect()->route('admin.terms.index');
     }
 
@@ -57,20 +69,26 @@ class TermsController extends Controller
         return view('admin.terms.show', compact('term'));
     }
 
-    public function destroy(Term $term)
+    public function destroy(Term $term, Request $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('term_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $term->delete();
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return back();
     }
 
     public function massDestroy(MassDestroyTermRequest $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('term_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         Term::whereIn('id', request('ids'))->delete();
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }
