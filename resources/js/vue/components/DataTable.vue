@@ -144,6 +144,7 @@ function stickyCls(c, bg = STICKY_BODY) {
       </div>
 
       <div class="flex items-center gap-1.5 ms-auto">
+        <slot name="header-actions"></slot>
         <template v-if="exportable">
           <button v-for="ex in exportBtns" :key="ex.key"
             @click="$emit('export', ex.key)"

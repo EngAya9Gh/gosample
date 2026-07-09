@@ -14,11 +14,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BarcodesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('barcode_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $barcodes = Barcode::all();
+
+        if (str_starts_with($request->path(), 'app/')) {
+            return inertia('Barcodes/BarcodesList', [
+                'barcodes' => $barcodes,
+            ]);
+        }
 
         return view('admin.barcodes.index', compact('barcodes'));
     }
@@ -80,6 +86,9 @@ class BarcodesController extends Controller
     {
         $barcode = Barcode::create($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -94,6 +103,9 @@ class BarcodesController extends Controller
     {
         $barcode->update($request->all());
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -104,20 +116,25 @@ class BarcodesController extends Controller
         return view('admin.barcodes.show', compact('barcode'));
     }
 
-    public function destroy(Barcode $barcode)
+    public function destroy(Barcode $barcode, Request $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('barcode_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $barcode->delete();
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return back();
     }
 
     public function massDestroy(MassDestroyBarcodeRequest $request)
     {
-        $this->authorize('can-delete');
         Barcode::whereIn('id', request('ids'))->delete();
 
+        if (str_starts_with($request->path(), 'app/')) {
+            return redirect()->back();
+        }
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }
