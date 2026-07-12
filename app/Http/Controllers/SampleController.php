@@ -1270,15 +1270,14 @@ class SampleController extends Controller
 
 
 
-            // Get the array of objects from the JSON request
-            $rawContent = $request->getContent();
             $dataArray = $request->json()->all(); 
 
-            \Log::info('MTC_DEBUG_PAYLOAD', [
-                'raw' => $rawContent,
-                'json_all' => $dataArray,
-                'all' => $request->all()
-            ]);
+            // IMPORTANT: ForceDriverIdMiddleware merges 'driver_id' into the request.
+            // If the request was a JSON array, this turns it into an associative array mixing indices and 'driver_id'.
+            // We must remove it before processing the list of bags.
+            if (array_key_exists('driver_id', $dataArray)) {
+                unset($dataArray['driver_id']);
+            }
 
             if (empty($dataArray)) {
                 return $this->response(true, 'success');
@@ -1303,6 +1302,11 @@ class SampleController extends Controller
                 $task = Task::find($data['task_id']);
                 if ($task == null) {
                     return $this->response(false, 'task is not found');
+                }
+
+                // Security Check: Ensure the logged-in driver is the owner of the task
+                if ($request->has('driver_id') && $task->driver_id != $request->driver_id) {
+                    return $this->response(false, 'Unauthorized driver for this task');
                 }
 
                 $driver = Driver::find($task->driver_id);
