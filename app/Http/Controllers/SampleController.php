@@ -1270,7 +1270,8 @@ class SampleController extends Controller
 
 
 
-            $dataArray = $request->all(); // Get the array of objects from the request
+            // Get the array of objects from the JSON request
+            $dataArray = $request->json()->all(); 
 
             if (empty($dataArray)) {
                 return $this->response(true, 'success');
