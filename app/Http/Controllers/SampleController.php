@@ -1271,7 +1271,14 @@ class SampleController extends Controller
 
 
             // Get the array of objects from the JSON request
+            $rawContent = $request->getContent();
             $dataArray = $request->json()->all(); 
+
+            \Log::info('MTC_DEBUG_PAYLOAD', [
+                'raw' => $rawContent,
+                'json_all' => $dataArray,
+                'all' => $request->all()
+            ]);
 
             if (empty($dataArray)) {
                 return $this->response(true, 'success');
