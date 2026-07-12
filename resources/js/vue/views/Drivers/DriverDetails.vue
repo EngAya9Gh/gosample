@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
@@ -134,6 +135,15 @@ const formatDate = (dateString) => {
               <div class="flex items-center justify-between py-3">
                 <dt class="text-sm text-slate-500 font-medium">Join Date</dt>
                 <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ formatDate(driver.created_at) }}</dd>
+              </div>
+              <div class="flex items-center justify-between py-3">
+                <dt class="text-sm text-slate-500 font-medium">Assigned Car</dt>
+                <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  <Link v-if="driver.car" :href="`/app/admin/cars/${driver.car.id}`" class="text-[#0ab39c] hover:underline">
+                    {{ driver.car.plate_number }}
+                  </Link>
+                  <span v-else class="text-slate-400">None</span>
+                </dd>
               </div>
             </dl>
           </div>

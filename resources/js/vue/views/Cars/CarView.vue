@@ -94,8 +94,8 @@ const editCar = () => {
         
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="space-y-1">
-            <dt class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Car ID</dt>
-            <dd class="text-sm font-medium text-slate-800 dark:text-slate-200">#{{ props.car.id }}</dd>
+            <dt class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plate Number</dt>
+            <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ props.car.plate_number }}</dd>
           </div>
           
           <div class="space-y-1">

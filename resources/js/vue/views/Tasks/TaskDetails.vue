@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router, useForm, Link } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
@@ -379,10 +379,22 @@ function getDuration(start, end) {
             <BaseAvatar :name="task.driver?.name || 'Unknown'" :size="64"
               class="ring-[3px] ring-primary-100 dark:ring-primary-900/50 shadow-md" />
             <div>
-              <p class="text-base font-bold text-ink dark:text-white leading-tight">{{ task.driver?.name || '—' }}</p>
+              <p class="text-base font-bold text-ink dark:text-white leading-tight">
+                <Link v-if="task.driver?.id" :href="`/app/admin/drivers/${task.driver.id}`" class="hover:text-primary-600 hover:underline">
+                  {{ task.driver.name }}
+                </Link>
+                <span v-else>{{ task.driver?.name || '—' }}</span>
+              </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium ltr:tracking-wide">
                 <i class="ri-phone-line text-primary-500 text-sm"></i>
                 <span dir="ltr">{{ task.driver?.mobile || 'No phone on file' }}</span>
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium ltr:tracking-wide">
+                <i class="ri-car-line text-primary-500 text-sm"></i>
+                <Link v-if="task.car?.id" :href="`/app/admin/cars/${task.car.id}`" class="hover:underline text-slate-600 dark:text-slate-300">
+                  {{ task.car.plate_number }}
+                </Link>
+                <span v-else>No Car Assigned</span>
               </p>
             </div>
           </div>

@@ -180,7 +180,7 @@ class DriversController extends Controller
         abort_if(Gate::denies('driver_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $driver = Driver::withoutGlobalScope('enabled')
-            ->with(['zone', 'driverTasks', 'driverCarLinkHistories'])
+            ->with(['zone', 'driverTasks', 'driverCarLinkHistories', 'car'])
             ->findOrFail($id);
 
         // Pre-calculate shift hours to pass neatly

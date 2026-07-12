@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    @lang('translation.cars')
+    @lang('translation.cars') - {{ $car->plate_number }}
 @endsection
 @section('content')
     @component('components.breadcrumb')
@@ -8,13 +8,13 @@
             @lang('translation.appname')
         @endslot
         @slot('title')
-            @lang('translation.cars')
+            @lang('translation.cars') - {{ $car->plate_number }}
         @endslot
     @endcomponent
 
     <div class="card">
         <div class="card-header">
-            {{ trans('translation.show') }} {{ trans('translation.cars') }}
+            {{ trans('translation.show') }} {{ trans('translation.cars') }} : <span class="badge bg-success fs-14">{{ $car->plate_number }}</span>
         </div>
 
         <div class="card-body">
@@ -28,10 +28,10 @@
                     <tbody>
                         <tr>
                             <th>
-                                {{ trans('translation.car.fields.id') }}
+                                {{ trans('translation.car.fields.plate_number') }}
                             </th>
                             <td>
-                                {{ $car->id }}
+                                <strong>{{ $car->plate_number }}</strong>
                             </td>
                         </tr>
                         <tr>
@@ -50,14 +50,7 @@
                                 {{ $car->imei }}
                             </td>
                         </tr>
-                        <tr>
-                            <th>
-                                {{ trans('translation.car.fields.plate_number') }}
-                            </th>
-                            <td>
-                                {{ $car->plate_number }}
-                            </td>
-                        </tr>
+
                         <tr>
                             <th>
                                 {{ trans('translation.car.fields.model') }}
