@@ -86,6 +86,51 @@ function doSearch() { reload({ page: 1 }); }
 function doReset() { Object.assign(filters, DEFAULT_FILTERS); dateRange.value = ''; reload({ page: 1 }); }
 function onQuery(q) { reload({ page: q.page, pageSize: q.pageSize }); }
 
+/* ---------- DataTable toolbar exports (Copy / CSV / Excel / Print) ---------- */
+const exportColumns = columns.filter((c) => c.key !== 'actions');
+function cellText(r, c) {
+  if (c.key === 'confirmed_by_client')
+    return r.confirmed_by_client === 'YES' ? 'RECEIVED' : (r.confirmed_by_client === 'NO' ? 'PENDING' : 'LOST');
+  return r[c.key] == null ? '' : String(r[c.key]);
+}
+function matrix() {
+  const header = exportColumns.map((c) => c.label);
+  const body = rows.value.map((r) => exportColumns.map((c) => cellText(r, c)));
+  return { header, body };
+}
+function onExport(kind) {
+  const { header, body } = matrix();
+  if (!body.length) { push({ type: 'info', title: 'Nothing to export', message: 'No samples in the current view.' }); return; }
+
+  if (kind === 'copy') {
+    navigator.clipboard?.writeText([header.join('\t'), ...body.map((r) => r.join('\t'))].join('\n'));
+    push({ type: 'success', title: 'Copied', message: `${body.length} rows copied to clipboard` });
+  } else if (kind === 'csv') {
+    const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = [header.map(esc).join(','), ...body.map((r) => r.map(esc).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'samples.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'excel') {
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + html], { type: 'application/vnd.ms-excel' }));
+    a.download = 'samples.xls';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'print') {
+    const w = window.open('', '_blank');
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    w.document.write(`<html dir="${document.documentElement.dir}"><head><title>Samples</title><style>table{border-collapse:collapse;width:100%;font-family:Poppins,sans-serif;font-size:12px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:start}th{background:#005D69;color:#fff}</style></head><body><h3>Samples</h3><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`);
+    w.document.close(); w.focus(); w.print();
+  }
+}
+
 const delTarget = ref(null);
 const showDel = ref(false);
 function askDelete(row) { delTarget.value = row; showDel.value = true; }
@@ -131,7 +176,7 @@ async function confirmDelete() {
                 : (opt.value === 'LOST' ? 'bg-[#BD6BA7]/10 text-[#BD6BA7] border-[#BD6BA7]/20 hover:bg-[#BD6BA7]/20' :
                    opt.value === 'YES'  ? 'bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20 hover:bg-[#22c55e]/20' :
                    opt.value === 'NO'   ? 'bg-[#e89e2b]/10 text-[#e89e2b] border-[#e89e2b]/20 hover:bg-[#e89e2b]/20' :
-                   'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-surface-dark-border dark:hover:bg-surface-dark-solid')
+                   'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-white/5 dark:hover:bg-surface-dark-solid')
             ]">
             {{ opt.label }}
           </button>
@@ -147,7 +192,8 @@ async function confirmDelete() {
       :page="page"
       :page-size="pageSize"
       :loading="loading"
-      @update="onQuery"
+      @query="onQuery"
+      @export="onExport"
     >
       <template #cell-id="{ value }">
         <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
@@ -190,7 +236,7 @@ async function confirmDelete() {
       </template>
 
       <template #cell-actions="{ row }">
-        <button v-if="can('sample_delete')" @click="askDelete(row)" class="w-8 h-8 inline-flex items-center justify-center rounded text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors" title="Delete Sample">
+        <button v-if="can('sample_delete')" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete">
           <i class="ri-delete-bin-line"></i>
         </button>
       </template>
@@ -213,7 +259,7 @@ async function confirmDelete() {
           Are you sure you want to completely delete this sample? This action is permanent and cannot be undone.
         </p>
         <div class="flex justify-end gap-3">
-          <button @click="showDel = false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-surface-dark-border dark:hover:bg-surface-dark-solid transition-colors">
+          <button @click="showDel = false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-white/5 dark:hover:bg-surface-dark-solid transition-colors">
             Cancel
           </button>
           <button @click="confirmDelete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm shadow-red-600/20 transition-all">

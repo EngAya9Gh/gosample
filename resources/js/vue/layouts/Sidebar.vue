@@ -24,6 +24,24 @@ function toggleUserMenu() {
   userMenuOpen.value = !userMenuOpen.value;
 }
 
+// Real logout: the /logout route is POST-only (classic Blade auth), so submit
+// a form with the CSRF token — navigating to /login while authenticated just
+// bounces back, which made the button look dead.
+function logout() {
+  userMenuOpen.value = false;
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/logout';
+  const token = document.createElement('input');
+  token.type = 'hidden';
+  token.name = '_token';
+  token.value = csrf;
+  form.appendChild(token);
+  document.body.appendChild(form);
+  form.submit();
+}
+
 const groups = computed(() =>
   NAV.map((g) => ({ ...g, items: g.items.filter((i) => can(i.perm)) }))
      .filter((g) => g.items.length)
@@ -34,8 +52,15 @@ function toggleGroup(label) {
   s.has(label) ? s.delete(label) : s.add(label);
   openGroups.value = s;
 }
+// Longest-prefix-wins: when one nav route is a prefix of another (e.g.
+// /admin/barcodes and /admin/barcodes/generate), only the most specific
+// match lights up — plain startsWith marked both.
+const allRoutes = NAV.flatMap((g) => g.items.map((i) => i.route));
 function isActive(route) {
-  return props.current === route || (route !== '/dashboard' && props.current.startsWith(route));
+  const best = allRoutes
+    .filter((r) => props.current === r || (r !== '/dashboard' && props.current.startsWith(r)))
+    .sort((a, b) => b.length - a.length)[0];
+  return route === best;
 }
 
 // Per-badge colours (matching the design): delayed = red, lost = pink/mauve, swap = blue.
@@ -110,6 +135,11 @@ const initials = computed(() => {
           <div class="text-[13px] font-semibold text-white truncate leading-tight group-hover:text-amber-400 transition">{{ user.name }}</div>
           <div class="text-[11px] text-[#6fa9ae] truncate mt-0.5">{{ user.role || 'Admin' }}</div>
         </div>
+        <!-- quick logout (animated: arrow nudges toward the exit on hover) -->
+        <button v-if="!collapsed" @click.stop="logout()" title="Logout"
+          class="logout-quick grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[#6fa9ae] hover:text-red-400 hover:bg-red-500/10 transition-colors duration-200">
+          <i class="ri-logout-box-r-line text-[16px] rtl:-scale-x-100"></i>
+        </button>
       </div>
       <!-- User Menu Dropdown -->
       <Transition name="drop">
@@ -120,7 +150,7 @@ const initials = computed(() => {
           </div>
           <a href="#" @click.prevent="$emit('navigate','/admin/profile'); userMenuOpen = false" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-ink dark:text-slate-200 hover:bg-surface-muted dark:hover:bg-white/5"><i class="ri-user-line text-slate-400"></i>Profile</a>
           <a href="#" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-ink dark:text-slate-200 hover:bg-surface-muted dark:hover:bg-white/5"><i class="ri-question-line text-slate-400"></i>Help</a>
-          <a href="#" @click.prevent="$emit('navigate','/login'); userMenuOpen = false" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-danger hover:bg-danger/5"><i class="ri-logout-box-r-line"></i>Logout</a>
+          <a href="#" @click.prevent="logout()" class="flex items-center gap-3 px-2.5 h-9 rounded-lg text-sm text-danger hover:bg-danger/5"><i class="ri-logout-box-r-line"></i>Logout</a>
         </div>
       </Transition>
     </div>
@@ -133,5 +163,19 @@ const initials = computed(() => {
 .drop-enter-active { transition: all .2s cubic-bezier(.16,1,.3,1); }
 .drop-leave-active { transition: all .15s ease; }
 .drop-enter-from, .drop-leave-to { opacity: 0; transform: translateY(6px) scale(.97); }
-@media (prefers-reduced-motion: reduce) { .drop-enter-active, .drop-leave-active { transition: opacity .15s ease; } .drop-enter-from { transform: none; } }
+
+/* quick-logout: arrow nudges toward the door while hovered */
+.logout-quick i { transition: transform .2s ease; }
+.logout-quick:hover i { animation: logout-nudge .55s ease-in-out infinite alternate; }
+@keyframes logout-nudge {
+  from { transform: translateX(0); }
+  to   { transform: translateX(3px); }
+}
+[dir='rtl'] .logout-quick:hover i { animation-name: logout-nudge-rtl; }
+@keyframes logout-nudge-rtl {
+  from { transform: translateX(0) scaleX(-1); }
+  to   { transform: translateX(-3px) scaleX(-1); }
+}
+
+@media (prefers-reduced-motion: reduce) { .drop-enter-active, .drop-leave-active { transition: opacity .15s ease; } .drop-enter-from { transform: none; } .logout-quick:hover i { animation: none; } }
 </style>

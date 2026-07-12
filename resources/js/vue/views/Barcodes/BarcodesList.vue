@@ -91,22 +91,21 @@ function deleteMultiple(ids) {
 
 <template>
   <div>
-    <Breadcrumb title="Barcodes List" :trail="[{ label: 'Barcodes' }]" />
+    <Breadcrumb title="Barcodes List" :trail="[{ label: 'Barcodes' }]">
+      <template #actions>
+        <BaseButton v-if="can('barcode_create')" variant="primary" icon="ri-add-line" @click="openCreate">Add Barcode Type</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <DataTable
       title="Barcodes"
-      :columns="columns" 
-      :rows="barcodes || []" 
+      :columns="columns"
+      :rows="barcodes || []"
       row-key="id"
-      :server-side="false" 
+      :server-side="false"
       :searchable="true"
       @delete-selected="deleteMultiple"
     >
-      <template #header-actions>
-        <BaseButton v-if="can('barcode_create')" icon="ri-add-line" @click="openCreate">
-          Add Barcode Type
-        </BaseButton>
-      </template>
 
       <template #cell-type="{ value }">
         <span class="font-medium text-ink dark:text-slate-200 capitalize">{{ value }}</span>
@@ -118,7 +117,7 @@ function deleteMultiple(ids) {
 
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('barcode_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="Edit">
+          <button v-if="can('barcode_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit">
             <i class="ri-pencil-line"></i>
           </button>
           <button v-if="can('barcode_delete')" @click="deleteBarcode(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete">

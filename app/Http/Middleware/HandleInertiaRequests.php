@@ -57,6 +57,9 @@ class HandleInertiaRequests extends Middleware
                 ];
             },
             'locale' => app()->getLocale(),
+            // Flashed old input (e.g. the typed email after a failed login) so
+            // forms can repopulate instead of clearing.
+            'old' => fn () => $request->session()->getOldInput(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

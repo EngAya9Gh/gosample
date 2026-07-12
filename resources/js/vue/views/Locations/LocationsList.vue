@@ -31,6 +31,7 @@ const total = ref(0);
 const loading = ref(false);
 
 const columns = [
+  { key: 'id',           label: 'ID',            sortable: true, width: '80px' },
   { key: 'name',         label: 'English Name',  sortable: true },
   { key: 'arabic_name',  label: 'Arabic Name',   sortable: true },
   { key: 'city',         label: 'City',          sortable: true },
@@ -221,13 +222,11 @@ const copyToClipboard = async (text) => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between mb-4">
-      <Breadcrumb title="Locations" :trail="[{ label: 'Locations' }]">
-        <template #actions>
-          <BaseButton v-if="can('location_create')" @click="openFormModal()" variant="primary" icon="ri-add-line">Add Location</BaseButton>
-        </template>
-      </Breadcrumb>
-    </div>
+    <Breadcrumb title="Locations" :trail="[{ label: 'Locations' }]">
+      <template #actions>
+        <BaseButton v-if="can('location_create')" @click="openFormModal()" variant="primary" icon="ri-add-line">Add Location</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <!-- Filter Bar -->
     <FilterBar :loading="loading" @search="doSearch(1, 25)" @reset="doReset">
@@ -242,19 +241,19 @@ const copyToClipboard = async (text) => {
       />
 
       <!-- Extra Actions: Status Pills -->
+      <!-- Status as colored pills (same pattern as the Tasks page) -->
       <template #actions-extra>
-        <div class="flex items-center gap-2 border-s border-slate-200 dark:border-white/10 ps-4">
-          <button
-            v-for="p in statusPills" :key="p.value"
-            type="button"
-            @click="toggleStatus(p.value)"
-            class="h-10 px-3.5 inline-flex items-center gap-2 rounded-xl text-sm font-medium transition-colors border bg-surface dark:bg-surface-dark"
-            :class="searchForm.status === p.value ? p.active : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'"
-          >
-            <span class="w-2 h-2 rounded-full" :class="p.dot"></span>
-            {{ p.label }}
-          </button>
-        </div>
+        <button
+          v-for="p in statusPills" :key="p.value" type="button"
+          @click="toggleStatus(p.value)"
+          class="inline-flex items-center gap-1.5 ps-2 pe-2.5 h-7 rounded-full border text-[11px] font-bold transition"
+          :class="searchForm.status === p.value
+            ? p.active
+            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300'"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="p.dot"></span>
+          {{ p.label }}
+        </button>
       </template>
     </FilterBar>
 
@@ -269,6 +268,11 @@ const copyToClipboard = async (text) => {
       :sort-order="searchForm.sortOrder"
       @query="onQuery"
     >
+      <!-- ID — same design as the Tasks page ID column -->
+      <template #cell-id="{ value }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      </template>
+
       <!-- Bold Names -->
       <template #cell-name="{ row }">
         <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap">{{ row.name }}</span>
@@ -302,12 +306,12 @@ const copyToClipboard = async (text) => {
       <!-- Coordinates Format -->
       <template #cell-coordinates="{ row }">
         <div class="flex items-center gap-2">
+          <button v-if="row.lat" @click="copyToClipboard(`https://www.google.com/maps/place/${row.lat},${row.lng}`)" class="text-primary-500 hover:text-primary-700 transition shrink-0" title="Copy Google Maps Link">
+            <i class="ri-map-pin-line text-lg"></i>
+          </button>
           <span class="text-xs font-mono text-slate-500 truncate w-32" :title="`${row.lat}, ${row.lng}`">
             {{ row.lat ? `${row.lat}, ${row.lng}` : '—' }}
           </span>
-          <button v-if="row.lat" @click="copyToClipboard(`https://www.google.com/maps/place/${row.lat},${row.lng}`)" class="text-primary-500 hover:text-primary-700 transition" title="Copy Google Maps Link">
-            <i class="ri-map-pin-line text-lg"></i>
-          </button>
         </div>
       </template>
 

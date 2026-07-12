@@ -195,13 +195,11 @@ const submitForm = () => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between mb-4">
-      <Breadcrumb title="Users" :trail="[{ label: 'Users' }]">
-        <template #actions>
-          <BaseButton v-if="can('user_create')" @click="openFormModal()" variant="primary" icon="ri-add-line">Add User</BaseButton>
-        </template>
-      </Breadcrumb>
-    </div>
+    <Breadcrumb title="Users" :trail="[{ label: 'Users' }]">
+      <template #actions>
+        <BaseButton v-if="can('user_create')" @click="openFormModal()" variant="primary" icon="ri-add-line">Add User</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <!-- Filter Bar -->
     <FilterBar :loading="loading" @search="doSearch(1, 25)" @reset="doReset">

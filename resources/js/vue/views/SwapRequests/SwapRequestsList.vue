@@ -29,6 +29,12 @@ function onDateRange({ from, to }) {
   searchForm.value.date_to = to || '';
 }
 
+function resetFilters() {
+  searchForm.value = { ...DEFAULT_FILTERS };
+  dateRange.value = '';
+  doSearch(1, 25);
+}
+
 const rows = ref([]);
 const total = ref(0);
 const loading = ref(false);
@@ -252,13 +258,7 @@ const submitForm = () => {
         <Breadcrumb class="mt-1" :items="[{ label: 'Admin' }, { label: 'Swap Requests' }]" />
       </div>
       <div class="flex items-center gap-3">
-        <button 
-          @click="openFormModal(null)"
-          class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/20 active:scale-95"
-        >
-          <i class="ri-add-line text-lg"></i>
-          Add Swap Request
-        </button>
+        <BaseButton variant="primary" icon="ri-add-line" @click="openFormModal(null)">Add Swap Request</BaseButton>
       </div>
     </div>
 
@@ -289,6 +289,8 @@ const submitForm = () => {
             />
           </div>
         </div>
+
+        <BaseButton variant="light" icon="ri-refresh-line" @click="resetFilters">Reset</BaseButton>
       </div>
       
       <!-- Table -->
@@ -334,8 +336,8 @@ const submitForm = () => {
             <button @click="openViewModal(row)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-info/10 text-info transition-colors" title="View Details">
               <i class="ri-eye-line text-lg"></i>
             </button>
-            <button @click="openFormModal(row)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-warning/10 text-warning transition-colors" title="Edit">
-              <i class="ri-edit-line text-lg"></i>
+            <button @click="openFormModal(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit">
+              <i class="ri-pencil-line text-lg"></i>
             </button>
             <button @click="deleteSwap(row.id)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-danger/10 text-danger transition-colors" title="Delete">
               <i class="ri-delete-bin-line text-lg"></i>
@@ -444,7 +446,7 @@ const submitForm = () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormSelect
               v-model="form.driver_a"
-              label="From Driver (Driver A) *"
+              label="From Driver (Driver A)"
               :options="driverOptions"
               :error="form.errors.driver_a"
               placeholder="Select From Driver"
@@ -455,7 +457,7 @@ const submitForm = () => {
 
             <FormSelect
               v-model="form.driver_id"
-              label="To Driver (Driver B) *"
+              label="To Driver (Driver B)"
               :options="driverOptions"
               :error="form.errors.driver_id"
               placeholder="Select To Driver"
@@ -466,7 +468,7 @@ const submitForm = () => {
 
             <FormSelect
               v-model="form.task_id"
-              label="Task(s) *"
+              label="Task(s)"
               :options="taskOptions"
               :error="form.errors.task_id"
               placeholder="Select Task (Choose Driver A first)"
@@ -478,7 +480,7 @@ const submitForm = () => {
 
             <FormSelect
               v-model="form.status"
-              label="Status *"
+              label="Status"
               :options="statusOptions"
               :error="form.errors.status"
               required

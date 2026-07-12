@@ -61,9 +61,14 @@
 <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
 <i class="ri-mail-line text-[20px]"></i>
 </div>
-<input v-model="email" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="email" name="email" placeholder="admin@example.com" type="email" required autofocus/>
-<div v-if="errors.email" class="text-error text-sm mt-1">{{ errors.email }}</div>
+<input v-model="email"
+  class="block w-full rounded-lg py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
+  :class="errors.email ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
+  id="email" name="email" placeholder="admin@example.com" type="email" required autofocus/>
 </div>
+<p v-if="errors.email" class="flex items-center gap-1.5 text-error text-sm mt-2">
+  <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ errors.email }}
+</p>
 </div>
 <!-- Password Field -->
 <div>
@@ -74,12 +79,17 @@
 <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
 <i class="ri-lock-password-line text-[20px]"></i>
 </div>
-<input v-model="password" :type="showPassword ? 'text' : 'password'" class="block w-full rounded-lg border-outline-variant py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md" id="password" name="password" placeholder="••••••••" required />
-<div v-if="errors.password" class="text-error text-sm mt-1">{{ errors.password }}</div>
+<input v-model="password" :type="showPassword ? 'text' : 'password'"
+  class="block w-full rounded-lg py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
+  :class="errors.password ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
+  id="password" name="password" placeholder="••••••••" required />
 <button @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-sm flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
 <i :class="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'" class="text-[20px]"></i>
 </button>
 </div>
+<p v-if="errors.password" class="flex items-center gap-1.5 text-error text-sm mt-2">
+  <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ errors.password }}
+</p>
 </div>
 <!-- Remember & Forgot -->
 <div class="flex items-center justify-between pt-xs">
@@ -136,18 +146,18 @@ import { computed, ref } from 'vue';
 const logoLight = '/assets/images/logo-light.png';
 const logoDark = '/assets/images/logo-dark.png';
 
+// Validation errors are flashed to the session on a failed login and shared back by
+// HandleInertiaRequests when /login re-renders; old input repopulates the email.
+const page = usePage();
+const errors = computed(() => page.props.errors ?? {});
+
 const showPassword = ref(false);
-const email = ref('');
+const email = ref(page.props.old?.email ?? '');
 const password = ref('');
 const remember = ref(false);
 
 // CSRF token from the <meta> tag in app.blade.php (root Inertia view).
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-
-// Validation errors are flashed to the session on a failed login and shared back by
-// HandleInertiaRequests when /login re-renders.
-const page = usePage();
-const errors = computed(() => page.props.errors ?? {});
 </script>
 
 <style scoped>

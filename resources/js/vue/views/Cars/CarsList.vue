@@ -1,17 +1,21 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormSelect from '../../components/FormSelect.vue';
+import FormInput from '../../components/FormInput.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import FormDate from '../../components/FormDate.vue';
+import { useToast } from '../../composables/useToast';
+
+const { push } = useToast();
 
 const props = defineProps({
   initialRows: Array,
@@ -72,6 +76,63 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     loading.value = false;
   }
 }, 300);
+
+/* ---------- Add / Edit modal (same popup pattern as the Tasks page) ----------
+ * One modal serves both: create posts to the existing /app/admin/cars store,
+ * edit puts to /app/admin/cars/{id} — same fields as the CarForm page, and the
+ * list rows already carry every editable value so no extra fetch is needed. */
+const STATUS_OPTS = [
+  { value: '1', label: 'Enable' },
+  { value: '2', label: 'Disable' },
+];
+const AFAQI_OPTS = [
+  { value: '0', label: 'No' },
+  { value: '1', label: 'Yes' },
+];
+
+const showCarModal = ref(false);
+const editingId = ref(null);
+const carForm = useForm({
+  driver_id: '', imei: '', plate_number: '', model: '', color: '',
+  contact_person: '', status: '1', afaqi: '0', description: '',
+});
+
+function openCreate() {
+  if (!can('car_create')) return;
+  editingId.value = null;
+  carForm.reset();
+  carForm.clearErrors();
+  showCarModal.value = true;
+}
+function openEdit(row) {
+  if (!can('car_edit')) return;
+  editingId.value = row.id;
+  carForm.clearErrors();
+  carForm.driver_id      = row.driver_id ?? '';
+  carForm.imei           = row.imei ?? '';
+  carForm.plate_number   = row.plate_number ?? '';
+  carForm.model          = row.model ?? '';
+  carForm.color          = row.color ?? '';
+  carForm.contact_person = row.contact_person ?? '';
+  carForm.status         = String(row.status ?? '1');
+  carForm.afaqi          = String(Number(row.afaqi ?? 0));
+  carForm.description    = row.description ?? '';
+  showCarModal.value = true;
+}
+function submitCar() {
+  const opts = {
+    preserveScroll: true,
+    onSuccess: () => {
+      showCarModal.value = false;
+      push({ type: 'success', title: editingId.value ? 'Updated' : 'Created',
+             message: editingId.value ? `Car #${editingId.value} updated.` : 'Car added successfully.' });
+      carForm.reset();
+      doSearch();
+    },
+  };
+  if (editingId.value) carForm.put(`/app/admin/cars/${editingId.value}`, opts);
+  else carForm.post('/app/admin/cars', opts);
+}
 
 const deleteModalOpen = ref(false);
 const itemToDelete = ref(null);
@@ -137,7 +198,6 @@ const columns = [
   { key: 'color',             label: 'Color' },
   { key: 'status',            label: 'Status' },
   { key: 'created_at',        label: 'Created At',     sortable: true },
-  { key: 'actions',           label: '',               align: 'right' },
 ];
 
 const resetFilters = () => {
@@ -166,20 +226,18 @@ const setStatusTab = (key) => {
 
 // Dropdown options
 const driverOpts = computed(() => [{ value: '', label: 'Any Driver' }, ...(props.filters?.drivers || [])]);
+// Same list without the "Any …" filter entry — for the add/edit modal.
+const modalDriverOpts = computed(() => props.filters?.drivers || []);
 
 </script>
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <Breadcrumb title="Cars" parent="Drivers" />
-      <div v-if="can('car_create')" class="flex space-x-2 rtl:space-x-reverse">
-        <button @click="router.visit('/app/admin/cars/create')" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-primary-700 focus:ring-2 focus:ring-primary-500/50 transition-colors">
-          <i class="ri-add-line text-lg leading-none"></i>
-          Add Car
-        </button>
-      </div>
-    </div>
+    <Breadcrumb title="Cars" :trail="[{ label: 'Drivers' }, { label: 'Cars' }]">
+      <template #actions>
+        <BaseButton v-if="can('car_create')" variant="primary" icon="ri-add-line" @click="openCreate">Add Car</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <!-- Unified Toolbar -->
     <div class="flex flex-col lg:flex-row items-center gap-4 mb-4 bg-surface dark:bg-surface-dark p-3 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
@@ -218,28 +276,16 @@ const driverOpts = computed(() => [{ value: '', label: 'Any Driver' }, ...(props
     </div>
 
     <!-- Advanced Filters (Collapsible) -->
-    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl p-4 shadow-sm mb-4 transition-all">
+    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl p-4 shadow-sm mb-4 transition-all">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Driver</label>
-          <FormSelect v-model="searchForm.driver_id" :options="driverOpts" class="w-full" />
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">IMEI</label>
-          <input type="text" v-model="searchForm.imei" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Plate Number</label>
-          <input type="text" v-model="searchForm.plate_number" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-        </div>
-        <div class="space-y-1.5">
-          <FormDate v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
-        </div>
+        <FormSelect v-model="searchForm.driver_id" label="Driver" :options="driverOpts" placeholder="Any Driver" />
+        <FormInput v-model="searchForm.imei" label="IMEI" placeholder="GPS device IMEI" icon="ri-focus-3-line" />
+        <FormInput v-model="searchForm.plate_number" label="Plate Number" placeholder="Plate number" icon="ri-car-line" />
+        <FormDate v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
       </div>
-      <div class="mt-4 flex justify-end">
-        <button @click="applyFilters" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
-          Apply Filters
-        </button>
+      <div class="mt-4 flex justify-end gap-2">
+        <BaseButton variant="light" icon="ri-refresh-line" @click="resetFilters">Reset</BaseButton>
+        <BaseButton variant="primary" icon="ri-search-line" :loading="loading" @click="applyFilters">Apply Filters</BaseButton>
       </div>
     </div>
 
@@ -296,17 +342,11 @@ const driverOpts = computed(() => [{ value: '', label: 'Any Driver' }, ...(props
         <span v-else class="text-slate-400">—</span>
       </template>
 
-      <template #cell-actions="{ row }">
-        <div class="flex justify-center items-center gap-1">
-          <button v-if="can('car_show')" @click="router.visit(`/app/admin/cars/${row.id}`)" class="w-8 h-8 rounded hover:bg-primary-50 dark:hover:bg-primary-500/10 flex items-center justify-center text-primary-600 transition-colors" title="View">
-            <i class="ri-eye-line text-lg"></i>
-          </button>
-          <button v-if="can('car_edit')" @click="router.visit(`/app/admin/cars/${row.id}/edit`)" class="w-8 h-8 rounded hover:bg-amber-50 dark:hover:bg-amber-500/10 flex items-center justify-center text-amber-600 transition-colors" title="Edit">
-            <i class="ri-pencil-line text-lg"></i>
-          </button>
-          <button v-if="can('car_delete')" @click="confirmDelete(row.id)" class="w-8 h-8 rounded hover:bg-danger/10 dark:hover:bg-danger/20 flex items-center justify-center text-danger transition-colors" title="Delete">
-            <i class="ri-delete-bin-line text-lg"></i>
-          </button>
+      <template #row-actions="{ row }">
+        <div class="inline-flex items-center gap-1">
+          <button v-if="can('car_show')" @click="router.visit(`/app/admin/cars/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <button v-if="can('car_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <button v-if="can('car_delete')" @click="confirmDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
 
@@ -320,6 +360,37 @@ const driverOpts = computed(() => [{ value: '', label: 'Any Driver' }, ...(props
         </div>
       </template>
     </DataTable>
+
+    <!-- add / edit car (same modal pattern as the Tasks page popups) -->
+    <BaseModal v-model="showCarModal" :title="editingId ? `Edit Car #${editingId}` : 'Add Car'"
+      :icon="editingId ? 'ri-pencil-line' : 'ri-add-circle-line'" size="xl">
+      <form @submit.prevent="submitCar" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormSelect floating v-model="carForm.driver_id" label="Driver" :options="modalDriverOpts"
+          placeholder="Select Driver" :error="carForm.errors.driver_id" />
+        <FormSelect floating v-model="carForm.status" label="Status" :options="STATUS_OPTS" :searchable="false"
+          required :error="carForm.errors.status" />
+        <FormInput v-model="carForm.imei" label="IMEI" placeholder="GPS device IMEI" icon="ri-focus-3-line"
+          required :error="carForm.errors.imei" />
+        <FormInput v-model="carForm.plate_number" label="Plate Number" placeholder="Plate number" icon="ri-car-line"
+          required :error="carForm.errors.plate_number" />
+        <FormInput v-model="carForm.model" label="Model" placeholder="Car model" :error="carForm.errors.model" />
+        <FormInput v-model="carForm.color" label="Color" placeholder="Car color" :error="carForm.errors.color" />
+        <FormInput v-model="carForm.contact_person" label="Contact Person" placeholder="Contact person name"
+          required :error="carForm.errors.contact_person" />
+        <FormSelect floating v-model="carForm.afaqi" label="Afaqi" :options="AFAQI_OPTS" :searchable="false"
+          required :error="carForm.errors.afaqi" />
+        <div class="sm:col-span-2">
+          <FormInput v-model="carForm.description" label="Description" type="textarea" :rows="3"
+            placeholder="Optional notes about this car..." :error="carForm.errors.description" />
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showCarModal = false" :disabled="carForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="carForm.processing" @click="submitCar">
+          {{ editingId ? 'Save Changes' : 'Save Car' }}
+        </BaseButton>
+      </template>
+    </BaseModal>
 
     <!-- Professional Delete Confirmation Modal -->
     <BaseModal v-model="deleteModalOpen" title="Delete Car" icon="ri-error-warning-line" tone="danger" size="sm">

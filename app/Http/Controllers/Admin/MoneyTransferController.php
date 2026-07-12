@@ -143,6 +143,38 @@ class MoneyTransferController extends Controller
         return redirect()->route('admin.money-transfers.index');
     }
 
+    /**
+     * Create a money transfer from the SPA modal (/app list page).
+     * Mirrors store() 1:1 — status forced to 'new', both OTPs generated
+     * server-side. Validates inline because StoreMoneyTransferRequest also
+     * demands status/otp fields that store() overwrites anyway.
+     */
+    public function storePopup(Request $request)
+    {
+        abort_if(Gate::denies('money_transfer_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $data = $request->validate([
+            'client_id'        => ['required', 'integer'],
+            'driver_id'        => ['required', 'integer'],
+            'from_location_id' => ['required', 'integer'],
+            'to_location_id'   => ['nullable', 'integer'],
+            'amount'           => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $moneyTransfer = new MoneyTransfer();
+        $moneyTransfer->client_id = $data['client_id'];
+        $moneyTransfer->driver_id = $data['driver_id'];
+        $moneyTransfer->from_location_id = $data['from_location_id'];
+        $moneyTransfer->to_location_id = $data['to_location_id'] ?? null;
+        $moneyTransfer->amount = $data['amount'];
+        $moneyTransfer->status = 'new';
+        $moneyTransfer->from_location_otp = $moneyTransfer->generateOtp();
+        $moneyTransfer->to_location_otp = $moneyTransfer->generateOtp();
+        $moneyTransfer->save();
+
+        return redirect()->route('app.admin.money-transfers.index')->with('success', 'Money transfer created successfully');
+    }
+
     public function edit(MoneyTransfer $moneyTransfer)
     {
         abort_if(Gate::denies('money_transfer_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');

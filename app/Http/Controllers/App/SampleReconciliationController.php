@@ -15,8 +15,8 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Inertia page controller for the merged "Scan & Reconcile" workspace
- * (/app/admin/tasks/reconcile). It unifies the two classic pages:
+ * Inertia page controller for the merged "Scan Sample" workspace
+ * (/app/admin/tasks/scan). It unifies the two classic pages:
  *   - Admin\TasksController@scan    (batch scan: driver + location → confirm samples)
  *   - Admin\TasksController@missing (single-sample triage: details / lost / confirm)
  *

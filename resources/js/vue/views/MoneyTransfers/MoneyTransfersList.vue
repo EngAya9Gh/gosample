@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 
@@ -8,10 +8,15 @@ import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import FormSelect from '../../components/FormSelect.vue';
+import FormInput from '../../components/FormInput.vue';
+import FormDate from '../../components/FormDate.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseButton from '../../components/BaseButton.vue';
+import { useToast } from '../../composables/useToast';
+
+const { push } = useToast();
 
 const props = defineProps({
   initialRows: Array,
@@ -28,6 +33,13 @@ const DEFAULT_FILTERS = {
   date_from: '', date_to: '', sort_by: '', sort_order: '',
 };
 const searchForm = ref({ ...DEFAULT_FILTERS });
+
+// Single range picker (mirrors the Tasks page filter)
+const dateRange = ref('');
+const onDateRange = ({ from, to }) => {
+  searchForm.value.date_from = from || '';
+  searchForm.value.date_to = to || '';
+};
 
 // Quick Filter Tabs
 const statusTabs = [
@@ -67,6 +79,32 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     loading.value = false;
   }
 }, 300);
+
+/* ---------- Create modal (mirrors the Tasks page Add-Task popup) ----------
+ * Fields = the classic /admin/money-transfers/create form; status + both OTPs
+ * are set server-side by storePopup (status='new', generated 4-digit OTPs). */
+const showCreate = ref(false);
+const createForm = useForm({
+  client_id: '', driver_id: '', from_location_id: '', to_location_id: '', amount: '',
+});
+
+function openCreate() {
+  if (!can('money_transfer_create')) return;
+  createForm.reset();
+  createForm.clearErrors();
+  showCreate.value = true;
+}
+function submitCreate() {
+  createForm.post('/app/admin/money-transfers/popup', {
+    preserveScroll: true,
+    onSuccess: () => {
+      showCreate.value = false;
+      createForm.reset();
+      push({ type: 'success', title: 'Created', message: 'Money transfer added successfully.' });
+      doSearch();
+    },
+  });
+}
 
 const deleteModalOpen = ref(false);
 const itemToDelete = ref(null);
@@ -110,6 +148,9 @@ onMounted(() => {
       hasFilters = true;
     }
   }
+  if (searchForm.value.date_from && searchForm.value.date_to) {
+    dateRange.value = `${searchForm.value.date_from} to ${searchForm.value.date_to}`;
+  }
   if (hasFilters) {
     doSearch(1, 25);
   } else {
@@ -134,11 +175,11 @@ const columns = [
   { key: 'to_otp',            label: 'Dropoff OTP' },
   { key: 'status',            label: 'Status' },
   { key: 'created_at',        label: 'Created At',        sortable: true },
-  { key: 'actions',           label: '',                  align: 'right' },
 ];
 
 const resetFilters = () => {
   searchForm.value = { ...DEFAULT_FILTERS };
+  dateRange.value = '';
   showAdvanced.value = false;
   doSearch(1, 25);
 };
@@ -152,7 +193,7 @@ const statusTabClasses = (tab) => {
   const isActive = searchForm.value.status === tab.key;
   return isActive
     ? tab.activeClass || 'bg-primary-500 text-white dark:bg-primary-600'
-    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 dark:bg-dark-800 dark:border-dark-700 dark:text-gray-300 dark:hover:bg-dark-700';
+    : 'bg-surface border-slate-200 text-slate-500 hover:border-slate-300 dark:bg-white/5 dark:border-white/10 dark:text-slate-400';
 };
 
 const setStatusTab = (key) => {
@@ -160,24 +201,70 @@ const setStatusTab = (key) => {
   doSearch();
 };
 
+/* ---------- DataTable toolbar exports (Copy / CSV / Excel / Print) ---------- */
+const exportColumns = columns;
+function cellText(r, c) {
+  if (c.key === 'route') return `${r.from_location_name || ''} → ${r.to_location_name || ''}`;
+  if (c.key === 'amount') return r.amount == null ? '' : `${r.amount} SAR`;
+  return r[c.key] == null ? '' : String(r[c.key]);
+}
+function matrix() {
+  const header = exportColumns.map((c) => c.label);
+  const body = rows.value.map((r) => exportColumns.map((c) => cellText(r, c)));
+  return { header, body };
+}
+function onExport(kind) {
+  const { header, body } = matrix();
+  if (!body.length) { push({ type: 'info', title: 'Nothing to export', message: 'No money transfers in the current view.' }); return; }
+
+  if (kind === 'copy') {
+    navigator.clipboard?.writeText([header.join('\t'), ...body.map((r) => r.join('\t'))].join('\n'));
+    push({ type: 'success', title: 'Copied', message: `${body.length} rows copied to clipboard` });
+  } else if (kind === 'csv') {
+    const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = [header.map(esc).join(','), ...body.map((r) => r.map(esc).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'money-transfers.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'excel') {
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + html], { type: 'application/vnd.ms-excel' }));
+    a.download = 'money-transfers.xls';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'print') {
+    const w = window.open('', '_blank');
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    w.document.write(`<html dir="${document.documentElement.dir}"><head><title>Money Transfers</title><style>table{border-collapse:collapse;width:100%;font-family:Poppins,sans-serif;font-size:12px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:start}th{background:#005D69;color:#fff}</style></head><body><h3>Money Transfers</h3><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`);
+    w.document.close(); w.focus(); w.print();
+  }
+}
+
 // Dropdown options
 const driverOpts = computed(() => [{ value: '', label: 'Any Driver' }, ...(props.filters?.drivers || [])]);
 const clientOpts = computed(() => [{ value: '', label: 'Any Client' }, ...(props.filters?.clients || [])]);
 const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(props.filters?.locations || [])]);
 
+// Same lists without the "Any …" filter entries — for the create modal.
+const modalDriverOpts   = computed(() => props.filters?.drivers || []);
+const modalClientOpts   = computed(() => props.filters?.clients || []);
+const modalLocationOpts = computed(() => props.filters?.locations || []);
+
 </script>
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <Breadcrumb title="Money Transfers" parent="Operations" />
-      <div v-if="can('money_transfer_create')" class="flex space-x-2 rtl:space-x-reverse">
-        <a href="/admin/money-transfers/create" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-primary-700 focus:ring-2 focus:ring-primary-500/50 transition-colors">
-          <i class="ri-add-line text-lg leading-none"></i>
-          Add Money Transfer
-        </a>
-      </div>
-    </div>
+    <Breadcrumb title="Money Transfers" :trail="[{ label: 'Operations' }, { label: 'Money Transfers' }]">
+      <template #actions>
+        <BaseButton v-if="can('money_transfer_create')" variant="primary" icon="ri-add-line" @click="openCreate">Add Money Transfer</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <!-- Unified Toolbar -->
     <div class="flex flex-col lg:flex-row items-center gap-4 mb-4 bg-surface dark:bg-surface-dark p-3 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
@@ -216,7 +303,7 @@ const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(p
     </div>
 
     <!-- Advanced Filters (Collapsible) -->
-    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl p-4 shadow-sm mb-4 transition-all">
+    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl p-4 shadow-sm mb-4 transition-all">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Client</label>
@@ -234,13 +321,9 @@ const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(p
           <label class="text-xs font-bold text-slate-600 dark:text-slate-300">To Location</label>
           <FormSelect v-model="searchForm.to_location" :options="locationOpts" class="w-full" />
         </div>
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Date From</label>
-          <input type="date" v-model="searchForm.date_from" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Date To</label>
-          <input type="date" v-model="searchForm.date_to" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+        <div class="space-y-1.5 sm:col-span-2">
+          <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Date Range</label>
+          <FormDate v-model="dateRange" mode="range" placeholder="Select range" @range="onDateRange" />
         </div>
       </div>
       <div class="mt-4 flex justify-end">
@@ -260,6 +343,7 @@ const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(p
       :server-side="true"
       :searchable="false"
       @query="onQuery"
+      @export="onExport"
     >
       <template #cell-id="{ value }">
         <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
@@ -303,17 +387,11 @@ const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(p
         <StatusBadge :status="value" />
       </template>
 
-      <template #cell-actions="{ row }">
-        <div class="flex justify-center items-center gap-1">
-          <a v-if="can('money_transfer_show')" :href="`/admin/money-transfers/${row.id}`" class="w-8 h-8 rounded hover:bg-primary-50 dark:hover:bg-primary-500/10 flex items-center justify-center text-primary-600 transition-colors" title="View">
-            <i class="ri-eye-line text-lg"></i>
-          </a>
-          <a v-if="can('money_transfer_edit')" :href="`/admin/money-transfers/${row.id}/edit`" class="w-8 h-8 rounded hover:bg-amber-50 dark:hover:bg-amber-500/10 flex items-center justify-center text-amber-600 transition-colors" title="Edit">
-            <i class="ri-pencil-line text-lg"></i>
-          </a>
-          <button v-if="can('money_transfer_delete')" @click="confirmDelete(row.id)" class="w-8 h-8 rounded hover:bg-danger/10 dark:hover:bg-danger/20 flex items-center justify-center text-danger transition-colors" title="Delete">
-            <i class="ri-delete-bin-line text-lg"></i>
-          </button>
+      <template #row-actions="{ row }">
+        <div class="inline-flex items-center gap-1">
+          <a v-if="can('money_transfer_show')" :href="`/admin/money-transfers/${row.id}`" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></a>
+          <a v-if="can('money_transfer_edit')" :href="`/admin/money-transfers/${row.id}/edit`" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
+          <button v-if="can('money_transfer_delete')" @click="confirmDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
 
@@ -327,6 +405,32 @@ const locationOpts = computed(() => [{ value: '', label: 'Any Location' }, ...(p
         </div>
       </template>
     </DataTable>
+
+    <!-- create money transfer (same modal pattern as the Tasks page Add Task) -->
+    <BaseModal v-model="showCreate" title="Add Money Transfer" icon="ri-add-circle-line" size="xl">
+      <form @submit.prevent="submitCreate" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormSelect floating v-model="createForm.client_id" label="Client" :options="modalClientOpts"
+          placeholder="Select Client" required :error="createForm.errors.client_id" />
+        <FormSelect floating v-model="createForm.driver_id" label="Driver" :options="modalDriverOpts"
+          placeholder="Select Driver" required :error="createForm.errors.driver_id" />
+        <FormSelect floating v-model="createForm.from_location_id" label="From Location" :options="modalLocationOpts"
+          placeholder="Select Location" required :error="createForm.errors.from_location_id" />
+        <FormSelect floating v-model="createForm.to_location_id" label="To Location" :options="modalLocationOpts"
+          placeholder="Select Location" :error="createForm.errors.to_location_id" />
+        <div class="sm:col-span-2">
+          <FormInput v-model="createForm.amount" label="Amount" type="number" unit="SAR" icon="ri-money-dollar-circle-line"
+            placeholder="0.00" required :error="createForm.errors.amount" />
+        </div>
+        <p class="sm:col-span-2 text-[12px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+          <i class="ri-information-line"></i>
+          Status starts as <span class="font-semibold">New</span>; pickup &amp; dropoff OTPs are generated automatically.
+        </p>
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showCreate = false" :disabled="createForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="createForm.processing" @click="submitCreate">Save</BaseButton>
+      </template>
+    </BaseModal>
 
     <!-- Professional Delete Confirmation Modal -->
     <BaseModal v-model="deleteModalOpen" title="Delete Money Transfer" icon="ri-error-warning-line" tone="danger" size="sm">

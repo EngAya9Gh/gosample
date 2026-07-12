@@ -27,6 +27,12 @@ function onDateRange({ from, to }) {
   searchForm.value.date_to = to || '';
 }
 
+function resetFilters() {
+  searchForm.value = { ...DEFAULT_FILTERS };
+  dateRange.value = '';
+  doSearch(1, 25);
+}
+
 const rows = ref([]);
 const total = ref(0);
 const loading = ref(false);
@@ -157,12 +163,14 @@ const formatDate = (dateString) => {
               @click="searchForm.action = 'linked'"
               :class="['px-3 py-1.5 text-xs font-semibold rounded-lg transition-all', searchForm.action === 'linked' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300']"
             >Linked</button>
-            <button 
+            <button
               @click="searchForm.action = 'unlinked'"
               :class="['px-3 py-1.5 text-xs font-semibold rounded-lg transition-all', searchForm.action === 'unlinked' ? 'bg-danger text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300']"
             >Unlinked</button>
           </div>
         </div>
+
+        <BaseButton variant="light" icon="ri-refresh-line" @click="resetFilters">Reset</BaseButton>
       </div>
       
       <!-- Table -->

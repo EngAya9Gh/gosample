@@ -118,7 +118,7 @@ function deleteMultiple(ids) {
       
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('term_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="Edit">
+          <button v-if="can('term_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit">
             <i class="ri-pencil-line"></i>
           </button>
           <button v-if="can('term_delete')" @click="deleteTerm(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete">

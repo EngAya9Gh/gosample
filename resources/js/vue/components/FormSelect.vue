@@ -31,11 +31,19 @@ const panel = ref(null);
 const floatStyle = ref({});
 
 // Position the teleported panel under the trigger (fixed → viewport coords).
+// Flips ABOVE the trigger when there isn't enough room below (e.g. the last
+// field of a tall modal) — otherwise the panel runs off-screen.
 function positionPanel() {
   const t = trigger.value;
   if (!t) return;
   const r = t.getBoundingClientRect();
-  floatStyle.value = { top: `${r.bottom + 6}px`, left: `${r.left}px`, width: `${r.width}px` };
+  const vh = window.innerHeight;
+  const panelH = panel.value?.offsetHeight || 300;
+  const spaceBelow = vh - r.bottom - 12;
+  const openUp = spaceBelow < Math.min(panelH, 300) && r.top > spaceBelow;
+  floatStyle.value = openUp
+    ? { bottom: `${vh - r.top + 6}px`, left: `${r.left}px`, width: `${r.width}px` }
+    : { top: `${r.bottom + 6}px`, left: `${r.left}px`, width: `${r.width}px` };
 }
 function onReflow() { if (open.value && props.floating) positionPanel(); }
 watch(open, (v) => { if (v && props.floating) nextTick(positionPanel); });

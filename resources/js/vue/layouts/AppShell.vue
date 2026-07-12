@@ -42,9 +42,10 @@ function onNavigate(target) {
   // Migrated SPA routes go through Inertia (/app); every other /admin route still
   // loads its classic Blade page. Add a route here when its SPA page ships.
   const SPA_ADMIN_ROUTES = [
-    '/admin/tasks', '/admin/samples', '/admin/scheduled-tasks',
-    '/admin/system-calendar', '/admin/drivers', '/admin/lost',
-    '/admin/shipments', '/admin/money-transfers', '/admin/cars', '/admin/car-link-histories',
+    '/admin/tasks', '/admin/tasks/create', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks',
+    '/admin/scheduled-tasks/create', '/admin/scheduled-tasks/quick',
+    '/admin/system-calendar', '/admin/tasks/scan', '/admin/drivers', '/admin/lost',
+    '/admin/shipments', '/admin/money-transfers', '/admin/cars', '/admin/containers', '/admin/zones', '/admin/attendances', '/admin/shift-templates', '/admin/car-link-histories',
     '/admin/swaprequests', '/admin/clients', '/admin/locations', '/admin/users', '/admin/roles', '/admin/permissions', '/admin/audit-logs', '/admin/notifications', '/admin/barcodes', '/admin/terms', '/admin/api-ayenatis',
   ];
   if (target.startsWith('/admin') && !SPA_ADMIN_ROUTES.some(route => target.startsWith(route))) {
@@ -98,7 +99,7 @@ function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavi
       </Transition>
 
       <!-- scroll region -->
-      <main class="shell-scroll flex-1 overflow-y-auto print:overflow-visible" @scroll="onScroll">
+      <main class="shell-scroll flex-1 min-h-0 overflow-y-auto print:overflow-visible" @scroll="onScroll">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 print:p-0">
           <slot></slot>
         </div>

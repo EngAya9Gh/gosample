@@ -41,7 +41,7 @@ const statusTabs = [
 
 const taskTypeTabs = [
   { key: '',       label: 'All Types' },
-  { key: 'SAMPLE', label: 'Sample', activeClass: 'bg-indigo-500 text-white dark:bg-indigo-600' },
+  { key: 'SAMPLE', label: 'Sample', activeClass: 'bg-primary-600 text-white dark:bg-primary-500' },
   { key: 'BOX',    label: 'Box', activeClass: 'bg-amber-500 text-white dark:bg-amber-600' },
 ];
 
@@ -88,6 +88,37 @@ const columns = [
   { key: 'driver_name',       label: 'Driver',            width: '160px' },
   { key: 'actions',           label: 'Actions',           sticky: 'end', width: '100px', align: 'center' },
 ];
+
+/* ---------- toolbar export (Copy / CSV / Excel / Print) — current page rows ---------- */
+function exportMatrix() {
+  const cols = columns.filter((c) => !['actions', 'sequence'].includes(c.key));
+  const header = cols.map((c) => c.label);
+  const body = rows.value.map((r) => cols.map((c) => (r[c.key] == null ? '' : String(r[c.key]))));
+  return { header, body };
+}
+function onExport(kind) {
+  const { header, body } = exportMatrix();
+  if (!body.length) { push({ type: 'info', title: 'Nothing to export', message: 'No rows on this page.' }); return; }
+  if (kind === 'copy') {
+    navigator.clipboard?.writeText([header.join('\t'), ...body.map((r) => r.join('\t'))].join('\n'));
+    push({ type: 'success', title: 'Copied', message: `${body.length} row(s) copied to clipboard` });
+  } else if (kind === 'csv' || kind === 'excel') {
+    const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = [header.map(esc).join(','), ...body.map((r) => r.map(esc).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'scheduled-tasks.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'print') {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    w.document.write(`<html dir="${document.documentElement.dir}"><head><title>Scheduled Tasks</title><style>*{font-family:Poppins,Arial,sans-serif}table{border-collapse:collapse;width:100%;font-size:12px}th{background:#005D69;color:#fff;text-align:start;padding:8px 10px}td{border:1px solid #e3eaea;padding:6px 10px}tr:nth-child(even) td{background:#f6f9f9}</style></head><body><h3 style="color:#005D69">Scheduled Tasks</h3><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`);
+    w.document.close(); w.focus(); setTimeout(() => w.print(), 250);
+  }
+}
 
 function reload(extra = {}) {
   loading.value = true;
@@ -171,10 +202,10 @@ async function confirmBulkDelete() {
       <h1 class="text-2xl font-bold tracking-tight text-ink dark:text-white">Scheduled Tasks</h1>
       
       <div v-if="can('scheduled_task_create')" class="flex flex-wrap items-center gap-2">
-        <BaseButton variant="primary" icon="ri-add-line" href="/admin/scheduled-tasks/create" as="a">
+        <BaseButton variant="brand" icon="ri-add-line" @click="router.visit('/app/admin/scheduled-tasks/create')">
           Add Scheduled Task
         </BaseButton>
-        <BaseButton variant="secondary" icon="ri-add-line" href="/admin/scheduled-tasks/quick" as="a" class="bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-sm shadow-indigo-600/20">
+        <BaseButton variant="danger" icon="ri-flashlight-line" @click="router.visit('/app/admin/scheduled-tasks/quick')">
           Add Quick Schedule Task
         </BaseButton>
       </div>
@@ -209,7 +240,7 @@ async function confirmBulkDelete() {
     </div>
 
     <!-- Advanced Filters (Collapsible) -->
-    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl p-4 shadow-sm mb-4 transition-all">
+    <div v-show="showAdvanced" class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl p-4 shadow-sm mb-4 transition-all">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
         <!-- Date Range -->
         <div class="space-y-1.5">
@@ -261,6 +292,7 @@ async function confirmBulkDelete() {
       :selectable="true"
       @update="onQuery"
       @bulk-delete="handleBulkDelete"
+      @export="onExport"
     >
       <template #cell-sequence="{ index }">
         <span class="font-bold text-slate-500">{{ (page - 1) * pageSize + index + 1 }}</span>
@@ -299,7 +331,7 @@ async function confirmBulkDelete() {
       </template>
 
       <template #cell-task_type="{ value }">
-        <span class="px-2 py-1 bg-slate-100 dark:bg-surface-dark-solid border dark:border-surface-dark-border rounded text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+        <span class="px-2 py-1 bg-slate-100 dark:bg-surface-dark-solid border dark:border-white/5 rounded text-[11px] font-semibold text-slate-600 dark:text-slate-300">
           {{ value || '—' }}
         </span>
       </template>
@@ -322,8 +354,8 @@ async function confirmBulkDelete() {
 
       <template #cell-actions="{ row }">
         <div class="flex items-center justify-center gap-1">
-          <a v-if="can('scheduled_task_edit')" :href="`/admin/scheduled-tasks/${row.id}/edit`" class="w-7 h-7 rounded bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400 dark:hover:bg-primary-500/20 transition grid place-items-center"><i class="ri-pencil-line"></i></a>
-          <button v-if="can('scheduled_task_delete')" @click="askDelete(row)" class="w-7 h-7 rounded bg-danger/10 text-danger hover:bg-danger/20 transition grid place-items-center"><i class="ri-delete-bin-line"></i></button>
+          <a v-if="can('scheduled_task_edit')" :href="`/admin/scheduled-tasks/${row.id}/edit`" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
+          <button v-if="can('scheduled_task_delete')" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
     </DataTable>

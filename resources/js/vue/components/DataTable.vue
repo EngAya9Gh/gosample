@@ -16,7 +16,8 @@
  *
  * Slots: cell-<key> ({ row, value }) for custom cell rendering; row-actions ({ row }).
  */
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, getCurrentInstance } from 'vue';
+import { useToast } from '../composables/useToast';
 
 const props = defineProps({
   title:      { type: String, default: '' },   // optional table heading (with record count)
@@ -110,6 +111,64 @@ watch([q, sortKey, sortDir, page, pageSize], () => {
 watch([q, pageSize], () => { page.value = 1; });
 
 function runBulk(ev) { emit(ev, [...sel.value]); clearSel(); }
+
+/* ---------- export: built-in fallback ----------
+ * Pages that listen for @export keep their custom handlers (formatted cells,
+ * backend-generated files). Every other table gets a WORKING Copy/CSV/Excel/
+ * Print out of the box, built from the visible columns + current page rows —
+ * so the toolbar buttons are never dead. */
+const { push } = useToast();
+const inst = getCurrentInstance();
+
+function onExportClick(kind) {
+  if (inst?.vnode.props?.onExport) { emit('export', kind); return; }
+  defaultExport(kind);
+}
+
+// Object cells (e.g. row.driver = { name }) print a sensible display value
+// instead of "[object Object]".
+function cellVal(row, col) {
+  const v = row[col.key];
+  if (v == null) return '';
+  if (typeof v === 'object') return v.name ?? v.plate_number ?? v.label ?? v.title ?? v.id ?? '';
+  return String(v);
+}
+
+function defaultExport(kind) {
+  const cols = props.columns.filter((c) => c.label);
+  const header = cols.map((c) => c.label);
+  const body = paged.value.map((r) => cols.map((c) => cellVal(r, c)));
+  if (!body.length) { push({ type: 'info', title: 'Nothing to export', message: 'No rows in the current view.' }); return; }
+  const name = (props.title || 'export').toLowerCase().replace(/\s+/g, '-');
+
+  if (kind === 'copy') {
+    navigator.clipboard?.writeText([header.join('\t'), ...body.map((r) => r.join('\t'))].join('\n'));
+    push({ type: 'success', title: 'Copied', message: `${body.length} rows copied to clipboard` });
+  } else if (kind === 'csv') {
+    const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = [header.map(esc).join(','), ...body.map((r) => r.map(esc).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `${name}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'excel') {
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + html], { type: 'application/vnd.ms-excel' }));
+    a.download = `${name}.xls`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (kind === 'print') {
+    const w = window.open('', '_blank');
+    const th = header.map((h) => `<th>${h}</th>`).join('');
+    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
+    w.document.write(`<html dir="${document.documentElement.dir}"><head><title>${props.title || 'Export'}</title><style>table{border-collapse:collapse;width:100%;font-family:Poppins,sans-serif;font-size:12px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:start}th{background:#005D69;color:#fff}</style></head><body><h3>${props.title || ''}</h3><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`);
+    w.document.close(); w.focus(); w.print();
+  }
+}
 // Sticky cells need an opaque base (so horizontally-scrolled content doesn't
 // bleed through) that still follows the row's hover — hence group-hover. Matches
 // the Analytics row hover exactly. group-hover only fires on body rows (the <tr>
@@ -147,7 +206,7 @@ function stickyCls(c, bg = STICKY_BODY) {
         <slot name="header-actions"></slot>
         <template v-if="exportable">
           <button v-for="ex in exportBtns" :key="ex.key"
-            @click="$emit('export', ex.key)"
+            @click="onExportClick(ex.key)"
             :class="['group inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 active:scale-95', ex.cls]">
             <i :class="[ex.icon, 'text-[13px]']"></i><span class="hidden sm:inline">{{ ex.label }}</span>
           </button>
@@ -256,12 +315,17 @@ function stickyCls(c, bg = STICKY_BODY) {
       <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString() }}</p>
 
       <div class="flex items-center gap-1 ms-auto">
-        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1" class="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
-          <i class="ri-arrow-right-s-line rtl:hidden"></i><i class="ri-arrow-left-s-line hidden rtl:block"></i>
+        <!-- animated: arrow slides in its travel direction on hover; button presses on click -->
+        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1"
+          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Previous">
+          <i class="ri-arrow-left-s-line rtl:hidden transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
+          <i class="ri-arrow-right-s-line hidden rtl:block transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
         </button>
         <span class="px-2 text-[13px] font-medium text-ink dark:text-slate-200">{{ page }} / {{ pageCount }}</span>
-        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount" class="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-surface-muted dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
-          <i class="ri-arrow-left-s-line rtl:hidden"></i><i class="ri-arrow-right-s-line hidden rtl:block"></i>
+        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount"
+          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Next">
+          <i class="ri-arrow-right-s-line rtl:hidden transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
+          <i class="ri-arrow-left-s-line hidden rtl:block transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
         </button>
       </div>
     </div>

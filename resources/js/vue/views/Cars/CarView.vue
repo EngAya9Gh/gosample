@@ -1,9 +1,16 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { usePage, router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
+import BaseButton from '../../components/BaseButton.vue';
+import BaseModal from '../../components/BaseModal.vue';
+import FormInput from '../../components/FormInput.vue';
+import FormSelect from '../../components/FormSelect.vue';
+import { useToast } from '../../composables/useToast';
+
+const { push } = useToast();
 
 const props = defineProps({
   car: {
@@ -11,6 +18,18 @@ const props = defineProps({
     required: true
   },
   mediaUrls: {
+    type: Object,
+    default: () => ({})
+  },
+  cars: {
+    type: Array,
+    default: () => []
+  },
+  drivers: {
+    type: Array,
+    default: () => []
+  },
+  can: {
     type: Object,
     default: () => ({})
   }
@@ -30,36 +49,121 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString();
 };
 
-const canEdit = computed(() => usePage().props.auth?.can?.['car_edit']);
+const canEdit = computed(() => props.can?.car_edit ?? usePage().props.auth?.can?.['car_edit'] ?? false);
 
 const goBack = () => {
   router.visit('/app/admin/cars');
 };
 
-const editCar = () => {
-  router.visit(`/app/admin/cars/${props.car.id}/edit`);
-};
+/* ---------- Edit Car modal (same popup + fields as the Cars list page,
+ * which mirror the classic /admin/cars/{id}/edit form) ---------- */
+const CAR_STATUS_OPTS = [
+  { value: '1', label: 'Enable' },
+  { value: '2', label: 'Disable' },
+];
+const AFAQI_OPTS = [
+  { value: '0', label: 'No' },
+  { value: '1', label: 'Yes' },
+];
+
+const showEditCar = ref(false);
+const carEditForm = useForm({
+  driver_id: '', imei: '', plate_number: '', model: '', color: '',
+  contact_person: '', status: '1', afaqi: '0', description: '',
+});
+
+function openEditCar() {
+  if (!canEdit.value) return;
+  carEditForm.clearErrors();
+  carEditForm.driver_id      = props.car.driver_id ?? '';
+  carEditForm.imei           = props.car.imei ?? '';
+  carEditForm.plate_number   = props.car.plate_number ?? '';
+  carEditForm.model          = props.car.model ?? '';
+  carEditForm.color          = props.car.color ?? '';
+  carEditForm.contact_person = props.car.contact_person ?? '';
+  carEditForm.status         = String(props.car.status ?? '1');
+  carEditForm.afaqi          = String(Number(props.car.afaqi ?? 0));
+  carEditForm.description    = props.car.description ?? '';
+  showEditCar.value = true;
+}
+function submitEditCar() {
+  carEditForm.put(`/app/admin/cars/${props.car.id}`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showEditCar.value = false;
+      push({ type: 'success', title: 'Updated', message: `Car #${props.car.id} updated.` });
+    },
+  });
+}
+
+/* ---------- Create Container modal (same popup pattern as the Tasks page) ----------
+ * Fields mirror the classic /admin/containers/create form 1:1: Car optional,
+ * Sensor (imei) / Model / Type / Status required with NO preselected values.
+ * Car is prefilled with this car as a convenience (it's the page we're on) —
+ * only if it appears in the enabled-cars list, same list the classic form shows.
+ * Posts to /app/admin/containers/popup which redirects back, so the containers
+ * table refreshes in place. */
+const CONTAINER_TYPE_OPTS = ['ROOM', 'REFRIGERATE', 'FROZEN'].map((v) => ({ value: v, label: v }));
+// Container::STATUS_SELECT — same keys/labels the classic form renders.
+const CONTAINER_STATUS_OPTS = [
+  { value: '1', label: 'enabled' },
+  { value: '2', label: 'disabled' },
+];
+
+const showContainerModal = ref(false);
+const containerEditingId = ref(null);
+const containerForm = useForm({
+  car_id: props.cars.some((c) => c.value === props.car.id) ? props.car.id : '',
+  imei: '', type: '', model: '', status: '', description: '',
+});
+
+function openCreateContainer() {
+  containerEditingId.value = null;
+  containerForm.reset();
+  containerForm.clearErrors();
+  showContainerModal.value = true;
+}
+// Edit uses the same modal/fields as create (the classic edit form is the
+// same field set, values prefilled from the container row).
+function openEditContainer(container) {
+  containerEditingId.value = container.id;
+  containerForm.clearErrors();
+  containerForm.car_id      = container.car_id ?? '';
+  containerForm.imei        = container.imei ?? '';
+  containerForm.type        = container.type ?? '';
+  containerForm.model       = container.model ?? '';
+  containerForm.status      = String(container.status ?? '');
+  containerForm.description = container.description ?? '';
+  showContainerModal.value = true;
+}
+function submitContainer() {
+  const opts = {
+    preserveScroll: true,
+    onSuccess: () => {
+      showContainerModal.value = false;
+      push({ type: 'success', title: containerEditingId.value ? 'Updated' : 'Created',
+             message: containerEditingId.value ? `Container #${containerEditingId.value} updated.` : 'Container created successfully.' });
+      containerForm.reset();
+    },
+  };
+  if (containerEditingId.value) containerForm.put(`/app/admin/containers/${containerEditingId.value}/popup`, opts);
+  else containerForm.post('/app/admin/containers/popup', opts);
+}
 
 </script>
 
 <template>
   <div class="space-y-6 max-w-5xl mx-auto pb-12">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <Breadcrumb title="Car Details" parent="Cars" />
-      
-      <div class="flex items-center gap-2">
-        <button @click="goBack" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition dark:bg-transparent dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
-          <i class="ri-arrow-left-line mr-1"></i> Back to List
-        </button>
-        <button v-if="canEdit" @click="editCar" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm transition">
-          <i class="ri-pencil-line mr-1"></i> Edit Car
-        </button>
-      </div>
-    </div>
+    <Breadcrumb title="Car Details" :trail="[{ label: 'Cars', href: '/app/admin/cars' }, { label: `Car #${props.car.id}` }]">
+      <template #actions>
+        <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">Back to List</BaseButton>
+        <BaseButton v-if="canEdit" variant="primary" icon="ri-pencil-line" @click="openEditCar">Edit Car</BaseButton>
+      </template>
+    </Breadcrumb>
 
     <!-- Main Card -->
-    <div class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
       <!-- Banner / Title -->
       <div class="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -141,7 +245,7 @@ const editCar = () => {
     </div>
 
     <!-- Details Tabs -->
-    <div class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
       <div class="border-b border-slate-100 dark:border-white/5 px-6">
         <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
           <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
@@ -155,9 +259,7 @@ const editCar = () => {
         <!-- Containers Tab -->
         <div v-show="activeTab === 'containers'" class="space-y-4">
           <div class="flex justify-end">
-             <a href="/admin/containers/create" class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 text-primary-600 rounded text-sm font-medium hover:bg-primary-100 transition-colors dark:bg-primary-500/10 dark:text-primary-400 dark:hover:bg-primary-500/20">
-               <i class="ri-add-line"></i> Create Container
-             </a>
+            <BaseButton variant="primary" icon="ri-add-line" @click="openCreateContainer">Create Container</BaseButton>
           </div>
           <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/5">
             <table class="min-w-full divide-y divide-slate-100 dark:divide-white/5">
@@ -176,13 +278,14 @@ const editCar = () => {
                   <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-700 dark:text-slate-300 font-medium">{{ container.type }}</td>
                   <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ container.model }}</td>
                   <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                    <span v-if="container.status === 'ACTIVE'" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-success/10 text-success">Active</span>
+                    <span v-if="container.status == 1" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-success/10 text-success">enabled</span>
+                    <span v-else-if="container.status == 2" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-danger/10 text-danger">disabled</span>
                     <span v-else class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">{{ container.status }}</span>
                   </td>
                   <td class="px-5 py-3 whitespace-nowrap text-right">
-                    <a :href="`/admin/containers/${container.id}/edit`" class="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-600 transition-colors" title="Edit Container">
-                      <i class="ri-pencil-line text-lg"></i>
-                    </a>
+                    <div class="inline-flex items-center gap-1">
+                      <button @click="openEditContainer(container)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="!props.car.containers?.length">
@@ -335,6 +438,59 @@ const editCar = () => {
         </div>
       </div>
     </div>
-    
+
+    <!-- create / edit container (same modal pattern as the Tasks page popups) -->
+    <BaseModal v-model="showContainerModal" :title="containerEditingId ? `Edit Container #${containerEditingId}` : 'Create Container'"
+      :icon="containerEditingId ? 'ri-pencil-line' : 'ri-add-circle-line'" size="lg">
+      <form @submit.prevent="submitContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormSelect floating v-model="containerForm.car_id" label="Car" :options="props.cars"
+          placeholder="Select car" :error="containerForm.errors.car_id" />
+        <FormInput v-model="containerForm.imei" label="Sensor" placeholder="Enter sensor IMEI" icon="ri-focus-3-line"
+          required :error="containerForm.errors.imei" />
+        <FormInput v-model="containerForm.model" label="Model" placeholder="Enter model"
+          required :error="containerForm.errors.model" />
+        <FormSelect floating v-model="containerForm.type" label="Type" :options="CONTAINER_TYPE_OPTS" :searchable="false"
+          placeholder="Select type" required :error="containerForm.errors.type" />
+        <FormInput v-model="containerForm.description" label="Description" type="textarea" :rows="3"
+          placeholder="Optional notes" :error="containerForm.errors.description" />
+        <FormSelect floating v-model="containerForm.status" label="Status" :options="CONTAINER_STATUS_OPTS" :searchable="false"
+          placeholder="Select status" required :error="containerForm.errors.status" />
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showContainerModal = false" :disabled="containerForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="containerForm.processing" @click="submitContainer">
+          {{ containerEditingId ? 'Save Changes' : 'Save Container' }}
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- edit car (same popup + fields as the Cars list page modal) -->
+    <BaseModal v-model="showEditCar" :title="`Edit Car #${props.car.id}`" icon="ri-pencil-line" size="xl">
+      <form @submit.prevent="submitEditCar" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormSelect floating v-model="carEditForm.driver_id" label="Driver" :options="props.drivers"
+          placeholder="Select Driver" :error="carEditForm.errors.driver_id" />
+        <FormSelect floating v-model="carEditForm.status" label="Status" :options="CAR_STATUS_OPTS" :searchable="false"
+          required :error="carEditForm.errors.status" />
+        <FormInput v-model="carEditForm.imei" label="IMEI" placeholder="GPS device IMEI" icon="ri-focus-3-line"
+          required :error="carEditForm.errors.imei" />
+        <FormInput v-model="carEditForm.plate_number" label="Plate Number" placeholder="Plate number" icon="ri-car-line"
+          required :error="carEditForm.errors.plate_number" />
+        <FormInput v-model="carEditForm.model" label="Model" placeholder="Car model" :error="carEditForm.errors.model" />
+        <FormInput v-model="carEditForm.color" label="Color" placeholder="Car color" :error="carEditForm.errors.color" />
+        <FormInput v-model="carEditForm.contact_person" label="Contact Person" placeholder="Contact person name"
+          required :error="carEditForm.errors.contact_person" />
+        <FormSelect floating v-model="carEditForm.afaqi" label="Afaqi" :options="AFAQI_OPTS" :searchable="false"
+          required :error="carEditForm.errors.afaqi" />
+        <div class="sm:col-span-2">
+          <FormInput v-model="carEditForm.description" label="Description" type="textarea" :rows="3"
+            placeholder="Optional notes about this car" :error="carEditForm.errors.description" />
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton variant="light" @click="showEditCar = false" :disabled="carEditForm.processing">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="ri-save-line" :loading="carEditForm.processing" @click="submitEditCar">Save Changes</BaseButton>
+      </template>
+    </BaseModal>
+
   </div>
 </template>

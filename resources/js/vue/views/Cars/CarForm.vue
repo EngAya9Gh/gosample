@@ -58,7 +58,7 @@ const afaqiOpts = [
       <Breadcrumb :title="isEditing ? 'Edit Car' : 'Add Car'" parent="Cars" />
     </div>
 
-    <div class="bg-surface dark:bg-surface-dark border dark:border-surface-dark-border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-surface dark:bg-surface-dark border dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
       <div class="px-6 py-5 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
         <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <i :class="isEditing ? 'ri-pencil-line text-primary-500' : 'ri-car-line text-primary-500'"></i>

@@ -36,16 +36,20 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::get('tasks-dashboard', [\App\Http\Controllers\App\TasksDashboardController::class, 'index'])->name('app.tasks-dashboard');
 
     // Scan & Reconcile — merged Scan Samples + Missing Samples workspace.
-    Route::get('admin/tasks/reconcile', [\App\Http\Controllers\App\SampleReconciliationController::class, 'index'])->name('app.admin.tasks.reconcile');
-    Route::post('admin/tasks/reconcile/load', [\App\Http\Controllers\App\SampleReconciliationController::class, 'loadBatch'])->name('app.admin.tasks.reconcile.load');
-    Route::post('admin/tasks/reconcile/check', [\App\Http\Controllers\App\SampleReconciliationController::class, 'checkSample'])->name('app.admin.tasks.reconcile.check');
-    Route::post('admin/tasks/reconcile/confirm-all', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirmAll'])->name('app.admin.tasks.reconcile.confirmAll');
-    Route::post('admin/tasks/reconcile/confirm', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirm'])->name('app.admin.tasks.reconcile.confirm');
-    Route::post('admin/tasks/reconcile/details', [\App\Http\Controllers\App\SampleReconciliationController::class, 'details'])->name('app.admin.tasks.reconcile.details');
-    Route::post('admin/tasks/reconcile/lost', [\App\Http\Controllers\App\SampleReconciliationController::class, 'lost'])->name('app.admin.tasks.reconcile.lost');
+    Route::get('admin/tasks/scan', [\App\Http\Controllers\App\SampleReconciliationController::class, 'index'])->name('app.admin.tasks.scan');
+    Route::post('admin/tasks/scan/load', [\App\Http\Controllers\App\SampleReconciliationController::class, 'loadBatch'])->name('app.admin.tasks.scan.load');
+    Route::post('admin/tasks/scan/check', [\App\Http\Controllers\App\SampleReconciliationController::class, 'checkSample'])->name('app.admin.tasks.scan.check');
+    Route::post('admin/tasks/scan/confirm-all', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirmAll'])->name('app.admin.tasks.scan.confirmAll');
+    Route::post('admin/tasks/scan/confirm', [\App\Http\Controllers\App\SampleReconciliationController::class, 'confirm'])->name('app.admin.tasks.scan.confirm');
+    Route::post('admin/tasks/scan/details', [\App\Http\Controllers\App\SampleReconciliationController::class, 'details'])->name('app.admin.tasks.scan.details');
+    Route::post('admin/tasks/scan/lost', [\App\Http\Controllers\App\SampleReconciliationController::class, 'lost'])->name('app.admin.tasks.scan.lost');
 
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks.index');
     Route::get('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('app.admin.scheduled-tasks.index');
+    Route::get('admin/scheduled-tasks/create', [\App\Http\Controllers\App\ScheduledTasksController::class, 'create'])->name('app.admin.scheduled-tasks.create');
+    Route::post('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'store'])->name('app.admin.scheduled-tasks.store');
+    Route::get('admin/scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quick'])->name('app.admin.scheduled-tasks.quick');
+    Route::post('admin/scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quickAction'])->name('app.admin.scheduled-tasks.quickAction');
 
     // System Calendar (SPA rebuild of Admin\SystemCalendarController)
     Route::get('admin/system-calendar', [\App\Http\Controllers\App\SystemCalendarController::class, 'index'])->name('app.admin.system-calendar');
@@ -98,12 +102,26 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     // New Vue Screens (using existing Admin controllers)
     Route::get('admin/shipments', [\App\Http\Controllers\Admin\ShipmentsController::class, 'index'])->name('app.admin.shipments.index');
     Route::get('admin/money-transfers', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'index'])->name('app.admin.money-transfers.index');
+    Route::post('admin/money-transfers/popup', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'storePopup'])->name('app.admin.money-transfers.popup.store');
     Route::get('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'index'])->name('app.admin.cars.index');
     Route::get('admin/cars/create', [\App\Http\Controllers\Admin\CarsController::class, 'create'])->name('app.admin.cars.create');
     Route::post('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'store'])->name('app.admin.cars.store');
     Route::get('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'show'])->name('app.admin.cars.show');
     Route::get('admin/cars/{car}/edit', [\App\Http\Controllers\Admin\CarsController::class, 'edit'])->name('app.admin.cars.edit');
     Route::put('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'update'])->name('app.admin.cars.update');
+    Route::get('admin/containers', [\App\Http\Controllers\Admin\ContainersController::class, 'index'])->name('app.admin.containers.index');
+    Route::post('admin/containers/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'storePopup'])->name('app.admin.containers.popup.store');
+    Route::put('admin/containers/{container}/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'updatePopup'])->name('app.admin.containers.popup.update');
+    Route::get('admin/containers/{container}/barcode', [\App\Http\Controllers\Admin\ContainersController::class, 'barcode'])->name('app.admin.containers.barcode');
+    Route::get('admin/zones', [\App\Http\Controllers\Admin\ZonesController::class, 'index'])->name('app.admin.zones.index');
+    Route::post('admin/zones/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'storePopup'])->name('app.admin.zones.popup.store');
+    Route::put('admin/zones/{zone}/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'updatePopup'])->name('app.admin.zones.popup.update');
+    Route::get('admin/attendances', [\App\Http\Controllers\Admin\AttendancesController::class, 'index'])->name('app.admin.attendances.index');
+    Route::post('admin/attendances/popup', [\App\Http\Controllers\Admin\AttendancesController::class, 'storePopup'])->name('app.admin.attendances.popup.store');
+    Route::put('admin/attendances/{attendance}/popup', [\App\Http\Controllers\Admin\AttendancesController::class, 'updatePopup'])->name('app.admin.attendances.popup.update');
+    Route::get('admin/shift-templates', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'index'])->name('app.admin.shift-templates.index');
+    Route::post('admin/shift-templates/popup', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'storePopup'])->name('app.admin.shift-templates.popup.store');
+    Route::put('admin/shift-templates/{shiftTemplate}/popup', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'updatePopup'])->name('app.admin.shift-templates.popup.update');
 
     Route::get('admin/car-link-histories', [\App\Http\Controllers\Admin\CarLinkHistoryController::class, 'index'])->name('app.admin.car-link-histories.index');
 

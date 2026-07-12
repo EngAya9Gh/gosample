@@ -3,10 +3,17 @@
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreScheduledTaskRequest;
+use App\Models\Client;
+use App\Models\Driver;
+use App\Models\Location;
 use App\Models\ScheduledTask;
+use App\Models\Task;
+use Gate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class ScheduledTasksController extends Controller
 {
@@ -116,5 +123,110 @@ class ScheduledTasksController extends Controller
             'locations'=> $locations,
             'drivers'  => $drivers,
         ]);
+    }
+
+    /** Dropdown data shared by both create pages. */
+    private function formOptions(): array
+    {
+        return [
+            'drivers'   => Driver::select('id', 'name')->orderBy('name')->get()->map(fn ($d) => ['value' => $d->id, 'label' => $d->name]),
+            'clients'   => Client::select('id', 'english_name')->orderBy('english_name')->get()->map(fn ($c) => ['value' => $c->id, 'label' => $c->english_name]),
+            'locations' => Location::select('id', 'name')->orderBy('name')->get()->map(fn ($l) => ['value' => $l->id, 'label' => $l->name]),
+            'days'      => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'statuses'  => collect(ScheduledTask::STATUS_SELECT)->map(fn ($v, $k) => ['value' => $k, 'label' => $v])->values(),
+            'taskTypes' => collect(Task::TASK_TYPE_SELECT)->map(fn ($v, $k) => ['value' => $k, 'label' => $v])->values(),
+        ];
+    }
+
+    /** Add Scheduled Task page. */
+    public function create()
+    {
+        abort_if(Gate::denies('scheduled_task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return Inertia::render('Tasks/ScheduledTaskCreate', ['options' => $this->formOptions()]);
+    }
+
+    /**
+     * Store scheduled task(s). MIRRORS Admin\ScheduledTaskController@store — one
+     * task per (from_location × day), selected_hour taken from the per-location
+     * visit_hours map, parent-child linked via parent_id.
+     */
+    public function store(StoreScheduledTaskRequest $request)
+    {
+        $data = $request->except(['from_location_id', 'days', 'visit_hours']);
+        $driver = Driver::find($request->driver_id);
+        $data['name'] = optional($driver)->name . ' - ' . Carbon::parse($request->start_date)->format('Y-m-d');
+
+        $fromLocations = $request->input('from_location_id', []);
+        $selectedDays  = $request->input('days', []);
+        $selectedHours = $request->input('visit_hours', []);
+
+        // Each selected from-location must have a visit hour.
+        foreach ($fromLocations as $fromLocationId) {
+            if (!isset($selectedHours[$fromLocationId]) || empty($selectedHours[$fromLocationId])) {
+                return back()->withErrors(['visit_hours' => 'Each from location must have a visit hour']);
+            }
+        }
+        if (empty($selectedDays)) {
+            return back()->withErrors(['days' => 'Select at least one day']);
+        }
+
+        $parent_id = null;
+        foreach ($fromLocations as $fromLocationId) {
+            foreach ($selectedDays as $selectedDay) {
+                $scheduledTask = new ScheduledTask($data);
+                $scheduledTask->parent_id       = $parent_id;
+                $scheduledTask->from_location_id = $fromLocationId;
+                $scheduledTask->day             = $selectedDay;
+                $scheduledTask->selected_hour   = $selectedHours[$fromLocationId];
+                $scheduledTask->save();
+                if (is_null($parent_id)) {
+                    $parent_id = $scheduledTask->id;
+                }
+            }
+        }
+
+        return redirect()->route('app.admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
+    }
+
+    /** Add Quick Schedule Task page. */
+    public function quick()
+    {
+        abort_if(Gate::denies('scheduled_task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return Inertia::render('Tasks/ScheduledTaskQuick', ['options' => $this->formOptions()]);
+    }
+
+    /**
+     * Store quick scheduled task(s). MIRRORS Admin\ScheduledTaskController@quickAction —
+     * single from_location, one task per (day × hour), parent-child linked.
+     */
+    public function quickAction(StoreScheduledTaskRequest $request)
+    {
+        $data = $request->except(['from_location_id', 'days', 'visit_hours']);
+        $fromLocationId = $request->input('from_location_id');
+        $selectedDays   = $request->input('days', []);
+        $selectedHours  = $request->input('visit_hours', []);
+
+        if (count($selectedDays) * count($selectedHours) === 0) {
+            return back()->withErrors(['general' => 'You must select at least one day and one visit hour.']);
+        }
+
+        $parent_id = null;
+        foreach ($selectedDays as $selectedDay) {
+            foreach ($selectedHours as $selectedHour) {
+                $scheduledTask = new ScheduledTask($data);
+                $scheduledTask->parent_id       = $parent_id;
+                $scheduledTask->from_location_id = $fromLocationId;
+                $scheduledTask->day             = $selectedDay;
+                $scheduledTask->selected_hour   = $selectedHour;
+                $scheduledTask->save();
+                if (empty($parent_id)) {
+                    $parent_id = $scheduledTask->id;
+                }
+            }
+        }
+
+        return redirect()->route('app.admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
     }
 }

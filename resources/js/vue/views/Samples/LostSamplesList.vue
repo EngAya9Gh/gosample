@@ -131,7 +131,7 @@ async function confirmDelete() {
                 : (opt.value === 'LOST' ? 'bg-[#BD6BA7]/10 text-[#BD6BA7] border-[#BD6BA7]/20 hover:bg-[#BD6BA7]/20' :
                    opt.value === 'YES'  ? 'bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20 hover:bg-[#22c55e]/20' :
                    opt.value === 'NO'   ? 'bg-[#e89e2b]/10 text-[#e89e2b] border-[#e89e2b]/20 hover:bg-[#e89e2b]/20' :
-                   'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-surface-dark-border dark:hover:bg-surface-dark-solid')
+                   'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-white/5 dark:hover:bg-surface-dark-solid')
             ]">
             {{ opt.label }}
           </button>
@@ -194,7 +194,7 @@ async function confirmDelete() {
       </template>
 
       <template #cell-actions="{ row }">
-        <button v-if="can('sample_delete')" @click="askDelete(row)" class="w-8 h-8 inline-flex items-center justify-center rounded text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors" title="Delete Sample">
+        <button v-if="can('sample_delete')" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete">
           <i class="ri-delete-bin-line"></i>
         </button>
       </template>
@@ -217,7 +217,7 @@ async function confirmDelete() {
           Are you sure you want to completely delete this sample? This action is permanent and cannot be undone.
         </p>
         <div class="flex justify-end gap-3">
-          <button @click="showDel = false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-surface-dark-border dark:hover:bg-surface-dark-solid transition-colors">
+          <button @click="showDel = false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-surface-dark dark:text-slate-300 dark:border-white/5 dark:hover:bg-surface-dark-solid transition-colors">
             Cancel
           </button>
           <button @click="confirmDelete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm shadow-red-600/20 transition-all">

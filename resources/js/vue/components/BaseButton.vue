@@ -44,6 +44,8 @@ const sizes = {
 const variants = {
   // Theme CTA: brand teal gradient (#0d9488 → #005D69, the dark brand core).
   primary: 'bg-gradient-to-br from-[#0d9488] to-[#005D69] text-white shadow-card hover:brightness-110 hover:shadow-card-hover',
+  // Solid brand core (#005D69) — identical to the topbar "Create" button.
+  brand:   'bg-primary-700 text-white shadow-card hover:bg-primary-800',
   accent:  'bg-primary-500 text-white shadow-card hover:bg-primary-600',
   light:   'bg-surface-muted text-ink hover:bg-slate-200/70 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20',
   success: 'bg-success text-white hover:brightness-95',

@@ -60,6 +60,7 @@ class CarsController extends Controller
         $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($car) {
             return [
                 'id' => $car->id,
+                'driver_id' => $car->driver_id,
                 'driver_name' => $car->driver ? $car->driver->name : null,
                 'driver_mobile' => $car->driver ? $car->driver->mobile : null,
                 'imei' => $car->imei,
@@ -67,6 +68,8 @@ class CarsController extends Controller
                 'model' => $car->model,
                 'color' => $car->color,
                 'contact_person' => $car->contact_person,
+                'afaqi' => $car->afaqi,
+                'description' => $car->description,
                 'status' => $car->status, // 1: enabled, 2: disabled
                 'created_at' => $car->created_at ? $car->created_at->format('Y-m-d H:i') : null,
             ];
@@ -235,14 +238,16 @@ class CarsController extends Controller
 
             if ($message) {
                 if (str_starts_with($request->path(), 'app/')) {
-                    return redirect()->route('app.admin.cars.index')->with('success', $message);
+                    // back(): the SPA edits via popup from either the list or the
+                    // car-details page — return to whichever page sent the PUT.
+                    return redirect()->back()->with('success', $message);
                 }
                 return redirect()->route('admin.cars.index')->with('success', $message);
             }
         }
 
         if (str_starts_with($request->path(), 'app/')) {
-            return redirect()->route('app.admin.cars.index')->with('success', 'Car updated successfully.');
+            return redirect()->back()->with('success', 'Car updated successfully.');
         }
 
         return redirect()->route('admin.cars.index');
@@ -265,9 +270,21 @@ class CarsController extends Controller
                 }
             }
 
+            // Same list as the classic containers/create form: Car::pluck with
+            // the 'enabled' global scope applied (enabled cars only).
+            $cars = Car::select('id', 'plate_number')->get()
+                ->map(fn ($c) => ['value' => $c->id, 'label' => $c->plate_number])->values();
+
             return \Inertia\Inertia::render('Cars/CarView', [
                 'car' => $car,
                 'mediaUrls' => $mediaUrls,
+                'cars' => $cars,
+                'drivers' => Driver::select('id as value', 'name as label')->get(),
+                'can' => [
+                    'car_edit'         => Gate::allows('car_edit'),
+                    'container_create' => Gate::allows('container_create'),
+                    'container_edit'   => Gate::allows('container_edit'),
+                ],
             ]);
         }
 
