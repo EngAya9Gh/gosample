@@ -1270,7 +1270,16 @@ class SampleController extends Controller
 
 
 
-            $dataArray = $request->json()->all(); // Get the array of objects from the request
+            $dataArray = $request->all(); // Get the array of objects from the request
+
+            if (empty($dataArray)) {
+                return $this->response(true, 'success');
+            }
+
+            // If it's a single associative array (object) instead of a list of objects, wrap it in an array
+            if (count(array_filter(array_keys($dataArray), 'is_string')) > 0) {
+                $dataArray = [$dataArray];
+            }
 
             foreach ($dataArray as $data) {
                 $validator = Validator::make($data, [
