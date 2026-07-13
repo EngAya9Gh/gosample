@@ -69,7 +69,6 @@ export const NAV = [
       { label: 'Generate Barcodes', icon: 'ri-barcode-box-line',   route: '/admin/barcodes/generate', perm: 'barcode_access' },
       { label: 'Notifications',     icon: 'ri-notification-3-line', route: '/admin/notifications',    perm: 'notification_access' },
       { label: 'API Ayenati',       icon: 'ri-cloud-line',         route: '/admin/api-ayenatis',      perm: 'api_ayenati_access' },
-      { label: 'Delete Permissions', icon: 'ri-delete-bin-7-line', route: '/admin/delete-permissions' },
     ],
   },
 ];
