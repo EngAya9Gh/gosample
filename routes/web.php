@@ -275,7 +275,7 @@ Route::get('/test-fcm/{driver_id}', function ($driver_id) {
 
 // --- NEW SPA ROUTES (Formerly prefixed with /app) ---
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', fn () => redirect('/app/dashboard'));
+    Route::get('/', fn () => redirect('/dashboard'));
     Route::get('/debug-count', function () {
         $user = auth()->user();
         $q1 = \App\Models\Sample::count();
@@ -465,5 +465,5 @@ Route::middleware(['auth'])->group(function () {
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
-        ->where('any', '.*')->name('fallback');
+        ->where('any', '^(?!assets|build|storage|api).*$')->name('fallback');
 });
