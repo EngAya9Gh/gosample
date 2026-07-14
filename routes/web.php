@@ -96,7 +96,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::delete('clients/destroy', 'ClientsController@massDestroy')->name('clients.massDestroy');
     Route::post('clients/media', 'ClientsController@storeMedia')->name('clients.storeMedia');
     Route::post('clients/ckmedia', 'ClientsController@storeCKEditorImages')->name('clients.storeCKEditorImages');
-    // Route::resource('clients', 'ClientsController'); // Migrated to SPA
+    Route::resource('clients', 'ClientsController');
 
     // Locations
     Route::delete('locations/destroy', 'LocationsController@massDestroy')->name('locations.massDestroy');
