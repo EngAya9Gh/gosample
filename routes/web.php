@@ -59,12 +59,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     // Audit Logs
     Route::resource('audit-logs', 'AuditLogsController', ['except' => ['create', 'store', 'edit', 'update', 'destroy']]);
 
-    // Drivers
-    Route::delete('drivers/destroy', 'DriversController@massDestroy')->name('drivers.massDestroy');
+    // Legacy driver routes commented out due to SPA naming conflicts
+    // Route::delete('drivers/destroy', 'DriversController@massDestroy')->name('drivers.massDestroy');
     Route::get('drivers/{id}/get-shifts', 'DriversController@getShifts')->name('drivers.getShifts');
-    Route::post('drivers/{driver}/tasks/reorder', '\App\Http\Controllers\DriverController@reorderTasks')->name('drivers.tasks.reorder');
-    Route::post('drivers/{driver}/tasks/smart-sort', '\App\Http\Controllers\DriverController@smartSortTasks')->name('drivers.tasks.smartSort');
-    Route::resource('drivers', 'DriversController');
+    // Route::post('drivers/{driver}/tasks/reorder', '\App\Http\Controllers\DriverController@reorderTasks')->name('drivers.tasks.reorder');
+    // Route::post('drivers/{driver}/tasks/smart-sort', '\App\Http\Controllers\DriverController@smartSortTasks')->name('drivers.tasks.smartSort');
+    // Route::resource('drivers', 'DriversController');
 
     // Cars
     Route::delete('cars/destroy', 'CarsController@massDestroy')->name('cars.massDestroy');
@@ -247,11 +247,12 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'App\Htt
 // Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'tasksOfDriver']);
 // Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks']);
 
-Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'showTasks'])
-    ->name('admin.drivers.tasks');
+// Duplicate explicit driver tasks routes commented out due to SPA naming conflicts
+// Route::get('admin/drivers/{driver}/tasks', [DriverController::class, 'showTasks'])
+//     ->name('admin.drivers.tasks');
 
-Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks'])
-    ->name('admin.drivers.tasks.reorder');
+// Route::post('admin/drivers/{driver}/tasks/reorder', [DriverController::class, 'reorderTasks'])
+//     ->name('admin.drivers.tasks.reorder');
 
 Route::post('/emergency', [EmergencyController::class, 'emergencyBTN']);
 Route::get('/check-emergency', [EmergencyController::class, 'checkEmergency']);
@@ -367,99 +368,99 @@ Route::middleware(['auth'])->group(function () {
     Route::get('admin/shipments', [\App\Http\Controllers\Admin\ShipmentsController::class, 'index'])->name('admin.shipments.index');
     Route::get('admin/money-transfers', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'index'])->name('admin.money-transfers.index');
     Route::post('admin/money-transfers/popup', [\App\Http\Controllers\Admin\MoneyTransferController::class, 'storePopup'])->name('admin.money-transfers.popup.store');
-    Route::get('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'index'])->name('admin.cars.index');
-    Route::get('admin/cars/create', [\App\Http\Controllers\Admin\CarsController::class, 'create'])->name('admin.cars.create');
-    Route::post('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'store'])->name('admin.cars.store');
-    Route::get('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'show'])->name('admin.cars.show');
-    Route::get('admin/cars/{car}/edit', [\App\Http\Controllers\Admin\CarsController::class, 'edit'])->name('admin.cars.edit');
-    Route::put('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'update'])->name('admin.cars.update');
-    Route::get('admin/containers', [\App\Http\Controllers\Admin\ContainersController::class, 'index'])->name('admin.containers.index');
+    // Route::get('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'index'])->name('admin.cars.index');
+    // Route::get('admin/cars/create', [\App\Http\Controllers\Admin\CarsController::class, 'create'])->name('admin.cars.create');
+    // Route::post('admin/cars', [\App\Http\Controllers\Admin\CarsController::class, 'store'])->name('admin.cars.store');
+    // Route::get('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'show'])->name('admin.cars.show');
+    // Route::get('admin/cars/{car}/edit', [\App\Http\Controllers\Admin\CarsController::class, 'edit'])->name('admin.cars.edit');
+    // Route::put('admin/cars/{car}', [\App\Http\Controllers\Admin\CarsController::class, 'update'])->name('admin.cars.update');
+    // Route::get('admin/containers', [\App\Http\Controllers\Admin\ContainersController::class, 'index'])->name('admin.containers.index');
     Route::post('admin/containers/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'storePopup'])->name('admin.containers.popup.store');
     Route::put('admin/containers/{container}/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'updatePopup'])->name('admin.containers.popup.update');
     Route::get('admin/containers/{container}/barcode', [\App\Http\Controllers\Admin\ContainersController::class, 'barcode'])->name('admin.containers.barcode');
-    Route::get('admin/containers/{container}', [\App\Http\Controllers\Admin\ContainersController::class, 'show'])->name('admin.containers.show');
-    Route::get('admin/zones', [\App\Http\Controllers\Admin\ZonesController::class, 'index'])->name('admin.zones.index');
+    // Route::get('admin/containers/{container}', [\App\Http\Controllers\Admin\ContainersController::class, 'show'])->name('admin.containers.show');
+    // Route::get('admin/zones', [\App\Http\Controllers\Admin\ZonesController::class, 'index'])->name('admin.zones.index');
     Route::post('admin/zones/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'storePopup'])->name('admin.zones.popup.store');
     Route::put('admin/zones/{zone}/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'updatePopup'])->name('admin.zones.popup.update');
-    Route::get('admin/attendances', [\App\Http\Controllers\Admin\AttendancesController::class, 'index'])->name('admin.attendances.index');
+    // Route::get('admin/attendances', [\App\Http\Controllers\Admin\AttendancesController::class, 'index'])->name('admin.attendances.index');
     Route::post('admin/attendances/popup', [\App\Http\Controllers\Admin\AttendancesController::class, 'storePopup'])->name('admin.attendances.popup.store');
     Route::put('admin/attendances/{attendance}/popup', [\App\Http\Controllers\Admin\AttendancesController::class, 'updatePopup'])->name('admin.attendances.popup.update');
-    Route::get('admin/shift-templates', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'index'])->name('admin.shift-templates.index');
+    // Route::get('admin/shift-templates', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'index'])->name('admin.shift-templates.index');
     Route::post('admin/shift-templates/popup', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'storePopup'])->name('admin.shift-templates.popup.store');
     Route::put('admin/shift-templates/{shiftTemplate}/popup', [\App\Http\Controllers\Admin\ShiftTemplatesController::class, 'updatePopup'])->name('admin.shift-templates.popup.update');
 
     Route::get('admin/car-link-histories', [\App\Http\Controllers\Admin\CarLinkHistoryController::class, 'index'])->name('admin.car-link-histories.index');
 
     // --- Swap Requests ---
-    Route::get('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'index'])->name('admin.swaprequests.index');
-    Route::get('admin/swaprequests/create', [\App\Http\Controllers\Admin\SwaprequestController::class, 'create'])->name('admin.swaprequests.create');
-    Route::post('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'store'])->name('admin.swaprequests.store');
-    Route::get('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'show'])->name('admin.swaprequests.show');
-    Route::get('admin/swaprequests/{swaprequest}/edit', [\App\Http\Controllers\Admin\SwaprequestController::class, 'edit'])->name('admin.swaprequests.edit');
-    Route::put('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'update'])->name('admin.swaprequests.update');
-    Route::delete('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'destroy'])->name('admin.swaprequests.destroy');
+    // Route::get('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'index'])->name('admin.swaprequests.index');
+    // Route::get('admin/swaprequests/create', [\App\Http\Controllers\Admin\SwaprequestController::class, 'create'])->name('admin.swaprequests.create');
+    // Route::post('admin/swaprequests', [\App\Http\Controllers\Admin\SwaprequestController::class, 'store'])->name('admin.swaprequests.store');
+    // Route::get('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'show'])->name('admin.swaprequests.show');
+    // Route::get('admin/swaprequests/{swaprequest}/edit', [\App\Http\Controllers\Admin\SwaprequestController::class, 'edit'])->name('admin.swaprequests.edit');
+    // Route::put('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'update'])->name('admin.swaprequests.update');
+    // Route::delete('admin/swaprequests/{swaprequest}', [\App\Http\Controllers\Admin\SwaprequestController::class, 'destroy'])->name('admin.swaprequests.destroy');
 
     // --- Clients ---
-    Route::get('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'index'])->name('admin.clients.index');
-    Route::get('admin/clients/create', [\App\Http\Controllers\Admin\ClientsController::class, 'create'])->name('admin.clients.create');
-    Route::post('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'store'])->name('admin.clients.store');
-    Route::get('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'show'])->name('admin.clients.show');
+    // Route::get('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'index'])->name('admin.clients.index');
+    // Route::get('admin/clients/create', [\App\Http\Controllers\Admin\ClientsController::class, 'create'])->name('admin.clients.create');
+    // Route::post('admin/clients', [\App\Http\Controllers\Admin\ClientsController::class, 'store'])->name('admin.clients.store');
+    // Route::get('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'show'])->name('admin.clients.show');
     Route::get('admin/clients/{client}/relations', [\App\Http\Controllers\Admin\ClientsController::class, 'getRelations'])->name('admin.clients.relations');
-    Route::get('admin/clients/{client}/edit', [\App\Http\Controllers\Admin\ClientsController::class, 'edit'])->name('admin.clients.edit');
-    Route::put('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'update'])->name('admin.clients.update');
-    Route::delete('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'destroy'])->name('admin.clients.destroy');
+    // Route::get('admin/clients/{client}/edit', [\App\Http\Controllers\Admin\ClientsController::class, 'edit'])->name('admin.clients.edit');
+    // Route::put('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'update'])->name('admin.clients.update');
+    // Route::delete('admin/clients/{client}', [\App\Http\Controllers\Admin\ClientsController::class, 'destroy'])->name('admin.clients.destroy');
 
     // --- Locations ---
-    Route::get('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'index'])->name('admin.locations.index');
-    Route::get('admin/locations/create', [\App\Http\Controllers\Admin\LocationsController::class, 'create'])->name('admin.locations.create');
-    Route::post('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'store'])->name('admin.locations.store');
-    Route::get('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'show'])->name('admin.locations.show');
-    Route::get('admin/locations/{location}/edit', [\App\Http\Controllers\Admin\LocationsController::class, 'edit'])->name('admin.locations.edit');
-    Route::put('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'update'])->name('admin.locations.update');
-    Route::delete('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'destroy'])->name('admin.locations.destroy');
+    // Route::get('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'index'])->name('admin.locations.index');
+    // Route::get('admin/locations/create', [\App\Http\Controllers\Admin\LocationsController::class, 'create'])->name('admin.locations.create');
+    // Route::post('admin/locations', [\App\Http\Controllers\Admin\LocationsController::class, 'store'])->name('admin.locations.store');
+    // Route::get('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'show'])->name('admin.locations.show');
+    // Route::get('admin/locations/{location}/edit', [\App\Http\Controllers\Admin\LocationsController::class, 'edit'])->name('admin.locations.edit');
+    // Route::put('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'update'])->name('admin.locations.update');
+    // Route::delete('admin/locations/{location}', [\App\Http\Controllers\Admin\LocationsController::class, 'destroy'])->name('admin.locations.destroy');
 
     // --- Users ---
-    Route::get('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'index'])->name('admin.users.index');
-    Route::post('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'store'])->name('admin.users.store');
-    Route::put('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'update'])->name('admin.users.update');
-    Route::delete('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'destroy'])->name('admin.users.destroy');
+    // Route::get('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'index'])->name('admin.users.index');
+    // Route::post('admin/users', [\App\Http\Controllers\Admin\UsersController::class, 'store'])->name('admin.users.store');
+    // Route::put('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'update'])->name('admin.users.update');
+    // Route::delete('admin/users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'destroy'])->name('admin.users.destroy');
 
     // --- Roles ---
-    Route::get('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('admin.roles.index');
-    Route::post('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('admin.roles.store');
-    Route::put('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('admin.roles.update');
-    Route::delete('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('admin.roles.destroy');
+    // Route::get('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('admin.roles.index');
+    // Route::post('admin/roles', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('admin.roles.store');
+    // Route::put('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('admin.roles.update');
+    // Route::delete('admin/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('admin.roles.destroy');
 
     // --- Permissions ---
-    Route::get('admin/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('admin.permissions.index');
-    Route::post('admin/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'store'])->name('admin.permissions.store');
-    Route::put('admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'update'])->name('admin.permissions.update');
-    Route::delete('admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'destroy'])->name('admin.permissions.destroy');
+    // Route::get('admin/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('admin.permissions.index');
+    // Route::post('admin/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'store'])->name('admin.permissions.store');
+    // Route::put('admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'update'])->name('admin.permissions.update');
+    // Route::delete('admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'destroy'])->name('admin.permissions.destroy');
 
     // --- Audit Logs ---
-    Route::get('admin/audit-logs', [\App\Http\Controllers\Admin\AuditLogsController::class, 'index'])->name('admin.audit-logs.index');
+    // Route::get('admin/audit-logs', [\App\Http\Controllers\Admin\AuditLogsController::class, 'index'])->name('admin.audit-logs.index');
 
     // --- Notifications ---
-    Route::get('admin/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('admin.notifications.index');
+    // Route::get('admin/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('admin.notifications.index');
 
     // --- Barcodes ---
-    Route::get('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'index'])->name('admin.barcodes.index');
-    Route::post('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'store'])->name('admin.barcodes.store');
-    Route::put('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'update'])->name('admin.barcodes.update');
+    // Route::get('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'index'])->name('admin.barcodes.index');
+    // Route::post('admin/barcodes', [\App\Http\Controllers\Admin\BarcodesController::class, 'store'])->name('admin.barcodes.store');
+    // Route::put('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'update'])->name('admin.barcodes.update');
     Route::delete('admin/barcodes/destroy', [\App\Http\Controllers\Admin\BarcodesController::class, 'massDestroy'])->name('admin.barcodes.massDestroy');
-    Route::delete('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'destroy'])->name('admin.barcodes.destroy');
+    // Route::delete('admin/barcodes/{barcode}', [\App\Http\Controllers\Admin\BarcodesController::class, 'destroy'])->name('admin.barcodes.destroy');
     Route::get('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generate'])->name('admin.barcodes.generate');
     Route::post('admin/barcodes/generate', [\App\Http\Controllers\Admin\BarcodesController::class, 'generateBarcodes'])->name('admin.barcodes.generateBarcodes');
     
     // --- Terms ---
-    Route::get('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'index'])->name('admin.terms.index');
-    Route::post('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'store'])->name('admin.terms.store');
-    Route::put('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'update'])->name('admin.terms.update');
+    // Route::get('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'index'])->name('admin.terms.index');
+    // Route::post('admin/terms', [\App\Http\Controllers\Admin\TermsController::class, 'store'])->name('admin.terms.store');
+    // Route::put('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'update'])->name('admin.terms.update');
     Route::delete('admin/terms/destroy', [\App\Http\Controllers\Admin\TermsController::class, 'massDestroy'])->name('admin.terms.massDestroy');
-    Route::delete('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'destroy'])->name('admin.terms.destroy');
+    // Route::delete('admin/terms/{term}', [\App\Http\Controllers\Admin\TermsController::class, 'destroy'])->name('admin.terms.destroy');
 
     // --- API Ayenati ---
-    Route::get('admin/api-ayenatis', [\App\Http\Controllers\Admin\ApiAyenatiController::class, 'index'])->name('admin.api-ayenatis.index');
+    // Route::get('admin/api-ayenatis', [\App\Http\Controllers\Admin\ApiAyenatiController::class, 'index'])->name('admin.api-ayenatis.index');
 
     // Catch-all: not-yet-migrated screens show a "being migrated" page so the shell
     // stays fully navigable. Specific routes above take precedence.
