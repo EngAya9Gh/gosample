@@ -206,11 +206,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::delete('scheduled-tasks/{scheduledTask}/children/destroy', 'ScheduledTaskController@massDestroyChildren')->name('scheduled-tasks.childrenMassDestroy');
     Route::resource('scheduled-tasks', 'ScheduledTaskController');
 
-    Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');
-    Route::post('schedule/quick', 'ScheduledTaskController@quickAction')->name('scheduled-tasks.quickAction');
-    Route::get('schedule/delete/{scheduledTask}/parents', 'ScheduledTaskController@deleteBasedOnParent')->name('scheduled-tasks.deleteAllParent');
-    Route::get('scheduled-tasks/search/drivers', 'ScheduledTaskController@searchDrivers')->name('scheduled-tasks.searchDrivers');
-    Route::get('scheduled-tasks/search/locations', 'ScheduledTaskController@searchLocations')->name('scheduled-tasks.searchLocations');
+    // Legacy SPA routes commented out due to naming conflicts with SPA rebuild
+    // Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');
+    // Route::post('schedule/quick', 'ScheduledTaskController@quickAction')->name('scheduled-tasks.quickAction');
+    // Route::get('schedule/delete/{scheduledTask}/parents', 'ScheduledTaskController@deleteBasedOnParent')->name('scheduled-tasks.deleteAllParent');
+    // Route::get('scheduled-tasks/search/drivers', 'ScheduledTaskController@searchDrivers')->name('scheduled-tasks.searchDrivers');
+    // Route::get('scheduled-tasks/search/locations', 'ScheduledTaskController@searchLocations')->name('scheduled-tasks.searchLocations');
     // Money Transfer
     Route::delete('money-transfers/destroy', 'MoneyTransferController@massDestroy')->name('money-transfers.massDestroy');
     Route::resource('money-transfers', 'MoneyTransferController');

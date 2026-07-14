@@ -47,10 +47,10 @@ function profileRows(p) {
   ].filter(([, v]) => v !== undefined && v !== null && v !== '');
 }
 
-/* 15s polling (partial reload), cleared on unmount so no leaked Afaqy spam */
-let timer = null;
-onMounted(() => { timer = setInterval(() => router.reload({ only: ['available', 'cars'] }), 15000); });
-onUnmounted(() => { if (timer) clearInterval(timer); });
+/* 15s polling (DISABLED per user request) */
+// let timer = null;
+// onMounted(() => { timer = setInterval(() => router.reload({ only: ['available', 'cars'] }), 15000); });
+// onUnmounted(() => { if (timer) clearInterval(timer); });
 
 // Card click → the car's view page. car_id is resolved server-side (IMEI,
 // then plate). Cards with no matching local car stay non-clickable.
@@ -64,9 +64,9 @@ function openCar(car) {
   <div>
     <Breadcrumb title="Car Dashboard" :trail="[{ label: 'Dashboards' }, { label: 'Car Dashboard' }]">
       <template #actions>
-        <span class="inline-flex items-center gap-1.5 text-xs text-slate-400">
-          <span class="w-2 h-2 rounded-full bg-success animate-pulse-ring"></span> Live · refreshes every 15s
-        </span>
+        <button @click="router.reload({ only: ['available', 'cars'] })" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-600 transition">
+          <i class="ri-refresh-line"></i> تحديث الآن
+        </button>
       </template>
     </Breadcrumb>
 
