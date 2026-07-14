@@ -195,7 +195,7 @@ function stickyCls(c, bg = STICKY_BODY) {
     <div class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 print:hidden">
       <div v-if="title" class="flex items-center gap-2 me-2">
         <h3 class="text-[14px] font-bold text-ink dark:text-slate-100">{{ title }}</h3>
-        <span class="inline-flex items-center h-5 px-2 rounded-full bg-surface-muted dark:bg-white/10 text-[11px] font-semibold text-slate-500 dark:text-slate-300">{{ totalRows.toLocaleString() }} records</span>
+        <span class="inline-flex items-center h-5 px-2 rounded-full bg-surface-muted dark:bg-white/10 text-[11px] font-semibold text-slate-500 dark:text-slate-300">{{ totalRows.toLocaleString('en-US') }} records</span>
       </div>
       <div v-if="searchable" class="relative flex-1 min-w-[180px] max-w-xs">
         <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-slate-400 text-[13px]" style="inset-inline-start:.75rem"></i>
@@ -312,7 +312,7 @@ function stickyCls(c, bg = STICKY_BODY) {
           <option v-for="s in SIZES" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
-      <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString() }}</p>
+      <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString('en-US') }}</p>
 
       <div class="flex items-center gap-1 ms-auto">
         <!-- animated: arrow slides in its travel direction on hover; button presses on click -->

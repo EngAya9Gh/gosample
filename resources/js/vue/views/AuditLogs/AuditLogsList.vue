@@ -101,7 +101,7 @@ const formatProperties = (props) => {
         </span>
         <div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Entries</p>
-          <p class="text-base font-extrabold text-ink dark:text-white mt-0.5">{{ logs.total?.toLocaleString() }}</p>
+          <p class="text-base font-extrabold text-ink dark:text-white mt-0.5">{{ logs.total?.toLocaleString('en-US') }}</p>
         </div>
       </div>
       <div class="inline-flex items-center gap-3 px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm">

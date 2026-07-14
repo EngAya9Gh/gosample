@@ -207,7 +207,7 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
       <div class="relative z-10">
         <p class="text-[11.5px] tracking-[.05em] text-white/85 mb-1">{{ todayUpper }}</p>
         <h2 class="text-[23px] font-[700] leading-tight">Good {{ greeting.split(' ')[1] }}, {{ firstName }}</h2>
-        <p class="text-[13px] text-white/90 mt-1">{{ (Number(stats.cars) || 0).toLocaleString() }} cars on route · all cold-chain containers within range</p>
+        <p class="text-[13px] text-white/90 mt-1">{{ (Number(stats.cars) || 0).toLocaleString('en-US') }} cars on route · all cold-chain containers within range</p>
       </div>
       <!-- Date Range inside hero (functional flatpickr range picker) -->
       <div class="hidden sm:block relative z-10 shrink-0">
@@ -238,11 +238,11 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
         <div class="flex gap-6 mb-4">
           <div>
             <div class="text-[11px] text-slate-400">Tasks</div>
-            <div class="text-[18px] font-bold text-primary-700">{{ (Number(stats.tasks) || 0).toLocaleString() }}</div>
+            <div class="text-[18px] font-bold text-primary-700">{{ (Number(stats.tasks) || 0).toLocaleString('en-US') }}</div>
           </div>
           <div>
             <div class="text-[11px] text-slate-400">Samples</div>
-            <div class="text-[18px] font-bold text-info">{{ (Number(stats.samples) || 0).toLocaleString() }}</div>
+            <div class="text-[18px] font-bold text-info">{{ (Number(stats.samples) || 0).toLocaleString('en-US') }}</div>
           </div>
           <div>
             <div class="text-[11px] text-slate-400">Avg ETA</div>
@@ -264,7 +264,7 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
             </svg>
             <div class="absolute inset-0 grid place-items-center">
               <div class="text-center">
-                <div class="text-2xl font-bold text-ink dark:text-slate-50">{{ donutDisplay.toLocaleString() }}</div>
+                <div class="text-2xl font-bold text-ink dark:text-slate-50">{{ donutDisplay.toLocaleString('en-US') }}</div>
                 <div class="text-[11px] text-slate-400">samples</div>
               </div>
             </div>

@@ -268,7 +268,7 @@ function updateMap(locations) {
                 <!-- Limit to latest 30 points to avoid browser lag, sorted by newest -->
                 <tr v-for="track in [...selectedDriver.car.car_tracking].reverse().slice(0, 30)" :key="track.id" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                   <td class="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">#{{ track.id }}</td>
-                  <td class="px-4 py-3 text-slate-500">{{ new Date(track.created_at).toLocaleString() }}</td>
+                  <td class="px-4 py-3 text-slate-500">{{ new Date(track.created_at).toLocaleString('en-US') }}</td>
                   <td class="px-4 py-3 text-slate-700 dark:text-slate-300 truncate max-w-[200px]" :title="track.address">{{ track.address || '—' }}</td>
                   <td class="px-4 py-3">{{ track.temp5 || '—' }}</td>
                   <td class="px-4 py-3">{{ track.temp6 || '—' }}</td>

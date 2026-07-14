@@ -85,7 +85,7 @@ const cardCls = computed(() => props.featured
       class="text-[27px] font-[800] tracking-[-0.02em] tabular-nums leading-none"
       :class="featured ? 'text-white' : 'text-ink dark:text-slate-50'"
     >
-      {{ prefix }}{{ display.toLocaleString() }}{{ suffix }}
+      {{ prefix }}{{ display.toLocaleString('en-US') }}{{ suffix }}
     </div>
 
     <!-- Label -->

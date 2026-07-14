@@ -46,7 +46,7 @@ const activeTab = ref('containers');
 
 const formatDate = (dateString) => {
   if (!dateString) return '—';
-  return new Date(dateString).toLocaleString();
+  return new Date(dateString).toLocaleString('en-US');
 };
 
 const canEdit = computed(() => props.can?.car_edit ?? usePage().props.auth?.can?.['car_edit'] ?? false);
