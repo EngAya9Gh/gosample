@@ -72,10 +72,7 @@ function onScroll(e) { showTop.value = e.target.scrollTop > 320; }
 function toTop() { document.querySelector('.shell-scroll')?.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // Auto-scroll to top when page changes
-const isNavigating = ref(false);
-router.on('start', () => { isNavigating.value = true; });
 router.on('finish', () => {
-  isNavigating.value = false;
   document.querySelector('.shell-scroll')?.scrollTo({ top: 0, behavior: 'instant' });
 });
 </script>
@@ -102,12 +99,8 @@ router.on('finish', () => {
 
       <!-- scroll region -->
       <main class="shell-scroll flex-1 min-h-0 overflow-y-auto print:overflow-visible" @scroll="onScroll">
-        <!-- Navigation progress bar -->
-        <div v-if="isNavigating" class="nav-progress"></div>
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 print:p-0">
-          <Transition name="page" mode="out-in">
-            <slot></slot>
-          </Transition>
+          <slot></slot>
         </div>
         <Footer />
       </main>
@@ -134,28 +127,4 @@ router.on('finish', () => {
 .drop-enter-active, .drop-leave-active { transition: all .25s cubic-bezier(.16,1,.3,1); }
 .drop-enter-from, .drop-leave-to { opacity: 0; transform: translateY(8px) scale(.9); }
 
-/* Page transition */
-.page-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
-.page-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
-.page-enter-from { opacity: 0; transform: translateY(6px); }
-.page-leave-to { opacity: 0; transform: translateY(-4px); }
-
-/* Navigation progress bar */
-.nav-progress {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
-  background-size: 200% 100%;
-  animation: progress-slide 1.2s ease-in-out infinite;
-  z-index: 50;
-  border-radius: 0 2px 2px 0;
-}
-@keyframes progress-slide {
-  0% { background-position: 100% 0; width: 30%; }
-  50% { background-position: 0% 0; width: 75%; }
-  100% { background-position: 100% 0; width: 90%; }
-}
 </style>
