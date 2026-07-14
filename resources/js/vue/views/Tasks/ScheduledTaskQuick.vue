@@ -8,6 +8,7 @@ import { useForm, router } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
 import BaseButton from '../../components/BaseButton.vue';
+import FormInput from '../../components/FormInput.vue';
 import FormSelect from '../../components/FormSelect.vue';
 import FormDate from '../../components/FormDate.vue';
 
@@ -21,6 +22,7 @@ const taskTypeOpts = props.options?.taskTypes || [{ value: 'SAMPLE', label: 'SAM
 const dayOpts      = (props.options?.days || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']).map((d) => ({ value: d, label: d }));
 
 const form = useForm({
+  name: '',                   // required
   driver_id: '',
   status: 'enabled',
   start_date: '',
@@ -57,6 +59,7 @@ function cancel() { router.visit('/admin/scheduled-tasks'); }
           </h2>
         </div>
         <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <FormInput v-model="form.name" label="Task Name" placeholder="e.g. Morning Route" required :error="form.errors.name" />
           <FormSelect v-model="form.driver_id" label="Driver" :options="driverOpts" placeholder="Select Driver" required :error="form.errors.driver_id" />
           <FormSelect v-model="form.status" label="Status" :options="statusOpts" :searchable="false" :error="form.errors.status" />
 
