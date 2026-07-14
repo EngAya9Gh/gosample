@@ -20,13 +20,9 @@ class BarcodesController extends Controller
 
         $barcodes = Barcode::all();
 
-        if (str_starts_with($request->path(), 'app/')) {
-            return inertia('Barcodes/BarcodesList', [
-                'barcodes' => $barcodes,
-            ]);
-        }
-
-        return view('admin.barcodes.index', compact('barcodes'));
+        return inertia('Barcodes/BarcodesList', [
+            'barcodes' => $barcodes,
+        ]);
     }
 
     public function create()
@@ -45,16 +41,12 @@ class BarcodesController extends Controller
         $sequence = 10;
         $show = false;
 
-        if (str_starts_with($request->path(), 'app/')) {
-            return inertia('Barcodes/BarcodesGenerate', [
-                'type' => $type,
-                'start' => $start,
-                'sequence' => $sequence,
-                'show' => $show
-            ]);
-        }
-
-        return view('admin.barcodes.generate',compact('type','start','sequence','show'));
+        return inertia('Barcodes/BarcodesGenerate', [
+            'type' => $type,
+            'start' => $start,
+            'sequence' => $sequence,
+            'show' => $show
+        ]);
     }
 
     public function generateBarcodes(Request $request)
@@ -70,25 +62,18 @@ class BarcodesController extends Controller
         $record->last_number =  $record->last_number +  $request->range;
         $record->save();
 
-        if (str_starts_with($request->path(), 'app/')) {
-            return inertia('Barcodes/BarcodesGenerate', [
-                'type' => $type,
-                'start' => $start,
-                'sequence' => $sequence,
-                'show' => $show
-            ]);
-        }
-
-        return view('admin.barcodes.generate',compact('type','start','sequence','show'));
+        return inertia('Barcodes/BarcodesGenerate', [
+            'type' => $type,
+            'start' => $start,
+            'sequence' => $sequence,
+            'show' => $show
+        ]);
     }
 
     public function store(StoreBarcodeRequest $request)
     {
         $barcode = Barcode::create($request->all());
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->back();
-        }
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -102,10 +87,7 @@ class BarcodesController extends Controller
     public function update(UpdateBarcodeRequest $request, Barcode $barcode)
     {
         $barcode->update($request->all());
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->back();
-        }
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -121,20 +103,14 @@ class BarcodesController extends Controller
         abort_if(Gate::denies('barcode_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $barcode->delete();
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->back();
-        }
         return back();
     }
 
     public function massDestroy(MassDestroyBarcodeRequest $request)
     {
         Barcode::whereIn('id', request('ids'))->delete();
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->back();
-        }
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }

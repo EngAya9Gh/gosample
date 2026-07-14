@@ -75,7 +75,7 @@ const columns = [
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/samples', { ...filters, ...extra }, {
+  router.get('/admin/samples', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters'],
@@ -216,7 +216,7 @@ async function confirmDelete() {
       </template>
 
       <template #cell-task_id="{ row }">
-        <a v-if="row.task_id" :href="`/app/admin/tasks/${row.task_id}`" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#005D69]/10 border border-[#005D69]/20 text-[12px] font-black text-[#0ab39c] hover:bg-[#005D69]/20 transition-colors">
+        <a v-if="row.task_id" :href="`/admin/tasks/${row.task_id}`" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#005D69]/10 border border-[#005D69]/20 text-[12px] font-black text-[#0ab39c] hover:bg-[#005D69]/20 transition-colors">
           <i class="ri-hashtag"></i>
           {{ row.task_id }}
         </a>

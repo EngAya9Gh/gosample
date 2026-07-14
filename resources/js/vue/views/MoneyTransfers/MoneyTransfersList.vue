@@ -67,7 +67,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/money-transfers?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/money-transfers?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     
@@ -95,7 +95,7 @@ function openCreate() {
   showCreate.value = true;
 }
 function submitCreate() {
-  createForm.post('/app/admin/money-transfers/popup', {
+  createForm.post('/admin/money-transfers/popup', {
     preserveScroll: true,
     onSuccess: () => {
       showCreate.value = false;

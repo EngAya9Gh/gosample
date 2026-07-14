@@ -42,9 +42,9 @@ const form = useForm({
 
 const submit = () => {
   if (isEdit.value) {
-    form.put(`/app/admin/swaprequests/${props.swaprequest.id}`);
+    form.put(`/admin/swaprequests/${props.swaprequest.id}`);
   } else {
-    form.post('/app/admin/swaprequests');
+    form.post('/admin/swaprequests');
   }
 };
 </script>
@@ -61,14 +61,14 @@ const submit = () => {
           class="mt-1" 
           :items="[
             { label: 'Admin' }, 
-            { label: 'Swap Requests', href: '/app/admin/swaprequests' }, 
+            { label: 'Swap Requests', href: '/admin/swaprequests' }, 
             { label: isEdit ? 'Edit' : 'Create' }
           ]" 
         />
       </div>
       <div class="flex items-center gap-3">
         <Link 
-          href="/app/admin/swaprequests"
+          href="/admin/swaprequests"
           class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl transition-all active:scale-95 shadow-sm"
         >
           <i class="ri-arrow-left-line text-lg"></i>
@@ -145,7 +145,7 @@ const submit = () => {
 
         <div class="mt-8 pt-6 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3">
           <Link 
-            href="/app/admin/swaprequests" 
+            href="/admin/swaprequests" 
             class="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
             Cancel

@@ -70,13 +70,13 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: '
 const kpis = computed(() => {
   const s = props.stats || {};
   const list = [
-    { label: 'Active Tasks',      value: Number(s.tasks)   || 0, icon: 'ri-checkbox-circle-line', tone: 'primary', href: '/app/admin/tasks', featured: true, delta: s.tasks_delta !== undefined ? s.tasks_delta : 12.5 },
-    { label: 'Samples Collected', value: Number(s.samples) || 0, icon: 'ri-test-tube-line',       tone: 'success', href: '/app/admin/samples', delta: s.samples_delta !== undefined ? s.samples_delta : 8.2 },
+    { label: 'Active Tasks',      value: Number(s.tasks)   || 0, icon: 'ri-checkbox-circle-line', tone: 'primary', href: '/admin/tasks', featured: true, delta: s.tasks_delta !== undefined ? s.tasks_delta : 12.5 },
+    { label: 'Samples Collected', value: Number(s.samples) || 0, icon: 'ri-test-tube-line',       tone: 'success', href: '/admin/samples', delta: s.samples_delta !== undefined ? s.samples_delta : 8.2 },
   ];
   if (can('client_access')) {
-    list.push({ label: 'Active Clients', value: Number(s.clients) || 0, icon: 'ri-building-4-line', tone: 'info', href: '/app/admin/clients', delta: s.clients_delta !== undefined ? s.clients_delta : 3.0 });
+    list.push({ label: 'Active Clients', value: Number(s.clients) || 0, icon: 'ri-building-4-line', tone: 'info', href: '/admin/clients', delta: s.clients_delta !== undefined ? s.clients_delta : 3.0 });
   }
-  list.push({ label: 'Cars On Route', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'danger', href: '/app/admin/cars', delta: s.cars_delta !== undefined ? s.cars_delta : -1.4 });
+  list.push({ label: 'Cars On Route', value: Number(s.cars) || 0, icon: 'ri-car-line', tone: 'danger', href: '/admin/cars', delta: s.cars_delta !== undefined ? s.cars_delta : -1.4 });
   return list;
 });
 
@@ -138,7 +138,7 @@ const reloading = ref(false);
 watch(() => [range.from, range.to], ([from, to]) => {
   if ((from && to) || (!from && !to)) {
     reloading.value = true;
-    router.get('/app/dashboard', { from, to }, {
+    router.get('/dashboard', { from, to }, {
       only: ['samplesReport', 'range'],
       preserveState: true,
       preserveScroll: true,
@@ -194,7 +194,7 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
     <!-- page header: breadcrumb + title (start) · date-range filter + create task (end) -->
     <Breadcrumb title="Analytics Dashboard" :trail="[{ label: 'Dashboards' }, { label: 'Analytics' }]">
       <template #actions>
-        <a href="/app/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
+        <a href="/admin/tasks/create"><BaseButton variant="primary" icon="ri-add-line">Create Task</BaseButton></a>
       </template>
     </Breadcrumb>
 
@@ -286,11 +286,13 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
       <!-- top drivers -->
       <BaseCard :class="showActivity ? 'xl:col-span-2' : ''" title="Top Drivers" subtitle="By completed tasks" icon="ri-user-star-line" :padded="false">
         <div v-if="drivers.length" class="divide-y divide-slate-100 dark:divide-white/5">
-          <div v-for="(d, i) in drivers" :key="d.driver_id ?? d.name" class="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-muted/50 dark:hover:bg-white/5 transition">
+          <div v-for="(d, i) in drivers" :key="d.driver_id ?? d.name" 
+               @click="d.driver_id ? router.visit(`/admin/drivers/${d.driver_id}`) : null"
+               class="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-muted/50 dark:hover:bg-white/5 transition cursor-pointer">
             <span class="grid place-items-center w-6 h-6 rounded-lg text-xs font-bold shrink-0"
               :class="i === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : i === 1 ? 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300' : i === 2 ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400' : 'bg-surface-muted text-slate-400 dark:bg-white/5 dark:text-slate-500'">{{ i + 1 }}</span>
-            <BaseAvatar :name="d.name || '—'" :size="36" />
-            <span class="font-semibold text-ink dark:text-slate-100 flex-1 truncate">{{ d.name }}</span>
+            <BaseAvatar :name="d.name || '—'" :size="26" />
+            <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 flex-1 truncate">{{ d.name }}</span>
             <div class="flex items-center gap-2 w-40">
               <div class="flex-1 h-2 rounded-full bg-surface-muted dark:bg-white/10 overflow-hidden">
                 <div class="h-full rounded-full bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-700" :style="{ width: ((Number(d.total) || 0) / driversMax * 100) + '%' }"></div>

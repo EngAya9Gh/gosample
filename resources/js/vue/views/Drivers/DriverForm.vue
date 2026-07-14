@@ -42,11 +42,11 @@ const { push } = useToast();
 
 function submit() {
   if (isEdit.value) {
-    form.put(`/app/admin/drivers/${props.driver.id}`, {
+    form.put(`/admin/drivers/${props.driver.id}`, {
       onSuccess: () => push({ type: 'success', title: 'Updated', message: 'Driver updated successfully.' }),
     });
   } else {
-    form.post(`/app/admin/drivers`, {
+    form.post(`/admin/drivers`, {
       onSuccess: () => push({ type: 'success', title: 'Created', message: 'Driver created successfully.' }),
     });
   }
@@ -55,14 +55,14 @@ function submit() {
 
 <template>
   <div class="max-w-5xl mx-auto pb-12">
-    <Breadcrumb :title="isEdit ? 'Edit Driver' : 'Add Driver'" :trail="[{ label: 'Drivers', route: '/app/admin/drivers' }, { label: isEdit ? 'Edit' : 'Add' }]" />
+    <Breadcrumb :title="isEdit ? 'Edit Driver' : 'Add Driver'" :trail="[{ label: 'Drivers', route: '/admin/drivers' }, { label: isEdit ? 'Edit' : 'Add' }]" />
 
     <form @submit.prevent="submit" class="space-y-6">
       <DriverFormFields :form="form" :zones="zones" :shift-templates="shiftTemplates" :is-edit="isEdit" />
 
       <!-- Actions -->
       <div class="flex items-center justify-end gap-3 pt-4">
-        <BaseButton variant="light" type="button" @click="() => router.visit('/app/admin/drivers')">Cancel</BaseButton>
+        <BaseButton variant="light" type="button" @click="() => router.visit('/admin/drivers')">Cancel</BaseButton>
         <BaseButton variant="primary" type="submit" :loading="form.processing" icon="ri-save-line">
           {{ isEdit ? 'Save Changes' : 'Create Driver' }}
         </BaseButton>

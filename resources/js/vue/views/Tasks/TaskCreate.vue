@@ -42,16 +42,16 @@ const form = useForm({
 
 function submit() {
   // Same store endpoint the Add-Task modal uses; on success it redirects to the list.
-  form.post('/app/admin/tasks/popup', { preserveScroll: true });
+  form.post('/admin/tasks/popup', { preserveScroll: true });
 }
 function cancel() {
-  router.visit('/app/admin/tasks');
+  router.visit('/admin/tasks');
 }
 </script>
 
 <template>
   <div class="max-w-4xl mx-auto pb-12">
-    <Breadcrumb title="Create Task" :trail="[{ label: 'Tasks', route: '/app/admin/tasks' }, { label: 'Create' }]" />
+    <Breadcrumb title="Create Task" :trail="[{ label: 'Tasks', route: '/admin/tasks' }, { label: 'Create' }]" />
 
     <form @submit.prevent="submit" class="space-y-6">
       <BaseCard>

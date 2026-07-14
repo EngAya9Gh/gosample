@@ -38,7 +38,7 @@ const clientOpts = computed(() => props.options.clients?.map(c => ({ label: c.en
 
 function reloadData() {
   loading.value = true;
-  router.get('/app/reports', { tab: currentTab.value, ...localFilters.value }, {
+  router.get('/reports', { tab: currentTab.value, ...localFilters.value }, {
     preserveState: true,
     preserveScroll: true,
     onFinish: () => { loading.value = false; }
@@ -73,7 +73,7 @@ const getDriverGradient = (id) => driverGradients[(id || 0) % driverGradients.le
 // Click-through: any driver card/row opens the driver profile page.
 // `from=reports` makes the profile's Back button return HERE (not the drivers list).
 function openDriver(id) {
-  if (id) router.visit(`/app/admin/drivers/${id}?from=reports`);
+  if (id) router.visit(`/admin/drivers/${id}?from=reports`);
 }
 
 const getPunctColor = (p) => p >= 90 ? '#0ab39c' : (p >= 75 ? '#f7b84b' : '#dc2626');
@@ -179,7 +179,7 @@ function doExport() {
   const params = new URLSearchParams({ tab: currentTab.value });
   ['driver_id', 'client_id', 'date_from', 'date_to', 'month', 'search_date']
     .forEach((k) => { if (f[k]) params.set(k, f[k]); });
-  window.location.href = `/app/reports/export?${params.toString()}`;
+  window.location.href = `/reports/export?${params.toString()}`;
 }
 
 watch(currentTab, (newTab) => {
@@ -203,7 +203,7 @@ function onDateRange(range) {
 
 <template>
   <div class="px-4 py-6 md:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-    <Breadcrumb title="Reports & Analytics" :trail="[{ label: 'Dashboards', href: '/app/dashboard' }, { label: 'Reports' }]" />
+    <Breadcrumb title="Reports & Analytics" :trail="[{ label: 'Dashboards', href: '/dashboard' }, { label: 'Reports' }]" />
 
     <!-- Header Section matching MTC -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">

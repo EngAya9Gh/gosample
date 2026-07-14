@@ -25,7 +25,7 @@ const search = ref('');
 const searchInput = ref(null);
 function submitSearch() {
   const q = search.value.trim();
-  if (q) emit('navigate', '/app/admin/tasks?keyword=' + encodeURIComponent(q));
+  if (q) emit('navigate', '/admin/tasks?keyword=' + encodeURIComponent(q));
 }
 
 // ⌘K / Ctrl+K focuses the search box (Esc blurs it).

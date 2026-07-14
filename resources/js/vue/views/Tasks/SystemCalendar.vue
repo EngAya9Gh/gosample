@@ -38,7 +38,7 @@ const LEGEND = [['task', 'Tasks'], ['scheduled', 'Scheduled'], ['swap', 'Swaps']
 const pillBg = (ev) => TYPE_BG[ev.type] || ev.color;
 
 function go(date, view) {
-  router.get('/app/admin/system-calendar', { date, view }, { preserveState: true, preserveScroll: true });
+  router.get('/admin/system-calendar', { date, view }, { preserveState: true, preserveScroll: true });
 }
 const goPrev = () => go(props.prev, props.view);
 const goNext = () => go(props.next, props.view);
@@ -47,11 +47,11 @@ const setView = (v) => go(props.anchor, v);
 const openDay = (date) => go(date, 'day');
 
 function doExport() {
-  window.location.href = `/app/admin/system-calendar/export?view=${props.view}&date=${props.anchor}`;
+  window.location.href = `/admin/system-calendar/export?view=${props.view}&date=${props.anchor}`;
 }
 function addEvent() {
   // A calendar "event" is a task in this system — create it on the Tasks page.
-  router.visit('/app/admin/tasks');
+  router.visit('/admin/tasks');
 }
 
 const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -178,7 +178,7 @@ const dayEvents = computed(() => props.events[props.anchor] || []);
             </div>
             <div v-if="!dayItems.length" class="py-10 text-center text-sm text-slate-400 dark:text-slate-500">No active tasks on this day.</div>
             <div v-else class="divide-y divide-slate-100 dark:divide-white/5">
-              <a v-for="it in dayItems" :key="it.id" :href="`/app/admin/tasks/${it.id}`"
+              <a v-for="it in dayItems" :key="it.id" :href="`/admin/tasks/${it.id}`"
                 class="flex items-center gap-3 px-4 py-3 hover:bg-surface-muted/60 dark:hover:bg-white/[.03] transition">
                 <span class="w-2 h-2 rounded-full shrink-0" :style="{ background: TYPE_BG.task }"></span>
                 <span class="font-mono text-[13px] font-semibold text-ink dark:text-slate-100">{{ it.title }}</span>

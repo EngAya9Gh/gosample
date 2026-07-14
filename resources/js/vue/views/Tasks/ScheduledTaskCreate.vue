@@ -49,14 +49,14 @@ const selectedFromLocations = computed(() =>
 );
 
 function submit() {
-  form.post('/app/admin/scheduled-tasks', { preserveScroll: true });
+  form.post('/admin/scheduled-tasks', { preserveScroll: true });
 }
-function cancel() { router.visit('/app/admin/scheduled-tasks'); }
+function cancel() { router.visit('/admin/scheduled-tasks'); }
 </script>
 
 <template>
   <div class="max-w-4xl mx-auto pb-12">
-    <Breadcrumb title="Add Scheduled Task" :trail="[{ label: 'Tasks' }, { label: 'Scheduled Tasks', route: '/app/admin/scheduled-tasks' }, { label: 'Create' }]" />
+    <Breadcrumb title="Add Scheduled Task" :trail="[{ label: 'Tasks' }, { label: 'Scheduled Tasks', route: '/admin/scheduled-tasks' }, { label: 'Create' }]" />
 
     <form @submit.prevent="submit" class="space-y-6">
       <BaseCard>

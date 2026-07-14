@@ -14,55 +14,49 @@ class ShiftTemplatesController extends Controller
     {
         abort_if(Gate::denies('attendance_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // SPA (/app) list + its JSON reloads. The classic Blade page below is untouched.
-        if ($request->wantsJson() || str_starts_with($request->path(), 'app/')) {
-            $query = ShiftTemplate::query();
+        // SPA list + its JSON reloads. The classic Blade page is officially removed.
+        $query = ShiftTemplate::query();
 
-            if ($request->filled('keyword')) {
-                $kw = $request->keyword;
-                $query->where(function ($q) use ($kw) {
-                    $q->where('id', 'LIKE', "%{$kw}%")->orWhere('name', 'LIKE', "%{$kw}%");
-                });
-            }
-
-            $sortBy = in_array($request->input('sort_by'), ['id', 'name', 'start_time', 'end_time']) ? $request->sort_by : 'id';
-            $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
-            $query->orderBy($sortBy, $sortOrder);
-
-            $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
-            $page = max(1, (int) $request->input('page', 1));
-            $total = (clone $query)->count();
-            $offset = ($page - 1) * $pageSize;
-
-            $seq = $offset;
-            $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($t) use (&$seq) {
-                $seq++;
-                $hm = function ($v) {
-                    try { return $v ? \Carbon\Carbon::parse($v)->format('H:i') : null; } catch (\Throwable $e) { return $v; }
-                };
-                return [
-                    'sequence'   => $seq,
-                    'id'         => $t->id,
-                    'name'       => $t->name,
-                    'start_time' => $hm($t->start_time),
-                    'end_time'   => $hm($t->end_time),
-                    'created_at' => $t->created_at ? $t->created_at->format('Y-m-d H:i') : null,
-                ];
+        if ($request->filled('keyword')) {
+            $kw = $request->keyword;
+            $query->where(function ($q) use ($kw) {
+                $q->where('id', 'LIKE', "%{$kw}%")->orWhere('name', 'LIKE', "%{$kw}%");
             });
-
-            if ($request->wantsJson()) {
-                return response()->json(['rows' => $rows, 'total' => $total]);
-            }
-
-            return \Inertia\Inertia::render('ShiftTemplates/ShiftTemplatesList', [
-                'initialRows'  => $rows,
-                'initialTotal' => $total,
-            ]);
         }
 
-        $shiftTemplates = ShiftTemplate::all();
+        $sortBy = in_array($request->input('sort_by'), ['id', 'name', 'start_time', 'end_time']) ? $request->sort_by : 'id';
+        $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sortBy, $sortOrder);
 
-        return view('admin.shiftTemplates.index', compact('shiftTemplates'));
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $page = max(1, (int) $request->input('page', 1));
+        $total = (clone $query)->count();
+        $offset = ($page - 1) * $pageSize;
+
+        $seq = $offset;
+        $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($t) use (&$seq) {
+            $seq++;
+            $hm = function ($v) {
+                try { return $v ? \Carbon\Carbon::parse($v)->format('H:i') : null; } catch (\Throwable $e) { return $v; }
+            };
+            return [
+                'sequence'   => $seq,
+                'id'         => $t->id,
+                'name'       => $t->name,
+                'start_time' => $hm($t->start_time),
+                'end_time'   => $hm($t->end_time),
+                'created_at' => $t->created_at ? $t->created_at->format('Y-m-d H:i') : null,
+            ];
+        });
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json(['rows' => $rows, 'total' => $total]);
+        }
+
+        return \Inertia\Inertia::render('ShiftTemplates/ShiftTemplatesList', [
+            'initialRows'  => $rows,
+            'initialTotal' => $total,
+        ]);
     }
 
     /** Create a shift template from the SPA modal — same rules as the classic store(). */

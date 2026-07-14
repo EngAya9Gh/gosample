@@ -61,7 +61,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/clients?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/clients?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     
@@ -119,7 +119,7 @@ const confirmDelete = (client) => {
 
 const executeDelete = () => {
   if (!clientToDelete.value) return;
-  router.delete(`/app/admin/clients/${clientToDelete.value.id}`, {
+  router.delete(`/admin/clients/${clientToDelete.value.id}`, {
     onSuccess: () => {
       deleteModalOpen.value = false;
       clientToDelete.value = null;
@@ -193,7 +193,7 @@ const openFormModal = async (client = null) => {
     
     // We need to fetch the client's drivers and locations since they aren't eager loaded in the index list
     try {
-      const { data } = await axios.get(`/app/admin/clients/${client.id}/relations`);
+      const { data } = await axios.get(`/admin/clients/${client.id}/relations`);
       form.drivers = (data.drivers || []).map(String);
       form.locations = (data.locations || []).map(String);
     } catch (e) {
@@ -223,7 +223,7 @@ const openFormModal = async (client = null) => {
 };
 
 const submitForm = () => {
-  const url = isEdit.value ? `/app/admin/clients/${editingId.value}` : '/app/admin/clients';
+  const url = isEdit.value ? `/admin/clients/${editingId.value}` : '/admin/clients';
   form.post(url, {
     onSuccess: () => {
       formModalOpen.value = false;

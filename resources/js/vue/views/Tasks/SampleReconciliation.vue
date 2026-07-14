@@ -56,12 +56,12 @@ const lookup = ref(null);         // { barcode, task, type, temp, status, by, at
 
 // ---- endpoints ----
 const URL = {
-  load:       '/app/admin/tasks/scan/load',
-  check:      '/app/admin/tasks/scan/check',
-  confirmAll: '/app/admin/tasks/scan/confirm-all',
-  confirm:    '/app/admin/tasks/scan/confirm',
-  details:    '/app/admin/tasks/scan/details',
-  lost:       '/app/admin/tasks/scan/lost',
+  load:       '/admin/tasks/scan/load',
+  check:      '/admin/tasks/scan/check',
+  confirmAll: '/admin/tasks/scan/confirm-all',
+  confirm:    '/admin/tasks/scan/confirm',
+  details:    '/admin/tasks/scan/details',
+  lost:       '/admin/tasks/scan/lost',
 };
 
 // ---- helpers ----

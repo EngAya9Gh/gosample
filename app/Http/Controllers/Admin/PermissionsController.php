@@ -20,13 +20,9 @@ class PermissionsController extends Controller
 
         $permissions = Permission::orderBy('name')->get();
 
-        if (str_starts_with($request->path(), 'app/')) {
-            return inertia('Permissions/PermissionsList', [
-                'permissions' => $permissions
-            ]);
-        }
-
-        return view('admin.permissions.index', compact('permissions'));
+        return inertia('Permissions/PermissionsList', [
+            'permissions' => $permissions
+        ]);
     }
 
     public function create()

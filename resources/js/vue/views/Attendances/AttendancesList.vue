@@ -71,7 +71,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     Object.entries(searchForm.value).forEach(([k, v]) => { if (v !== '' && v != null) params.append(k, v); });
     params.append('page', page);
     params.append('pageSize', pageSize);
-    const { data } = await axios.get(`/app/admin/attendances?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/attendances?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     rows.value = data.rows;
@@ -177,8 +177,8 @@ function submitForm() {
       doSearch();
     },
   };
-  if (editingId.value) form.put(`/app/admin/attendances/${editingId.value}/popup`, opts);
-  else form.post('/app/admin/attendances/popup', opts);
+  if (editingId.value) form.put(`/admin/attendances/${editingId.value}/popup`, opts);
+  else form.post('/admin/attendances/popup', opts);
 }
 
 /* ---------- delete via the EXISTING /admin destroy routes (can-delete gate) ---------- */

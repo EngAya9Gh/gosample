@@ -50,14 +50,14 @@ function openEdit(row) {
 
 function submitForm() {
   if (isEditing.value) {
-    form.put(`/app/admin/terms/${form.id}`, {
+    form.put(`/admin/terms/${form.id}`, {
       onSuccess: () => {
         showModal.value = false;
         push({ type: 'success', title: 'Success', message: 'Term updated successfully' });
       },
     });
   } else {
-    form.post('/app/admin/terms', {
+    form.post('/admin/terms', {
       onSuccess: () => {
         showModal.value = false;
         push({ type: 'success', title: 'Success', message: 'Term created successfully' });
@@ -69,7 +69,7 @@ function submitForm() {
 /* --- Delete --- */
 function deleteTerm(row) {
   if (confirm(`Are you sure you want to delete this term?`)) {
-    router.delete(`/app/admin/terms/${row.id}`, {
+    router.delete(`/admin/terms/${row.id}`, {
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: 'Term deleted successfully' });
       }
@@ -79,7 +79,7 @@ function deleteTerm(row) {
 
 function deleteMultiple(ids) {
   if (confirm(`Are you sure you want to delete ${ids.length} term(s)?`)) {
-    router.delete('/app/admin/terms/destroy', {
+    router.delete('/admin/terms/destroy', {
       data: { ids },
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: 'Terms deleted successfully' });

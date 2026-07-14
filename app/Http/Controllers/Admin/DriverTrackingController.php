@@ -110,7 +110,6 @@ class DriverTrackingController extends Controller
 
         // SPA (/app) page — same data, serialized flat (driver + ordered task
         // steps) instead of whole Eloquent models.
-        if (str_starts_with($request->path(), 'app/')) {
             $drivers = collect($driverData)->map(function ($data) {
                 $d = $data['driver'];
                 return [
@@ -133,8 +132,5 @@ class DriverTrackingController extends Controller
             return \Inertia\Inertia::render('Tasks/DriverTracking', [
                 'drivers' => $drivers,
             ]);
-        }
-
-        return view('admin.tasks.driver-tracking', compact('driverData'));
     }
 }

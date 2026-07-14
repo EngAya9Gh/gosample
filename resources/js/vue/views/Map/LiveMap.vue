@@ -65,7 +65,7 @@ function initMap() {
 
 async function fetchLocations() {
   try {
-    const response = await axios.post('/app/map/filter', form.value);
+    const response = await axios.post('/map/filter', form.value);
     const locations = response.data;
     updateMap(locations);
   } catch (error) {

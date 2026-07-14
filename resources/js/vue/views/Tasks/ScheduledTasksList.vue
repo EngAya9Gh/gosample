@@ -122,7 +122,7 @@ function onExport(kind) {
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/scheduled-tasks', { ...filters, ...extra }, {
+  router.get('/admin/scheduled-tasks', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters', 'clients', 'locations', 'drivers'],
@@ -202,10 +202,10 @@ async function confirmBulkDelete() {
       <h1 class="text-2xl font-bold tracking-tight text-ink dark:text-white">Scheduled Tasks</h1>
       
       <div v-if="can('scheduled_task_create')" class="flex flex-wrap items-center gap-2">
-        <BaseButton variant="brand" icon="ri-add-line" @click="router.visit('/app/admin/scheduled-tasks/create')">
+        <BaseButton variant="brand" icon="ri-add-line" @click="router.visit('/admin/scheduled-tasks/create')">
           Add Scheduled Task
         </BaseButton>
-        <BaseButton variant="danger" icon="ri-flashlight-line" @click="router.visit('/app/admin/scheduled-tasks/quick')">
+        <BaseButton variant="danger" icon="ri-flashlight-line" @click="router.visit('/admin/scheduled-tasks/quick')">
           Add Quick Schedule Task
         </BaseButton>
       </div>

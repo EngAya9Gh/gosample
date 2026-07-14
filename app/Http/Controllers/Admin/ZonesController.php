@@ -21,7 +21,7 @@ class ZonesController extends Controller
         abort_if(Gate::denies('zone_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // SPA (/app) list + its JSON reloads. The classic Blade page below is untouched.
-        if ($request->wantsJson() || str_starts_with($request->path(), 'app/')) {
+        if ($request->wantsJson() || true) {
             $query = Zone::query();
 
             if ($request->filled('keyword')) {

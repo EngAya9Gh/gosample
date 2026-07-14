@@ -31,7 +31,7 @@ const editTimesForm = useForm({
 });
 
 function submitEditTimes() {
-  editTimesForm.put(`/app/admin/tasks/${props.task.id}/update-times`, {
+  editTimesForm.put(`/admin/tasks/${props.task.id}/update-times`, {
     onSuccess: () => {
       showEditTimesModal.value = false;
     }
@@ -239,8 +239,8 @@ function getDuration(start, end) {
     <!-- Breadcrumbs -->
     <div class="print:hidden">
       <Breadcrumb :items="[
-        { label: 'Admin', icon: 'ri-home-8-line', href: '/app/admin/dashboard' },
-        { label: 'Tasks', href: '/app/admin/tasks' },
+        { label: 'Admin', icon: 'ri-home-8-line', href: '/admin/dashboard' },
+        { label: 'Tasks', href: '/admin/tasks' },
         { label: `Task #${task.id}`, active: true }
       ]" />
     </div>
@@ -249,7 +249,7 @@ function getDuration(start, end) {
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-br from-[#005D69] to-[#0d9488] text-white p-5 rounded-2xl shadow-md print:bg-transparent print:text-ink print:shadow-none print:p-0 print:border-b print:border-slate-300 print:pb-4 print:rounded-none">
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-4">
-          <button class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors print:hidden" @click="router.visit('/app/admin/tasks')">
+          <button class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors print:hidden" @click="router.visit('/admin/tasks')">
             <i class="ri-arrow-left-line text-xl"></i>
           </button>
           <div>
@@ -380,7 +380,7 @@ function getDuration(start, end) {
               class="ring-[3px] ring-primary-100 dark:ring-primary-900/50 shadow-md" />
             <div>
               <p class="text-base font-bold text-ink dark:text-white leading-tight">
-                <Link v-if="task.driver?.id" :href="`/app/admin/drivers/${task.driver.id}`" class="hover:text-primary-600 hover:underline">
+                <Link v-if="task.driver?.id" :href="`/admin/drivers/${task.driver.id}`" class="hover:text-primary-600 hover:underline">
                   {{ task.driver.name }}
                 </Link>
                 <span v-else>{{ task.driver?.name || '—' }}</span>
@@ -391,7 +391,7 @@ function getDuration(start, end) {
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium ltr:tracking-wide">
                 <i class="ri-car-line text-primary-500 text-sm"></i>
-                <Link v-if="task.car?.id" :href="`/app/admin/cars/${task.car.id}`" class="hover:underline text-slate-600 dark:text-slate-300">
+                <Link v-if="task.car?.id" :href="`/admin/cars/${task.car.id}`" class="hover:underline text-slate-600 dark:text-slate-300">
                   {{ task.car.plate_number }}
                 </Link>
                 <span v-else>No Car Assigned</span>

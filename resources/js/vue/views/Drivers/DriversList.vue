@@ -73,7 +73,7 @@ async function openEditDriver(row) {
   driverModal.open = true;
   driverForm.clearErrors();
   try {
-    const { data } = await axios.get(`/app/admin/drivers/${row.id}/data`);
+    const { data } = await axios.get(`/admin/drivers/${row.id}/data`);
     Object.assign(driverForm, driverFormData(data));
   } catch (e) {
     driverModal.open = false;
@@ -86,9 +86,9 @@ async function openEditDriver(row) {
 function submitDriver() {
   const onSuccess = () => { driverModal.open = false; }; // backend flash → toast
   if (driverModal.isEdit) {
-    driverForm.put(`/app/admin/drivers/${driverModal.id}`, { onSuccess });
+    driverForm.put(`/admin/drivers/${driverModal.id}`, { onSuccess });
   } else {
-    driverForm.post('/app/admin/drivers', { onSuccess });
+    driverForm.post('/admin/drivers', { onSuccess });
   }
 }
 
@@ -130,7 +130,7 @@ const loading = ref(false);
 
 function fetch() {
   loading.value = true;
-  router.get('/app/admin/drivers', { ...filters }, {
+  router.get('/admin/drivers', { ...filters }, {
     preserveState: true,
     preserveScroll: true,
     onFinish: () => loading.value = false,
@@ -178,7 +178,7 @@ function singleDelete(id) {
 
 function confirmDelete() {
   if (deleteModal.isBulk) {
-    router.post('/app/admin/drivers/massDestroy', { ids: deleteModal.ids, _method: 'DELETE' }, {
+    router.post('/admin/drivers/massDestroy', { ids: deleteModal.ids, _method: 'DELETE' }, {
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: `${deleteModal.ids.length} drivers removed.` });
         deleteModal.isOpen = false;
@@ -186,7 +186,7 @@ function confirmDelete() {
       }
     });
   } else {
-    router.post(`/app/admin/drivers/${deleteModal.driverId}`, { _method: 'DELETE' }, {
+    router.post(`/admin/drivers/${deleteModal.driverId}`, { _method: 'DELETE' }, {
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: `Driver #${deleteModal.driverId} removed.` });
         deleteModal.isOpen = false;
@@ -197,7 +197,7 @@ function confirmDelete() {
 }
 
 function viewTasks(id) {
-  router.visit(`/app/admin/drivers/${id}/tasks`);
+  router.visit(`/admin/drivers/${id}/tasks`);
 }
 
 function onExport(format) {
@@ -287,7 +287,7 @@ function onExport(format) {
       <!-- Custom Actions column -->
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('driver_show')" @click="router.visit(`/app/admin/drivers/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <button v-if="can('driver_show')" @click="router.visit(`/admin/drivers/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
           <button v-if="can('driver_edit')" @click="openEditDriver(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>

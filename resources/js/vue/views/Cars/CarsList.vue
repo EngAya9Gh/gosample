@@ -64,7 +64,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/cars?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/cars?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     
@@ -130,8 +130,8 @@ function submitCar() {
       doSearch();
     },
   };
-  if (editingId.value) carForm.put(`/app/admin/cars/${editingId.value}`, opts);
-  else carForm.post('/app/admin/cars', opts);
+  if (editingId.value) carForm.put(`/admin/cars/${editingId.value}`, opts);
+  else carForm.post('/admin/cars', opts);
 }
 
 const deleteModalOpen = ref(false);
@@ -344,7 +344,7 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
 
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('car_show')" @click="router.visit(`/app/admin/cars/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <button v-if="can('car_show')" @click="router.visit(`/admin/cars/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
           <button v-if="can('car_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="can('car_delete')" @click="confirmDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>

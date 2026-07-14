@@ -67,7 +67,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/car-link-histories?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/car-link-histories?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     

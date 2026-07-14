@@ -21,7 +21,7 @@ const form = useForm({
 });
 
 function submit() {
-  form.post('/app/admin/barcodes/generate', {
+  form.post('/admin/barcodes/generate', {
     preserveScroll: true,
   });
 }

@@ -20,69 +20,58 @@ class ClientsController extends Controller
     {
         abort_if(Gate::denies('client_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if (str_starts_with($request->path(), 'app/')) {
-            $query = Client::query();
-
-            $logged_id_user = auth()->user();
-            if ($logged_id_user->client_id !== null) {
-                $query->whereIn('id', $logged_id_user->assigned_client_ids);
-            }
-
-            if ($request->filled('keyword')) {
-                $keyword = $request->keyword;
-                $query->where(function($q) use ($keyword) {
-                    $q->where('arabic_name', 'like', "%{$keyword}%")
-                      ->orWhere('english_name', 'like', "%{$keyword}%")
-                      ->orWhere('email', 'like', "%{$keyword}%")
-                      ->orWhere('address', 'like', "%{$keyword}%");
-                });
-            }
-
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
-
-            if ($request->filled('location_id')) {
-                $query->whereHas('locations', function ($q) use ($request) {
-                    $q->where('location_id', $request->location_id);
-                });
-            }
-
-            if ($request->filled('driver_id')) {
-                $query->whereHas('drivers', function ($q) use ($request) {
-                    $q->where('driver_id', $request->driver_id);
-                });
-            }
-
-            $pageSize = $request->get('pageSize', 25);
-            $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
-
-            if ($request->wantsJson() && !$request->header('X-Inertia')) {
-                return response()->json([
-                    'rows' => $paginator->items(),
-                    'total' => $paginator->total(),
-                ]);
-            }
-
-            $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-            $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-
-            return \Inertia\Inertia::render('Clients/ClientsList', [
-                'initialRows' => $paginator->items(),
-                'initialTotal' => $paginator->total(),
-                'drivers' => $drivers,
-                'locations' => $locations,
-            ]);
-        }
+        $query = Client::query();
 
         $logged_id_user = auth()->user();
         if ($logged_id_user->client_id !== null) {
-            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
-        } else {
-            $clients = Client::all();
+            $query->whereIn('id', $logged_id_user->assigned_client_ids);
         }
 
-        return view('admin.clients.index', compact('clients'));
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function($q) use ($keyword) {
+                $q->where('arabic_name', 'like', "%{$keyword}%")
+                  ->orWhere('english_name', 'like', "%{$keyword}%")
+                  ->orWhere('email', 'like', "%{$keyword}%")
+                  ->orWhere('address', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('location_id')) {
+            $query->whereHas('locations', function ($q) use ($request) {
+                $q->where('location_id', $request->location_id);
+            });
+        }
+
+        if ($request->filled('driver_id')) {
+            $query->whereHas('drivers', function ($q) use ($request) {
+                $q->where('driver_id', $request->driver_id);
+            });
+        }
+
+        $pageSize = $request->get('pageSize', 25);
+        $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'rows' => $paginator->items(),
+                'total' => $paginator->total(),
+            ]);
+        }
+
+        $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+        $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+
+        return \Inertia\Inertia::render('Clients/ClientsList', [
+            'initialRows' => $paginator->items(),
+            'initialTotal' => $paginator->total(),
+            'drivers' => $drivers,
+            'locations' => $locations,
+        ]);
     }
 
     public function create(Request $request)
@@ -92,14 +81,10 @@ class ClientsController extends Controller
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         
-        if (str_starts_with($request->path(), 'app/')) {
-            return \Inertia\Inertia::render('Clients/ClientForm', [
-                'drivers' => $drivers,
-                'locations' => $locations
-            ]);
-        }
-        
-        return view('admin.clients.create', compact('drivers','locations'));
+        return \Inertia\Inertia::render('Clients/ClientForm', [
+            'drivers' => $drivers,
+            'locations' => $locations
+        ]);
     }
 
     public function store(StoreClientRequest $request)
@@ -117,10 +102,6 @@ class ClientsController extends Controller
         $client->locations()->sync($request->input('locations', []));
         $client->drivers()->sync($request->input('drivers', []));
 
-        if (str_starts_with($request->path(), 'app/')) {
-            return redirect()->route('app.admin.clients.index');
-        }
-
         return redirect()->route('admin.clients.index');
     }
 
@@ -134,16 +115,11 @@ class ClientsController extends Controller
         // $locations = Location::all();
 
         $client->load(['locations', 'drivers']);
-
-        if (str_starts_with($request->path(), 'app/')) {
-            return \Inertia\Inertia::render('Clients/ClientForm', [
-                'client' => $client,
-                'drivers' => $drivers,
-                'locations' => $locations
-            ]);
-        }
-
-        return view('admin.clients.edit', compact('client','drivers','locations'));
+        return \Inertia\Inertia::render('Clients/ClientForm', [
+            'client' => $client,
+            'drivers' => $drivers,
+            'locations' => $locations
+        ]);
     }
 
     public function update(UpdateClientRequest $request, Client $client)
@@ -161,12 +137,7 @@ class ClientsController extends Controller
         $client->update($data);
         $client->locations()->sync($request->input('locations', []));
         $client->drivers()->sync($request->input('drivers', []));
-
-        if (str_starts_with($request->path(), 'app/')) {
-            return redirect()->route('app.admin.clients.index');
-        }
-
-        return redirect()->route('admin.clients.index');
+        return redirect()->route('admin.clients.index')->with('success', 'Client updated successfully.');
     }
 
     public function show(Client $client)
@@ -183,10 +154,7 @@ class ClientsController extends Controller
         $this->authorize('can-delete');
 
         $client->delete();
-
-        if (str_starts_with($request->path(), 'app/')) {
             return back();
-        }
 
         return back();
     }

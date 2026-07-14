@@ -31,14 +31,14 @@ const form = useForm({
 
 const submit = () => {
   if (isEditing.value) {
-    form.put(`/app/admin/cars/${props.car.id}`);
+    form.put(`/admin/cars/${props.car.id}`);
   } else {
-    form.post('/app/admin/cars');
+    form.post('/admin/cars');
   }
 };
 
 const cancel = () => {
-  router.visit('/app/admin/cars');
+  router.visit('/admin/cars');
 };
 
 const statusOpts = [

@@ -50,14 +50,14 @@ function openEdit(row) {
 
 function submitForm() {
   if (isEditing.value) {
-    form.put(`/app/admin/barcodes/${form.id}`, {
+    form.put(`/admin/barcodes/${form.id}`, {
       onSuccess: () => {
         showModal.value = false;
         push({ type: 'success', title: 'Success', message: 'Barcode sequence updated successfully' });
       },
     });
   } else {
-    form.post('/app/admin/barcodes', {
+    form.post('/admin/barcodes', {
       onSuccess: () => {
         showModal.value = false;
         push({ type: 'success', title: 'Success', message: 'Barcode sequence created successfully' });
@@ -69,7 +69,7 @@ function submitForm() {
 /* --- Delete --- */
 function deleteBarcode(row) {
   if (confirm(`Are you sure you want to delete the barcode sequence for "${row.type}"?`)) {
-    router.delete(`/app/admin/barcodes/${row.id}`, {
+    router.delete(`/admin/barcodes/${row.id}`, {
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: 'Barcode sequence deleted successfully' });
       }
@@ -79,7 +79,7 @@ function deleteBarcode(row) {
 
 function deleteMultiple(ids) {
   if (confirm(`Are you sure you want to delete ${ids.length} item(s)?`)) {
-    router.delete('/app/admin/barcodes/destroy', {
+    router.delete('/admin/barcodes/destroy', {
       data: { ids },
       onSuccess: () => {
         push({ type: 'success', title: 'Deleted', message: 'Barcode sequences deleted successfully' });

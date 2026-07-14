@@ -60,7 +60,7 @@ const columns = [
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/tasks/unused', { ...filters, ...extra }, {
+  router.get('/admin/tasks/unused', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters'],
@@ -117,7 +117,7 @@ function onExport(kind) {
 
 <template>
   <div class="px-4 py-6 md:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-6">
-    <Breadcrumb title="Unused Tasks" :trail="[{ label: 'Tasks', href: '/app/admin/tasks' }, { label: 'Unused Tasks' }]" />
+    <Breadcrumb title="Unused Tasks" :trail="[{ label: 'Tasks', href: '/admin/tasks' }, { label: 'Unused Tasks' }]" />
 
     <FilterBar :loading="loading" subtitle="filter unused tasks" @search="doSearch" @reset="doReset">
       <FormSelect v-model="filters.driver_id"      label="Driver"         :options="driverOpts"     placeholder="Select Driver" />

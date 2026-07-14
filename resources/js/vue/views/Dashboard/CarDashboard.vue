@@ -56,7 +56,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
 // then plate). Cards with no matching local car stay non-clickable.
 // `from=car-dashboard` makes the car page's Back button return HERE.
 function openCar(car) {
-  if (car.car_id) router.visit(`/app/admin/cars/${car.car_id}?from=car-dashboard`);
+  if (car.car_id) router.visit(`/admin/cars/${car.car_id}?from=car-dashboard`);
 }
 </script>
 

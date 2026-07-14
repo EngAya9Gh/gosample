@@ -16,7 +16,7 @@ const props = defineProps({
 // Arrived via a Reports click-through (…?from=reports)? Then Back returns to
 // Reports; otherwise to the Drivers list — the origin is always explicit.
 const fromReports = new URLSearchParams(window.location.search).get('from') === 'reports';
-const backTarget = fromReports ? '/app/reports' : '/app/admin/drivers';
+const backTarget = fromReports ? '/reports' : '/admin/drivers';
 const backLabel = fromReports ? 'Back to Reports' : 'Back to Drivers';
 function goBack() { router.visit(backTarget); }
 
@@ -82,8 +82,8 @@ const formatDate = (dateString) => {
   <div>
     <Breadcrumb :title="driver.name"
       :trail="fromReports
-        ? [{ label: 'Reports', href: '/app/reports' }, { label: 'Profile' }]
-        : [{ label: 'Drivers', href: '/app/admin/drivers' }, { label: 'Profile' }]">
+        ? [{ label: 'Reports', href: '/reports' }, { label: 'Profile' }]
+        : [{ label: 'Drivers', href: '/admin/drivers' }, { label: 'Profile' }]">
       <template #actions>
         <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">{{ backLabel }}</BaseButton>
       </template>
@@ -154,7 +154,7 @@ const formatDate = (dateString) => {
               <div class="flex items-center justify-between py-3">
                 <dt class="text-sm text-slate-500 font-medium">Assigned Car</dt>
                 <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  <Link v-if="driver.car" :href="`/app/admin/cars/${driver.car.id}`" class="text-[#0ab39c] hover:underline">
+                  <Link v-if="driver.car" :href="`/admin/cars/${driver.car.id}`" class="text-[#0ab39c] hover:underline">
                     {{ driver.car.plate_number }}
                   </Link>
                   <span v-else class="text-slate-400">None</span>

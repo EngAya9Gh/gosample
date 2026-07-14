@@ -40,14 +40,14 @@ function submit() {
   form.transform((data) => ({
     ...data,
     visit_hours: (data.visit_hours || []).filter(Boolean), // drop empty hour rows
-  })).post('/app/admin/scheduled-tasks/quick', { preserveScroll: true });
+  })).post('/admin/scheduled-tasks/quick', { preserveScroll: true });
 }
-function cancel() { router.visit('/app/admin/scheduled-tasks'); }
+function cancel() { router.visit('/admin/scheduled-tasks'); }
 </script>
 
 <template>
   <div class="max-w-4xl mx-auto pb-12">
-    <Breadcrumb title="Add Quick Schedule Task" :trail="[{ label: 'Tasks' }, { label: 'Scheduled Tasks', route: '/app/admin/scheduled-tasks' }, { label: 'Quick' }]" />
+    <Breadcrumb title="Add Quick Schedule Task" :trail="[{ label: 'Tasks' }, { label: 'Scheduled Tasks', route: '/admin/scheduled-tasks' }, { label: 'Quick' }]" />
 
     <form @submit.prevent="submit" class="space-y-6">
       <BaseCard>

@@ -24,7 +24,7 @@ const info = computed(() => META[props.status] || META[500]);
       <h1 class="mt-2 text-xl font-semibold text-ink dark:text-slate-100">{{ info.title }}</h1>
       <p class="mt-1 text-sm text-slate-500">{{ info.msg }}</p>
       <div class="mt-5">
-        <BaseButton variant="primary" icon="ri-home-4-line" @click="router.visit('/app/dashboard')">Back to dashboard</BaseButton>
+        <BaseButton variant="primary" icon="ri-home-4-line" @click="router.visit('/dashboard')">Back to dashboard</BaseButton>
       </div>
     </div>
   </div>

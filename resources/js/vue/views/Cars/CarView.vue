@@ -54,7 +54,7 @@ const canEdit = computed(() => props.can?.car_edit ?? usePage().props.auth?.can?
 // Arrived via a Car-Dashboard card (…?from=car-dashboard)? Then Back returns
 // to the dashboard; otherwise to the Cars list — the origin is always explicit.
 const fromDashboard = new URLSearchParams(window.location.search).get('from') === 'car-dashboard';
-const backTarget = fromDashboard ? '/app/car-dashboard' : '/app/admin/cars';
+const backTarget = fromDashboard ? '/car-dashboard' : '/admin/cars';
 const backLabel = fromDashboard ? 'Back to Dashboard' : 'Back to List';
 
 const goBack = () => {
@@ -93,7 +93,7 @@ function openEditCar() {
   showEditCar.value = true;
 }
 function submitEditCar() {
-  carEditForm.put(`/app/admin/cars/${props.car.id}`, {
+  carEditForm.put(`/admin/cars/${props.car.id}`, {
     preserveScroll: true,
     onSuccess: () => {
       showEditCar.value = false;
@@ -152,8 +152,8 @@ function submitContainer() {
       containerForm.reset();
     },
   };
-  if (containerEditingId.value) containerForm.put(`/app/admin/containers/${containerEditingId.value}/popup`, opts);
-  else containerForm.post('/app/admin/containers/popup', opts);
+  if (containerEditingId.value) containerForm.put(`/admin/containers/${containerEditingId.value}/popup`, opts);
+  else containerForm.post('/admin/containers/popup', opts);
 }
 
 </script>
@@ -163,8 +163,8 @@ function submitContainer() {
     <!-- Header -->
     <Breadcrumb title="Car Details"
       :trail="fromDashboard
-        ? [{ label: 'Car Dashboard', href: '/app/car-dashboard' }, { label: `Car #${props.car.id}` }]
-        : [{ label: 'Cars', href: '/app/admin/cars' }, { label: `Car #${props.car.id}` }]">
+        ? [{ label: 'Car Dashboard', href: '/car-dashboard' }, { label: `Car #${props.car.id}` }]
+        : [{ label: 'Cars', href: '/admin/cars' }, { label: `Car #${props.car.id}` }]">
       <template #actions>
         <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">{{ backLabel }}</BaseButton>
         <BaseButton v-if="canEdit" variant="primary" icon="ri-pencil-line" @click="openEditCar">Edit Car</BaseButton>

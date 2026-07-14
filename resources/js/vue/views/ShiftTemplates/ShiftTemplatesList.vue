@@ -47,7 +47,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     Object.entries(searchForm.value).forEach(([k, v]) => { if (v) params.append(k, v); });
     params.append('page', page);
     params.append('pageSize', pageSize);
-    const { data } = await axios.get(`/app/admin/shift-templates?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/shift-templates?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     rows.value = data.rows;
@@ -114,8 +114,8 @@ function submitForm() {
       doSearch();
     },
   };
-  if (editingId.value) form.put(`/app/admin/shift-templates/${editingId.value}/popup`, opts);
-  else form.post('/app/admin/shift-templates/popup', opts);
+  if (editingId.value) form.put(`/admin/shift-templates/${editingId.value}/popup`, opts);
+  else form.post('/admin/shift-templates/popup', opts);
 }
 
 /* ---------- delete via the EXISTING /admin routes (attendance_access gate) ---------- */

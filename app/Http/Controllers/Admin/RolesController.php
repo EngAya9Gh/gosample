@@ -19,33 +19,27 @@ class RolesController extends Controller
     {
         abort_if(Gate::denies('role_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if (str_starts_with($request->path(), 'app/')) {
-            $query = Role::with(['permissions'])->withCount('users');
+        $query = Role::with(['permissions'])->withCount('users');
 
-            if ($request->filled('keyword')) {
-                $keyword = $request->keyword;
-                $query->where('name', 'like', "%{$keyword}%");
-            }
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where('name', 'like', "%{$keyword}%");
+        }
 
-            $roles = $query->get();
+        $roles = $query->get();
 
-            if ($request->wantsJson() && !$request->header('X-Inertia')) {
-                return response()->json([
-                    'rows' => $roles,
-                ]);
-            }
-
-            $permissions = Permission::all();
-
-            return \Inertia\Inertia::render('Roles/RolesList', [
-                'initialRows' => $roles,
-                'permissions' => $permissions,
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'rows' => $roles,
             ]);
         }
 
-        $roles = Role::with(['permissions'])->get();
+        $permissions = Permission::all();
 
-        return view('admin.roles.index', compact('roles'));
+        return \Inertia\Inertia::render('Roles/RolesList', [
+            'initialRows' => $roles,
+            'permissions' => $permissions,
+        ]);
     }
 
     public function create()
@@ -62,12 +56,7 @@ class RolesController extends Controller
         $role = Role::create($request->all());
         $role->permissions()->sync($request->input('permissions', []));
         Cache::forget('spatie.permission.cache');
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->route('app.admin.roles.index');
-        }
-
-        return redirect()->route('admin.roles.index');
     }
 
     public function edit(Role $role)
@@ -86,12 +75,7 @@ class RolesController extends Controller
         $role->update($request->all());
         $role->permissions()->sync($request->input('permissions', []));
         Cache::forget('spatie.permission.cache');
-
-        if (str_starts_with($request->path(), 'app/')) {
             return redirect()->route('app.admin.roles.index');
-        }
-
-        return redirect()->route('admin.roles.index');
     }
 
     public function show(Role $role)

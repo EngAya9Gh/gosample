@@ -20,7 +20,7 @@ const loading     = ref(false);
 
 const applyFilters = debounce(() => {
   loading.value = true;
-  router.get('/app/admin/audit-logs', {
+  router.get('/admin/audit-logs', {
     search:      search.value      || undefined,
     description: description.value || undefined,
   }, {

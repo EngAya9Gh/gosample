@@ -86,7 +86,7 @@ const taskPanels = computed(() => [
               <p class="text-slate-500 font-mono" style="direction:ltr">{{ s.barcode_id }} · {{ s.bag_code }}</p>
               <p class="text-slate-500">Confirmed by: <span class="text-ink dark:text-slate-200">{{ s.confirmed_by }}</span></p>
             </div>
-            <a :href="`/app/admin/tasks/${s.task_id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ s.task_id }}</a>
+            <a :href="`/admin/tasks/${s.task_id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ s.task_id }}</a>
           </div>
         </div>
         <EmptyState v-else icon="ri-checkbox-circle-line" title="No lost samples" message="All samples accounted for." />
@@ -106,9 +106,9 @@ const taskPanels = computed(() => [
             <div class="min-w-0 flex-1 text-[13px]">
               <p class="text-slate-500">{{ taskPanels[0].timeLabel }}: <span class="text-ink dark:text-slate-200">{{ tile(t.date).time }}</span></p>
               <p class="text-slate-500 truncate">{{ t.to }}</p>
-              <a v-if="t.driver" :href="`/app/admin/drivers/${t.driver.id}`" class="text-danger font-medium">{{ t.driver.name }}</a>
+              <a v-if="t.driver" :href="`/admin/drivers/${t.driver.id}`" class="text-danger font-medium">{{ t.driver.name }}</a>
             </div>
-            <a :href="`/app/admin/tasks/${t.id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ t.id }}</a>
+            <a :href="`/admin/tasks/${t.id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ t.id }}</a>
           </div>
         </div>
         <EmptyState v-else icon="ri-checkbox-circle-line" title="None delayed" message="No pickup delays." />
@@ -130,9 +130,9 @@ const taskPanels = computed(() => [
             <div class="min-w-0 flex-1 text-[13px]">
               <p class="text-slate-500">{{ p.timeLabel }}: <span class="text-ink dark:text-slate-200">{{ tile(t.date).time }}</span></p>
               <p class="text-slate-500 truncate">{{ t.to }}</p>
-              <a v-if="t.driver" :href="`/app/admin/drivers/${t.driver.id}`" class="text-danger font-medium">{{ t.driver.name }}</a>
+              <a v-if="t.driver" :href="`/admin/drivers/${t.driver.id}`" class="text-danger font-medium">{{ t.driver.name }}</a>
             </div>
-            <a :href="`/app/admin/tasks/${t.id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ t.id }}</a>
+            <a :href="`/admin/tasks/${t.id}`" class="text-primary-700 dark:text-primary-300 font-semibold text-sm shrink-0">#{{ t.id }}</a>
           </div>
         </div>
         <EmptyState v-else icon="ri-checkbox-circle-line" title="None delayed" message="Nothing here." />

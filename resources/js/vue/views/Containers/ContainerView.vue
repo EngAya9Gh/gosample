@@ -31,11 +31,11 @@ const props = defineProps({
 const { push } = useToast();
 const { can } = usePermissions();
 
-function goBack() { router.visit('/app/admin/containers'); }
+function goBack() { router.visit('/admin/containers'); }
 
 // Same print flow as the list page: the barcode route prints itself.
 function printBarcode() {
-  window.open(`/app/admin/containers/${props.container.id}/barcode`, '_blank');
+  window.open(`/admin/containers/${props.container.id}/barcode`, '_blank');
 }
 
 /* ---------- bags table (classic columns 1:1) ---------- */
@@ -68,7 +68,7 @@ function openEdit() {
   showEdit.value = true;
 }
 function submitEdit() {
-  form.put(`/app/admin/containers/${props.container.id}/popup`, {
+  form.put(`/admin/containers/${props.container.id}/popup`, {
     preserveScroll: true,
     onSuccess: () => {
       showEdit.value = false;
@@ -81,7 +81,7 @@ function submitEdit() {
 <template>
   <div class="space-y-5 max-w-6xl mx-auto pb-12">
     <Breadcrumb title="Container Details"
-      :trail="[{ label: 'Containers', href: '/app/admin/containers' }, { label: `Container #${container.id}` }]" />
+      :trail="[{ label: 'Containers', href: '/admin/containers' }, { label: `Container #${container.id}` }]" />
 
     <!-- Header (Tasks details page design) -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-br from-[#005D69] to-[#0d9488] text-white p-5 rounded-2xl shadow-md">

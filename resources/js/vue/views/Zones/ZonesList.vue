@@ -55,7 +55,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     Object.entries(searchForm.value).forEach(([k, v]) => { if (v) params.append(k, v); });
     params.append('page', page);
     params.append('pageSize', pageSize);
-    const { data } = await axios.get(`/app/admin/zones?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/zones?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     rows.value = data.rows;
@@ -172,8 +172,8 @@ function submitForm() {
       doSearch();
     },
   };
-  if (editingId.value) form.put(`/app/admin/zones/${editingId.value}/popup`, opts);
-  else form.post('/app/admin/zones/popup', opts);
+  if (editingId.value) form.put(`/admin/zones/${editingId.value}/popup`, opts);
+  else form.post('/admin/zones/popup', opts);
 }
 
 /* ---------- view modal (read-only polygon, like the classic show page) ---------- */

@@ -62,7 +62,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/locations?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/locations?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     
@@ -114,7 +114,7 @@ const confirmDelete = (item) => {
 
 const executeDelete = () => {
   if (!itemToDelete.value) return;
-  router.delete(`/app/admin/locations/${itemToDelete.value.id}`, {
+  router.delete(`/admin/locations/${itemToDelete.value.id}`, {
     onSuccess: () => {
       deleteModalOpen.value = false;
       itemToDelete.value = null;
@@ -201,7 +201,7 @@ const submitForm = () => {
   if (form.lat !== null && form.lat !== '') form.lat = String(form.lat);
   if (form.lng !== null && form.lng !== '') form.lng = String(form.lng);
 
-  const url = isEdit.value ? `/app/admin/locations/${editingId.value}` : '/app/admin/locations';
+  const url = isEdit.value ? `/admin/locations/${editingId.value}` : '/admin/locations';
   form.post(url, {
     onSuccess: () => {
       formModalOpen.value = false;

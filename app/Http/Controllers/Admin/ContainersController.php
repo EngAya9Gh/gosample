@@ -19,7 +19,7 @@ class ContainersController extends Controller
         abort_if(Gate::denies('container_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // SPA (/app) list + its JSON reloads. The classic Blade page below is untouched.
-        if ($request->wantsJson() || str_starts_with($request->path(), 'app/')) {
+        if ($request->wantsJson() || true) {
             $query = Container::with(['car']);
 
             if ($request->filled('keyword')) {
@@ -214,41 +214,37 @@ class ContainersController extends Controller
         // SPA (/app) details page — same data the classic show page renders:
         // the details table, the on-page barcode SVG and the bags-per-container
         // breakdown (first sample's type/temperature per bag, like the Blade).
-        if (str_starts_with($request->path(), 'app/')) {
-            $bagRows = $bags->map(function ($bag, $code) {
-                return [
-                    'bag_code'         => $code,
-                    'total'            => count($bag),
-                    'sample_type'      => $bag[0]->sample_type ?? null,
-                    'temperature_type' => $bag[0]->temperature_type ?? null,
-                ];
-            })->values();
+        $bagRows = $bags->map(function ($bag, $code) {
+            return [
+                'bag_code'         => $code,
+                'total'            => count($bag),
+                'sample_type'      => $bag[0]->sample_type ?? null,
+                'temperature_type' => $bag[0]->temperature_type ?? null,
+            ];
+        })->values();
 
-            // Same enabled-cars list the classic create/edit forms show (for the edit popup).
-            $cars = Car::select('id', 'plate_number')->get()
-                ->map(fn ($c) => ['value' => $c->id, 'label' => $c->plate_number])->values();
+        // Same enabled-cars list the classic create/edit forms show (for the edit popup).
+        $cars = Car::select('id', 'plate_number')->get()
+            ->map(fn ($c) => ['value' => $c->id, 'label' => $c->plate_number])->values();
 
-            return \Inertia\Inertia::render('Containers/ContainerView', [
-                'container' => [
-                    'id'          => $container->id,
-                    'car_id'      => $container->car_id,
-                    'car_plate'   => $container->car->plate_number ?? null,
-                    'car_imei'    => $container->car->imei ?? null,
-                    'imei'        => $container->imei,
-                    'type'        => $container->type,
-                    'model'       => $container->model,
-                    'description' => $container->description,
-                    'status'      => $container->status,
-                    'created_at'  => $container->created_at ? $container->created_at->format('Y-m-d H:i') : null,
-                ],
-                'barcodeSvg'  => \DNS1D::getBarcodeSVG($container->id . '-container', 'C128', 3, 55),
-                'bags'        => $bagRows,
-                'canViewBags' => Gate::allows('view_bag_container_details'),
-                'cars'        => $cars,
-            ]);
-        }
-
-        return view('admin.containers.show', compact('container', 'bags'));
+        return \Inertia\Inertia::render('Containers/ContainerView', [
+            'container' => [
+                'id'          => $container->id,
+                'car_id'      => $container->car_id,
+                'car_plate'   => $container->car->plate_number ?? null,
+                'car_imei'    => $container->car->imei ?? null,
+                'imei'        => $container->imei,
+                'type'        => $container->type,
+                'model'       => $container->model,
+                'description' => $container->description,
+                'status'      => $container->status,
+                'created_at'  => $container->created_at ? $container->created_at->format('Y-m-d H:i') : null,
+            ],
+            'barcodeSvg'  => \DNS1D::getBarcodeSVG($container->id . '-container', 'C128', 3, 55),
+            'bags'        => $bagRows,
+            'canViewBags' => Gate::allows('view_bag_container_details'),
+            'cars'        => $cars,
+        ]);
     }
 
     public function destroy(Container $container)

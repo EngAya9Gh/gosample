@@ -125,7 +125,7 @@ function openCreate() {
   showCreate.value = true;
 }
 function submitCreate() {
-  createForm.post('/app/admin/tasks/popup', {
+  createForm.post('/admin/tasks/popup', {
     preserveScroll: true,
     onSuccess: () => { showCreate.value = false; createForm.reset(); },
   });
@@ -149,7 +149,7 @@ async function openEdit(row) {
   editLoading.value = true;
   showEdit.value = true;
   try {
-    const { data } = await axios.get(`/app/admin/tasks/${row.id}/popup-data`);
+    const { data } = await axios.get(`/admin/tasks/${row.id}/popup-data`);
     editForm.clearErrors();
     editId.value            = data.id;
     editForm.from_location  = data.from_location ?? '';
@@ -167,7 +167,7 @@ async function openEdit(row) {
   }
 }
 function submitEdit() {
-  editForm.put(`/app/admin/tasks/${editId.value}/popup`, {
+  editForm.put(`/admin/tasks/${editId.value}/popup`, {
     preserveScroll: true,
     onSuccess: () => { showEdit.value = false; },
   });
@@ -199,7 +199,7 @@ const columns = [
 /* ---------- data: Inertia partial reloads ---------- */
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/tasks', { ...filters, ...extra }, {
+  router.get('/admin/tasks', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters'],
@@ -383,7 +383,7 @@ async function bulkDelete(ids) {
 
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('task_show')" @click="router.visit(`/app/admin/tasks/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <button v-if="can('task_show')" @click="router.visit(`/admin/tasks/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
           <button v-if="can('task_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="can('task_delete') && row.status === 'NEW'" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>

@@ -69,7 +69,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get(`/app/admin/swaprequests?${params.toString()}`, {
+    const { data } = await axios.get(`/admin/swaprequests?${params.toString()}`, {
       headers: { Accept: 'application/json' },
     });
     
@@ -111,7 +111,7 @@ const closeViewModal = () => {
 
 const deleteSwap = (id) => {
   if (confirm('Are you sure you want to delete this Swap Request?')) {
-    router.delete(`/app/admin/swaprequests/${id}`, {
+    router.delete(`/admin/swaprequests/${id}`, {
       onSuccess: () => doSearch()
     });
   }
@@ -228,7 +228,7 @@ const closeFormModal = () => {
 
 const submitForm = () => {
   if (isEdit.value) {
-    form.put(`/app/admin/swaprequests/${editingId.value}`, {
+    form.put(`/admin/swaprequests/${editingId.value}`, {
       preserveState: true,
       preserveScroll: true,
       onSuccess: () => {
@@ -237,7 +237,7 @@ const submitForm = () => {
       }
     });
   } else {
-    form.post('/app/admin/swaprequests', {
+    form.post('/admin/swaprequests', {
       preserveState: true,
       preserveScroll: true,
       onSuccess: () => {

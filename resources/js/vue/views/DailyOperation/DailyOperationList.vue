@@ -202,7 +202,7 @@ function onExport(type) {
 
 <template>
   <div class="px-4 py-6 md:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-    <Breadcrumb title="Operation Report" :trail="[{ label: 'Dashboards', href: '/app/dashboard' }, { label: 'Operation Report' }]">
+    <Breadcrumb title="Operation Report" :trail="[{ label: 'Dashboards', href: '/dashboard' }, { label: 'Operation Report' }]">
       <template #actions>
         <BaseButton variant="primary" icon="ri-file-excel-2-line" @click="handleExportStart" :disabled="isExporting">
           <template v-if="isExporting">

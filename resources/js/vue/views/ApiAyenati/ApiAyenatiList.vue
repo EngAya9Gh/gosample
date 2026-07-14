@@ -24,7 +24,7 @@ const columns = [
 ];
 
 function fetchPage(page, search) {
-  router.get('/app/admin/api-ayenatis', { page, search }, {
+  router.get('/admin/api-ayenatis', { page, search }, {
     preserveState: true,
     replace: true,
   });

@@ -86,7 +86,7 @@ const columns = [
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/app/admin/shipments', { ...filters, ...extra }, {
+  router.get('/admin/shipments', { ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     onFinish: () => (loading.value = false),

@@ -10,7 +10,7 @@ import BaseButton from '../../components/BaseButton.vue';
             <h1 class="mt-2 text-xl font-semibold text-ink dark:text-slate-100">Access denied</h1>
             <p class="mt-1 text-sm text-slate-500">You don’t have permission to view this screen.</p>
             <div class="mt-5">
-                <BaseButton variant="primary" icon="ri-home-4-line" @click="router.visit('/app/dashboard')">Back to dashboard</BaseButton>
+                <BaseButton variant="primary" icon="ri-home-4-line" @click="router.visit('/dashboard')">Back to dashboard</BaseButton>
             </div>
         </div>
     </div>

@@ -28,7 +28,7 @@ const doSearch = debounce(async () => {
     const params = new URLSearchParams();
     if (keyword.value) params.append('keyword', keyword.value);
 
-    const { data } = await axios.get('/app/admin/roles', { params });
+    const { data } = await axios.get('/admin/roles', { params });
     rows.value = data.rows;
   } catch (err) {
     console.error('Error fetching roles:', err);
@@ -101,7 +101,7 @@ const confirmDelete = (item) => {
 
 const executeDelete = () => {
   if (!itemToDelete.value) return;
-  router.delete(`/app/admin/roles/${itemToDelete.value.id}`, {
+  router.delete(`/admin/roles/${itemToDelete.value.id}`, {
     onSuccess: () => {
       deleteModalOpen.value = false;
       itemToDelete.value = null;
@@ -175,7 +175,7 @@ const toggleCategoryPermissions = (permsInCat) => {
 };
 
 const submitForm = () => {
-  const url = isEdit.value ? `/app/admin/roles/${editingId.value}` : '/app/admin/roles';
+  const url = isEdit.value ? `/admin/roles/${editingId.value}` : '/admin/roles';
   if (isEdit.value) {
     form.put(url, {
       onSuccess: () => {

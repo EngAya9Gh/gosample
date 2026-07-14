@@ -58,7 +58,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
     params.append('page', page);
     params.append('pageSize', pageSize);
 
-    const { data } = await axios.get('/app/admin/users', { params });
+    const { data } = await axios.get('/admin/users', { params });
     rows.value = data.rows;
     total.value = data.total;
   } catch (err) {
@@ -104,7 +104,7 @@ const confirmDelete = (item) => {
 
 const executeDelete = () => {
   if (!itemToDelete.value) return;
-  router.delete(`/app/admin/users/${itemToDelete.value.id}`, {
+  router.delete(`/admin/users/${itemToDelete.value.id}`, {
     onSuccess: () => {
       deleteModalOpen.value = false;
       itemToDelete.value = null;
@@ -173,7 +173,7 @@ const submitForm = () => {
     return transformed;
   });
 
-  const url = isEdit.value ? `/app/admin/users/${editingId.value}` : '/app/admin/users';
+  const url = isEdit.value ? `/admin/users/${editingId.value}` : '/admin/users';
   
   if (isEdit.value) {
     form.put(url, {

@@ -47,7 +47,7 @@ function onDragEnd() { dragIndex.value = null; }
 function saveOrder() {
   saving.value = true;
   const order = localTasks.value.map((t, i) => ({ id: t.id, priority: i + 1 }));
-  router.post(`/app/admin/drivers/${props.driver.id}/tasks/reorder`, { order }, {
+  router.post(`/admin/drivers/${props.driver.id}/tasks/reorder`, { order }, {
     onSuccess: () => {
       push({ type: 'success', title: 'Route Saved', message: 'Task order updated successfully.' });
       isDirty.value = false;
@@ -65,7 +65,7 @@ function smartSort() { showSmartSortModal.value = true; }
 function confirmSmartSort() {
   showSmartSortModal.value = false;
   smartSorting.value = true;
-  router.post(`/app/admin/drivers/${props.driver.id}/tasks/smartSort`, {}, {
+  router.post(`/admin/drivers/${props.driver.id}/tasks/smartSort`, {}, {
     onSuccess: () => {
       push({ type: 'success', title: 'AI Sort Done', message: 'Tasks have been optimally sorted.' });
       smartSorting.value = false;
@@ -79,7 +79,7 @@ function confirmSmartSort() {
   });
 }
 
-function goToTask(id) { router.visit(`/app/admin/tasks/${id}`); }
+function goToTask(id) { router.visit(`/admin/tasks/${id}`); }
 </script>
 
 <template>
@@ -88,7 +88,7 @@ function goToTask(id) { router.visit(`/app/admin/tasks/${id}`); }
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
         <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
-          <button @click="router.visit('/app/admin/drivers')" class="hover:text-[#0ab39c] transition-colors flex items-center gap-1">
+          <button @click="router.visit('/admin/drivers')" class="hover:text-[#0ab39c] transition-colors flex items-center gap-1">
             <i class="ri-team-line text-base"></i> Drivers
           </button>
           <i class="ri-arrow-right-s-line"></i>
@@ -101,7 +101,7 @@ function goToTask(id) { router.visit(`/app/admin/tasks/${id}`); }
 
       <div class="flex items-center gap-2">
         <button
-          @click="router.visit('/app/admin/drivers')"
+          @click="router.visit('/admin/drivers')"
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all"
         >
           <i class="ri-arrow-left-line"></i> Back
