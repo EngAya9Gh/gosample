@@ -108,6 +108,33 @@ class DriverTrackingController extends Controller
             ];
         }
 
+        // SPA (/app) page — same data, serialized flat (driver + ordered task
+        // steps) instead of whole Eloquent models.
+        if (str_starts_with($request->path(), 'app/')) {
+            $drivers = collect($driverData)->map(function ($data) {
+                $d = $data['driver'];
+                return [
+                    'id'   => $d->id,
+                    'name' => $d->name,
+                    'lat'  => $d->lat,
+                    'lng'  => $d->lng,
+                    'tasks' => collect($data['tasks'])->map(fn ($t) => [
+                        'id'                     => $t->id,
+                        'status'                 => $t->status,
+                        'client_name'            => $t->client->english_name ?? null,
+                        'from_name'              => $t->from->name ?? null,
+                        'to_name'                => $t->to->name ?? null,
+                        'pickup_time'            => $t->pickup_time ? \Carbon\Carbon::parse($t->pickup_time)->format('Y-m-d h:i A') : null,
+                        'estimated_arrival_time' => $t->estimated_arrival_time ? \Carbon\Carbon::parse($t->estimated_arrival_time)->format('h:i A') : null,
+                    ])->values(),
+                ];
+            })->values();
+
+            return \Inertia\Inertia::render('Tasks/DriverTracking', [
+                'drivers' => $drivers,
+            ]);
+        }
+
         return view('admin.tasks.driver-tracking', compact('driverData'));
     }
 }

@@ -51,8 +51,14 @@ const formatDate = (dateString) => {
 
 const canEdit = computed(() => props.can?.car_edit ?? usePage().props.auth?.can?.['car_edit'] ?? false);
 
+// Arrived via a Car-Dashboard card (…?from=car-dashboard)? Then Back returns
+// to the dashboard; otherwise to the Cars list — the origin is always explicit.
+const fromDashboard = new URLSearchParams(window.location.search).get('from') === 'car-dashboard';
+const backTarget = fromDashboard ? '/app/car-dashboard' : '/app/admin/cars';
+const backLabel = fromDashboard ? 'Back to Dashboard' : 'Back to List';
+
 const goBack = () => {
-  router.visit('/app/admin/cars');
+  router.visit(backTarget);
 };
 
 /* ---------- Edit Car modal (same popup + fields as the Cars list page,
@@ -155,9 +161,12 @@ function submitContainer() {
 <template>
   <div class="space-y-6 max-w-5xl mx-auto pb-12">
     <!-- Header -->
-    <Breadcrumb title="Car Details" :trail="[{ label: 'Cars', href: '/app/admin/cars' }, { label: `Car #${props.car.id}` }]">
+    <Breadcrumb title="Car Details"
+      :trail="fromDashboard
+        ? [{ label: 'Car Dashboard', href: '/app/car-dashboard' }, { label: `Car #${props.car.id}` }]
+        : [{ label: 'Cars', href: '/app/admin/cars' }, { label: `Car #${props.car.id}` }]">
       <template #actions>
-        <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">Back to List</BaseButton>
+        <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">{{ backLabel }}</BaseButton>
         <BaseButton v-if="canEdit" variant="primary" icon="ri-pencil-line" @click="openEditCar">Edit Car</BaseButton>
       </template>
     </Breadcrumb>

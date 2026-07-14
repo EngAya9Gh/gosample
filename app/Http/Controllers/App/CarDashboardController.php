@@ -71,6 +71,28 @@ class CarDashboardController extends Controller
             $available = false;
         }
 
+        // Attach the LOCAL car id so each dashboard card can link to
+        // /app/admin/cars/{id}. Matched by IMEI first (the vehicle's 'i'
+        // field), then by plate number as a fallback — both normalized,
+        // since Afaqy values may differ in whitespace/case.
+        if ($cars) {
+            $local = \App\Models\Car::withoutGlobalScope('enabled')
+                ->select('id', 'imei', 'plate_number')->get();
+            $byImei = [];
+            $byPlate = [];
+            foreach ($local as $c) {
+                if ($c->imei) $byImei[trim((string) $c->imei)] = $c->id;
+                if ($c->plate_number) $byPlate[mb_strtolower(trim((string) $c->plate_number))] = $c->id;
+            }
+            foreach ($cars as &$car) {
+                $imei = trim((string) ($car['i'] ?? ''));
+                $plate = mb_strtolower(trim((string) ($car['profile']['plate_number'] ?? '')));
+                $car['car_id'] = ($imei !== '' ? ($byImei[$imei] ?? null) : null)
+                    ?? ($plate !== '' ? ($byPlate[$plate] ?? null) : null);
+            }
+            unset($car);
+        }
+
         return Inertia::render('Dashboard/CarDashboard', [
             'available' => $available,
             'cars'      => $cars,

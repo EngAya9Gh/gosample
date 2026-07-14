@@ -51,6 +51,13 @@ function profileRows(p) {
 let timer = null;
 onMounted(() => { timer = setInterval(() => router.reload({ only: ['available', 'cars'] }), 15000); });
 onUnmounted(() => { if (timer) clearInterval(timer); });
+
+// Card click → the car's view page. car_id is resolved server-side (IMEI,
+// then plate). Cards with no matching local car stay non-clickable.
+// `from=car-dashboard` makes the car page's Back button return HERE.
+function openCar(car) {
+  if (car.car_id) router.visit(`/app/admin/cars/${car.car_id}?from=car-dashboard`);
+}
 </script>
 
 <template>
@@ -65,7 +72,11 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
 
     <!-- vehicles grid -->
     <div v-if="available && cars.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <BaseCard v-for="(car, idx) in cars" :key="car.id ?? idx" :title="car.name || 'Vehicle'" icon="ri-car-line">
+      <BaseCard v-for="(car, idx) in cars" :key="car.id ?? idx" :title="car.name || 'Vehicle'" icon="ri-car-line"
+        @click="openCar(car)"
+        :class="car.car_id
+          ? 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-2 hover:ring-primary-500/30'
+          : ''">
         <p class="text-xs text-slate-500 mb-3">IMEI: <span class="font-mono text-ink dark:text-slate-200" style="direction:ltr">{{ car.i }}</span></p>
 
         <!-- profile stat tiles -->

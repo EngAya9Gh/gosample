@@ -42,7 +42,7 @@ function onNavigate(target) {
   // Migrated SPA routes go through Inertia (/app); every other /admin route still
   // loads its classic Blade page. Add a route here when its SPA page ships.
   const SPA_ADMIN_ROUTES = [
-    '/admin/tasks', '/admin/tasks/create', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks',
+    '/admin/tasks', '/admin/tasks/create', '/admin/samples', '/admin/tasks/unused', '/admin/scheduled-tasks', '/admin/driver-tracking',
     '/admin/scheduled-tasks/create', '/admin/scheduled-tasks/quick',
     '/admin/system-calendar', '/admin/tasks/scan', '/admin/drivers', '/admin/lost',
     '/admin/shipments', '/admin/money-transfers', '/admin/cars', '/admin/containers', '/admin/zones', '/admin/attendances', '/admin/shift-templates', '/admin/car-link-histories',
@@ -75,7 +75,9 @@ watch(lang, (v) => {
 });
 
 function onScroll(e) { showTop.value = e.target.scrollTop > 320; }
-function toTop(e) { e.target.closest('.shell-scroll')?.scrollTo({ top: 0, behavior: 'smooth' }); }
+// The button sits OUTSIDE the scroll region (fixed sibling), so closest()
+// could never find .shell-scroll — grab the container directly instead.
+function toTop() { document.querySelector('.shell-scroll')?.scrollTo({ top: 0, behavior: 'smooth' }); }
 </script>
 
 <template>

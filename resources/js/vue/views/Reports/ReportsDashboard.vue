@@ -70,6 +70,12 @@ const driverGradients = [
 ];
 const getDriverGradient = (id) => driverGradients[(id || 0) % driverGradients.length];
 
+// Click-through: any driver card/row opens the driver profile page.
+// `from=reports` makes the profile's Back button return HERE (not the drivers list).
+function openDriver(id) {
+  if (id) router.visit(`/app/admin/drivers/${id}?from=reports`);
+}
+
 const getPunctColor = (p) => p >= 90 ? '#0ab39c' : (p >= 75 ? '#f7b84b' : '#dc2626');
 const getPunctBg = (p) => p >= 90 ? 'rgba(10,179,156,0.12)' : (p >= 75 ? 'rgba(247,184,75,0.12)' : 'rgba(220,38,38,0.12)');
 
@@ -263,7 +269,8 @@ function onDateRange(range) {
         <div v-if="!reportData.drivers?.length" class="col-span-full py-12 text-center text-slate-500">
           No KPI data available for this selection.
         </div>
-        <div v-for="d in reportData.drivers" :key="d.id" class="bg-white dark:bg-[#0f1c1e] border border-[#e3eaea] dark:border-[#1d2c2e] rounded-[16px] p-[18px] hover:shadow-md transition-shadow">
+        <div v-for="d in reportData.drivers" :key="d.id" @click="openDriver(d.id)" title="Open driver profile"
+          class="bg-white dark:bg-[#0f1c1e] border border-[#e3eaea] dark:border-[#1d2c2e] rounded-[16px] p-[18px] cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:ring-2 hover:ring-primary-500/30">
           <div class="flex items-center gap-[11px] mb-[16px]">
             <div class="w-[42px] h-[42px] rounded-full text-white flex items-center justify-center text-[13px] font-bold shrink-0" :style="{ background: getDriverGradient(d.id) }">
               {{ d.name.substring(0, 1).toUpperCase() }}
@@ -318,7 +325,8 @@ function onDateRange(range) {
               <div class="p-[12px_16px] text-left text-[11px] font-bold uppercase tracking-[.04em] text-slate-500 dark:text-slate-400">Avg Punctuality</div>
             </div>
             <div v-if="!reportData.drivers?.length" class="py-12 text-center text-slate-500">No weekly data available.</div>
-            <div v-for="w in reportData.drivers" :key="w.id" class="grid grid-cols-[minmax(200px,1.6fr)_130px_130px_150px_160px] items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
+            <div v-for="w in reportData.drivers" :key="w.id" @click="openDriver(w.id)" title="Open driver profile"
+              class="grid grid-cols-[minmax(200px,1.6fr)_130px_130px_150px_160px] items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors cursor-pointer">
               <div class="p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
                   <span class="w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0" :style="{ background: getDriverGradient(w.id) }">{{ w.name.substring(0, 1).toUpperCase() }}</span>
@@ -359,7 +367,8 @@ function onDateRange(range) {
               <div class="w-[150px] text-center p-[12px_16px] text-[11px] font-bold uppercase tracking-[.04em] text-slate-500 dark:text-slate-400">Score</div>
             </div>
             <div v-if="!reportData.drivers?.length" class="py-12 text-center text-slate-500">No monthly data available.</div>
-            <div v-for="(d, idx) in [...(reportData.drivers || [])].sort((a,b) => b.performance_score - a.performance_score)" :key="d.id" class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
+            <div v-for="(d, idx) in [...(reportData.drivers || [])].sort((a,b) => b.performance_score - a.performance_score)" :key="d.id" @click="openDriver(d.id)" title="Open driver profile"
+              class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors cursor-pointer">
               <div class="w-[80px] p-[11px_16px]">
                 <span v-if="idx === 0" class="inline-flex px-[6px] py-[2px] rounded text-[11px] font-bold bg-amber-100 text-amber-700">🥇 1st</span>
                 <span v-else-if="idx === 1" class="inline-flex px-[6px] py-[2px] rounded text-[11px] font-bold bg-slate-100 text-slate-600">🥈 2nd</span>
@@ -401,7 +410,8 @@ function onDateRange(range) {
               <div class="w-[120px] text-center p-[12px_16px] text-[11px] font-bold uppercase tracking-[.04em] text-slate-500 dark:text-slate-400">Status</div>
             </div>
             <div v-if="!reportData.drivers?.length" class="py-12 text-center text-slate-500">No daily data available.</div>
-            <div v-for="d in reportData.drivers" :key="d.id" class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors">
+            <div v-for="d in reportData.drivers" :key="d.id" @click="openDriver(d.id)" title="Open driver profile"
+              class="flex items-center border-t border-slate-200 dark:border-white/10 hover:bg-surface-muted dark:hover:bg-surface-dark-solid transition-colors cursor-pointer">
               <div class="flex-1 p-[11px_16px]">
                 <div class="flex items-center gap-[10px]">
                   <span class="w-[32px] h-[32px] rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0" :style="{ background: getDriverGradient(d.id) }">{{ d.name.substring(0, 1).toUpperCase() }}</span>

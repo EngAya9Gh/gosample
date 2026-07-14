@@ -1,9 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import BaseButton from '../../components/BaseButton.vue';
 import TabGroup from '../../components/TabGroup.vue';
 import DataTable from '../../components/DataTable.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
@@ -11,6 +12,13 @@ import StatusBadge from '../../components/StatusBadge.vue';
 const props = defineProps({
   driver: { type: Object, required: true }
 });
+
+// Arrived via a Reports click-through (…?from=reports)? Then Back returns to
+// Reports; otherwise to the Drivers list — the origin is always explicit.
+const fromReports = new URLSearchParams(window.location.search).get('from') === 'reports';
+const backTarget = fromReports ? '/app/reports' : '/app/admin/drivers';
+const backLabel = fromReports ? 'Back to Reports' : 'Back to Drivers';
+function goBack() { router.visit(backTarget); }
 
 const rtab = ref('tasks');
 
@@ -72,7 +80,14 @@ const formatDate = (dateString) => {
 
 <template>
   <div>
-    <Breadcrumb :title="driver.name" :trail="[{label:'Drivers',href:'#/admin/drivers'},{label:'Profile'}]" />
+    <Breadcrumb :title="driver.name"
+      :trail="fromReports
+        ? [{ label: 'Reports', href: '/app/reports' }, { label: 'Profile' }]
+        : [{ label: 'Drivers', href: '/app/admin/drivers' }, { label: 'Profile' }]">
+      <template #actions>
+        <BaseButton variant="light" icon="ri-arrow-left-line" @click="goBack">{{ backLabel }}</BaseButton>
+      </template>
+    </Breadcrumb>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       
       <!-- Left Column (Span 4) -->

@@ -45,6 +45,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::post('admin/tasks/scan/lost', [\App\Http\Controllers\App\SampleReconciliationController::class, 'lost'])->name('app.admin.tasks.scan.lost');
 
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('app.admin.tasks.index');
+    Route::get('admin/driver-tracking', [\App\Http\Controllers\Admin\DriverTrackingController::class, 'clientDashboard'])->name('app.admin.driver-tracking');
     Route::get('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('app.admin.scheduled-tasks.index');
     Route::get('admin/scheduled-tasks/create', [\App\Http\Controllers\App\ScheduledTasksController::class, 'create'])->name('app.admin.scheduled-tasks.create');
     Route::post('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'store'])->name('app.admin.scheduled-tasks.store');
@@ -113,6 +114,7 @@ Route::middleware(['auth'])->prefix('app')->group(function () {
     Route::post('admin/containers/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'storePopup'])->name('app.admin.containers.popup.store');
     Route::put('admin/containers/{container}/popup', [\App\Http\Controllers\Admin\ContainersController::class, 'updatePopup'])->name('app.admin.containers.popup.update');
     Route::get('admin/containers/{container}/barcode', [\App\Http\Controllers\Admin\ContainersController::class, 'barcode'])->name('app.admin.containers.barcode');
+    Route::get('admin/containers/{container}', [\App\Http\Controllers\Admin\ContainersController::class, 'show'])->name('app.admin.containers.show');
     Route::get('admin/zones', [\App\Http\Controllers\Admin\ZonesController::class, 'index'])->name('app.admin.zones.index');
     Route::post('admin/zones/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'storePopup'])->name('app.admin.zones.popup.store');
     Route::put('admin/zones/{zone}/popup', [\App\Http\Controllers\Admin\ZonesController::class, 'updatePopup'])->name('app.admin.zones.popup.update');
