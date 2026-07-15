@@ -15,47 +15,20 @@ class ApiAyenatiController extends Controller
     {
         abort_if(Gate::denies('api_ayenati_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->ajax()) {
-            $query = ApiAyenati::query()->select(sprintf('%s.*', (new ApiAyenati)->table));
-            $table = Datatables::of($query);
+        $query = ApiAyenati::query()
+            ->when($request->search, fn ($q, $s) =>
+                $q->where('api_url', 'like', "%{$s}%")
+                  ->orWhere('response', 'like', "%{$s}%")
+                  ->orWhere('response_flag', 'like', "%{$s}%")
+            )
+            ->orderBy('id', 'desc')
+            ->paginate(50)
+            ->withQueryString();
 
-            $table->addColumn('placeholder', '&nbsp;');
-            $table->addColumn('actions', '&nbsp;');
-
-            $table->editColumn('actions', function ($row) {
-                $viewGate      = 'api_ayenati_show';
-                $editGate      = 'api_ayenati_edit';
-                $deleteGate    = 'api_ayenati_delete';
-                $crudRoutePart = 'api-ayenatis';
-
-                return view('partials.datatablesActions', compact(
-                    'viewGate',
-                    'editGate',
-                    'deleteGate',
-                    'crudRoutePart',
-                    'row'
-                ));
-            });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->editColumn('api_url', function ($row) {
-                return $row->api_url ? $row->api_url : '';
-            });
-            $table->editColumn('response', function ($row) {
-                return $row->response ? $row->response : '';
-            });
-            $table->editColumn('response_flag', function ($row) {
-                return $row->response_flag ? ApiAyenati::RESPONSE_FLAG_SELECT[$row->response_flag] : '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder']);
-
-            return $table->make(true);
-        }
-
-        return view('admin.apiAyenatis.index');
+        return inertia('ApiAyenati/ApiAyenatiList', [
+            'logs' => $query,
+            'filters' => $request->only(['search']),
+        ]);
     }
 
     public function show(ApiAyenati $apiAyenati)

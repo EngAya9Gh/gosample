@@ -12,30 +12,79 @@ use App\Models\Driver;
 use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Storage;
 
 class ClientsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('client_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $query = Client::query();
+
         $logged_id_user = auth()->user();
         if ($logged_id_user->client_id !== null) {
-            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
-        } else {
-            $clients = Client::all();
+            $query->whereIn('id', $logged_id_user->assigned_client_ids);
         }
 
-        return view('admin.clients.index', compact('clients'));
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function($q) use ($keyword) {
+                $q->where('arabic_name', 'like', "%{$keyword}%")
+                  ->orWhere('english_name', 'like', "%{$keyword}%")
+                  ->orWhere('email', 'like', "%{$keyword}%")
+                  ->orWhere('address', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('location_id')) {
+            $query->whereHas('locations', function ($q) use ($request) {
+                $q->where('location_id', $request->location_id);
+            });
+        }
+
+        if ($request->filled('driver_id')) {
+            $query->whereHas('drivers', function ($q) use ($request) {
+                $q->where('driver_id', $request->driver_id);
+            });
+        }
+
+        $pageSize = $request->get('pageSize', 25);
+        $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'rows' => $paginator->items(),
+                'total' => $paginator->total(),
+            ]);
+        }
+
+        $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+        $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
+
+        return \Inertia\Inertia::render('Clients/ClientsList', [
+            'initialRows' => $paginator->items(),
+            'initialTotal' => $paginator->total(),
+            'drivers' => $drivers,
+            'locations' => $locations,
+        ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         abort_if(Gate::denies('client_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
-        return view('admin.clients.create', compact('drivers','locations'));
+        
+        return \Inertia\Inertia::render('Clients/ClientForm', [
+            'drivers' => $drivers,
+            'locations' => $locations
+        ]);
     }
 
     public function store(StoreClientRequest $request)
@@ -43,9 +92,8 @@ class ClientsController extends Controller
         $data = $request->all();
 
         if ($request->hasFile('logo')) {
-            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
-            $request->file('logo')->move(public_path('clients/logos'), $filename);
-            $data['logo'] = '/clients/logos/' . $filename;
+            $path = $request->file('logo')->store('clients/logos', 'public');
+            $data['logo'] = '/storage/' . $path;
         } else {
             unset($data['logo']);
         }
@@ -57,7 +105,7 @@ class ClientsController extends Controller
         return redirect()->route('admin.clients.index');
     }
 
-    public function edit(Client $client)
+    public function edit(Client $client, Request $request)
     {
         abort_if(Gate::denies('client_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
@@ -66,7 +114,12 @@ class ClientsController extends Controller
         $locations = Location::pluck('name', 'id');
         // $locations = Location::all();
 
-        return view('admin.clients.edit', compact('client','drivers','locations'));
+        $client->load(['locations', 'drivers']);
+        return \Inertia\Inertia::render('Clients/ClientForm', [
+            'client' => $client,
+            'drivers' => $drivers,
+            'locations' => $locations
+        ]);
     }
 
     public function update(UpdateClientRequest $request, Client $client)
@@ -74,9 +127,8 @@ class ClientsController extends Controller
         $data = $request->all();
 
         if ($request->hasFile('logo')) {
-            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
-            $request->file('logo')->move(public_path('clients/logos'), $filename);
-            $data['logo'] = '/clients/logos/' . $filename;
+            $path = $request->file('logo')->store('clients/logos', 'public');
+            $data['logo'] = '/storage/' . $path;
         } else {
             // Don't overwrite the existing logo when no new file was picked
             unset($data['logo']);
@@ -85,8 +137,7 @@ class ClientsController extends Controller
         $client->update($data);
         $client->locations()->sync($request->input('locations', []));
         $client->drivers()->sync($request->input('drivers', []));
-
-        return redirect()->route('admin.clients.index');
+        return redirect()->route('admin.clients.index')->with('success', 'Client updated successfully.');
     }
 
     public function show(Client $client)
@@ -98,13 +149,23 @@ class ClientsController extends Controller
         return view('admin.clients.show', compact('client'));
     }
 
-    public function destroy(Client $client)
+    public function destroy(Client $client, Request $request)
     {
         $this->authorize('can-delete');
 
         $client->delete();
+            return back();
 
         return back();
+    }
+
+    public function getRelations(Client $client)
+    {
+        $client->load(['locations', 'drivers']);
+        return response()->json([
+            'drivers' => $client->drivers->pluck('id'),
+            'locations' => $client->locations->pluck('id'),
+        ]);
     }
 
     public function massDestroy(MassDestroyClientRequest $request)

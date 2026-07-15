@@ -40,11 +40,11 @@ class RemoveOldNewTasks implements ShouldQueue
             ->where('created_at', '<', Carbon::today())
             ->get();
 
-        // Delete the tasks
+        // Delete the tasks (Canceled: Now we just mark them as unused, 
+        // and the new Global Scope hides them automatically)
         foreach ($tasks as $task) {
-	    $task->is_unused = true;
+            $task->is_unused = 1;
             $task->save();
-            $task->delete();
         }
     }
 }

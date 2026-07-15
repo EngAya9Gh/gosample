@@ -141,6 +141,24 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">{{ trans('cruds.task.title_singular') }} {{ trans('global.list') }}</h4>
+                @if(session('error'))
+                    <div class="alert alert-danger mb-0">
+                        {{ session('error') }}
+                    </div>
+                @endif
+                @if(session('message'))
+                    <div class="alert alert-success mb-0">
+                        {{ session('message') }}
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
             <h5 class="card-title mb-0">{{ trans('translation.tasks') }} {{ trans('translation.list') }}</h5>
@@ -235,7 +253,7 @@
     <script>
         $(function() {
             let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
-            @can('can-delete')
+            @can('task_delete')
                 let deleteButtonTrans = '{{ trans('translation.datatables.delete') }}';
                 let deleteButton = {
                     text: deleteButtonTrans,
@@ -269,8 +287,9 @@
                                 .done(function() {
                                     location.reload()
                                 })
-                        }
-                    }
+                                .fail(function(xhr) {
+                                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'لا يمكن إتمام عملية الحذف. ربما بعض المهام ليست بحالة NEW');
+                                })
                 }
                 dtButtons.push(deleteButton)
             @endcan

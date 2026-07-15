@@ -1270,7 +1270,23 @@ class SampleController extends Controller
 
 
 
-            $dataArray = $request->json()->all(); // Get the array of objects from the request
+            $dataArray = $request->json()->all(); 
+
+            // IMPORTANT: ForceDriverIdMiddleware merges 'driver_id' into the request.
+            // If the request was a JSON array, this turns it into an associative array mixing indices and 'driver_id'.
+            // We must remove it before processing the list of bags.
+            if (array_key_exists('driver_id', $dataArray)) {
+                unset($dataArray['driver_id']);
+            }
+
+            if (empty($dataArray)) {
+                return $this->response(true, 'success');
+            }
+
+            // If it's a single associative array (object) instead of a list of objects, wrap it in an array
+            if (count(array_filter(array_keys($dataArray), 'is_string')) > 0) {
+                $dataArray = [$dataArray];
+            }
 
             foreach ($dataArray as $data) {
                 $validator = Validator::make($data, [
@@ -1286,6 +1302,11 @@ class SampleController extends Controller
                 $task = Task::find($data['task_id']);
                 if ($task == null) {
                     return $this->response(false, 'task is not found');
+                }
+
+                // Security Check: Ensure the logged-in driver is the owner of the task
+                if ($request->has('driver_id') && $task->driver_id != $request->driver_id) {
+                    return $this->response(false, 'Unauthorized driver for this task');
                 }
 
                 $driver = Driver::find($task->driver_id);

@@ -1,5 +1,6 @@
 const vite = require("vite");
 import laravel from "laravel-vite-plugin";
+import vue from "@vitejs/plugin-vue";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 const lodash = require("lodash");
 
@@ -13,12 +14,22 @@ export default vite.defineConfig({
             output: {
                 assetFileNames: (css) => {
                     if (css.name.split(".").pop() == "css") {
+                        // Add hash to Vue main CSS for cache busting, keep legacy files unhashed
+                        if (css.name === 'main.css' || css.name === 'main.min.css') {
+                            return "css/[name]-[hash].min.css";
+                        }
                         return "css/" + `[name]` + ".min." + "css";
                     } else {
                         return "icons/" + css.name;
                     }
                 },
-                entryFileNames: "js/" + `[name]` + `.js`,
+                entryFileNames: (chunkInfo) => {
+                    // Add hash to Vue main.js for cache busting, keep legacy files unhashed
+                    if (chunkInfo.name === 'main') {
+                        return "js/[name]-[hash].js";
+                    }
+                    return "js/[name].js";
+                },
             },
         },
     },
@@ -31,9 +42,12 @@ export default vite.defineConfig({
                 "resources/js/app.js",
                 "resources/scss/app.rtl.scss",
                 "resources/scss/custom.scss",
+                // New Vue 3 + Tailwind SPA entry (frontend migration)
+                "resources/js/vue/main.js",
             ],
             refresh: true,
         }),
+        vue(),
         viteStaticCopy({
             targets: [
                 {

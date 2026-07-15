@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Details - GoSample</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#ffdad6",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#181c1d",
+                      "tertiary-container": "#ca353a",
+                      "outline": "#6e7979",
+                      "on-secondary-fixed-variant": "#434848",
+                      "on-secondary-container": "#5f6364",
+                      "on-primary-fixed-variant": "#004f50",
+                      "primary-fixed": "#99f1f1",
+                      "inverse-primary": "#7dd5d4",
+                      "secondary-fixed": "#dfe3e3",
+                      "on-primary": "#ffffff",
+                      "on-surface": "#0b1c30",
+                      "on-error": "#ffffff",
+                      "on-background": "#0b1c30",
+                      "surface-container": "#e5eeff",
+                      "tertiary-fixed": "#ffdad7",
+                      "surface-container-low": "#eff4ff",
+                      "on-tertiary-fixed": "#410005",
+                      "on-secondary": "#ffffff",
+                      "tertiary": "#a71a25",
+                      "outline-variant": "#bdc9c8",
+                      "surface-variant": "#d3e4fe",
+                      "surface-bright": "#f8f9ff",
+                      "secondary-fixed-dim": "#c3c7c7",
+                      "inverse-surface": "#213145",
+                      "surface": "#f8f9ff",
+                      "on-primary-fixed": "#002020",
+                      "primary": "#005f60",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-tertiary-container": "#ffedeb",
+                      "on-primary-container": "#affffe",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "surface-container-high": "#dce9ff",
+                      "error": "#ba1a1a",
+                      "background": "#f8f9ff",
+                      "on-tertiary-fixed-variant": "#920418",
+                      "secondary": "#5a5f60",
+                      "primary-container": "#0d7a7a",
+                      "surface-container-highest": "#d3e4fe",
+                      "surface-tint": "#006a6a",
+                      "on-surface-variant": "#3e4948",
+                      "primary-fixed-dim": "#7dd5d4",
+                      "surface-dim": "#cbdbf5",
+                      "secondary-container": "#dce0e0",
+                      "on-error-container": "#93000a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "48px",
+                      "margin-desktop": "64px",
+                      "base": "4px",
+                      "sm": "16px",
+                      "lg": "32px",
+                      "xs": "8px",
+                      "gutter": "24px",
+                      "md": "24px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "display-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "26px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        
+        .card-shadow {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0px 8px 30px rgba(0,0,0,0.08);
+            border-color: rgba(13, 122, 122, 0.2);
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: 40px;
+            width: 2px;
+            background: linear-gradient(to bottom, #0d7a7a 0%, #dfe3e3 50%, #dfe3e3 100%);
+            z-index: 0;
+        }
+
+        .chart-grid-line {
+            stroke: #e5eeff;
+            stroke-width: 1;
+            stroke-dasharray: 4;
+        }
+        .chart-line-refrigeration {
+            stroke: #0d7a7a;
+            stroke-width: 3;
+            fill: none;
+        }
+        .chart-line-freezer {
+            stroke: #7dd5d4;
+            stroke-width: 3;
+            fill: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Suppressed Shell Nav for Task Details (Task-Focused / Linear intent) -->
+<main class="w-full min-h-screen flex flex-col p-md md:p-margin-desktop pt-0 md:pt-0">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-lg gap-sm bg-primary-container text-white p-lg md:px-margin-desktop -mx-md md:-mx-margin-desktop shadow-md">
+<div class="flex flex-col gap-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[32px]">monitor_heart</span>
+<div>
+<h2 class="font-headline-md text-headline-md leading-none text-white font-bold">Gosample</h2>
+<p class="font-label-md text-label-md text-white/80 mt-1">Medical Logistics</p>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors" onclick="history.back()">
+<span class="material-symbols-outlined" data-icon="arrow_back" data-weight="fill">arrow_back</span>
+</button>
+<div>
+<div class="flex items-center gap-xs">
+<h1 class="font-headline-lg text-headline-lg text-white">Task #756510</h1>
+<span class="bg-white text-primary-container font-label-md text-label-md px-3 py-1 rounded-full shadow-sm">In Progress</span>
+</div>
+<p class="font-body-sm text-body-sm text-white/80 mt-1">Created on 2026-06-22 16:30:06</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-sm w-full md:w-auto mt-4 md:mt-0">
+<button class="flex-1 md:flex-none border border-white/30 text-white font-body-md text-body-md px-6 py-3 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="print">print</span>
+                    Print
+                </button>
+<button class="flex-1 md:flex-none border border-white/30 text-white font-body-md text-body-md px-6 py-3 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+                    Edit Times
+                </button>
+<button class="flex-1 md:flex-none bg-white text-primary-container font-body-md text-body-md px-6 py-3 rounded-lg hover:bg-surface-container-low transition-colors shadow-sm flex items-center justify-center gap-2 font-semibold">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+                    Reassign
+                </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="bento-grid">
+<!-- Task Overview (Span 8) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant card-shadow p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center border-b border-outline-variant pb-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface">Task Overview</h2>
+<span class="bg-primary-container text-white px-3 py-1 rounded-full text-sm font-semibold">Arrival of Pick Up Location</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="space-y-sm">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Requestor</p>
+<p class="font-headline-sm text-headline-sm text-on-surface mt-1">Delta Medical Laboratory</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Billed To</p>
+<p class="font-body-md text-body-md text-on-surface mt-1">Delta Medical Laboratory</p>
+</div>
+</div>
+<div class="space-y-sm relative">
+<div class="absolute left-3 top-6 bottom-6 w-0.5 bg-outline-variant z-0"></div>
+<div class="relative z-10 flex gap-sm">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border-2 border-primary-container flex items-center justify-center mt-1 bg-surface-container-lowest">
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Pickup Location</p>
+<p class="font-body-md text-body-md text-on-surface font-semibold mt-1">Delta Medical Laboratories - Main Branch - Laban</p>
+</div>
+</div>
+<div class="relative z-10 flex gap-sm pt-sm">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center mt-1 bg-surface-container-lowest">
+<span class="material-symbols-outlined text-[14px] text-outline" data-icon="location_on" data-weight="fill">location_on</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Delivery Location</p>
+<p class="font-body-md text-body-md text-on-surface font-semibold mt-1">DHL - KING KHALID AIRPORT</p>
+</div>
+</div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-lg mt-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Task Information</h3>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-md">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Task Creation Date</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">2026-06-22 16:30:06</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Type of Request</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">One time</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Bag QTY</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">3</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Receiving Date</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">2026-06-22 16:30:06</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Driver Name</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">Mohamed Ibrahim Abdelhady Said</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Sample QTY</p>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">3</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Driver Info (Span 4) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl border border-outline-variant card-shadow p-lg flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-center mb-md border-b border-outline-variant pb-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface">Driver Details</h2>
+<span class="material-symbols-outlined text-outline" data-icon="local_shipping">local_shipping</span>
+</div>
+<div class="flex items-center gap-md mb-md">
+<div class="w-16 h-16 rounded-full bg-surface-container-high border-2 border-primary-container overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a medical courier wearing a clean, modern uniform with a teal accent, smiling slightly in bright, clinical lighting. The background is a soft, sterile white." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhlQDawJnQJPSSNkmFA9Oo1P5xA4EqOgHx5MhqPG_7HX9WzrAW7t_h1Egat5F5lLm5lsE3KQ08oTkGUJhqGHNW7K3458fZIR5rtXBcVTSMGsulXBwk-uOeQj1UwrKb3CSdJNxAh9Nc4pJYtaIySgPgxklptgK8uO956MmIQzn0fzBnNKzNVgf5j8TVm21w-xLJsIqVtsRh4A0nMbYYxb4awSUXJYoe3Ap48GIUjYJqWGJW0414q19Fgv40dJ9Vmzaw1hFeZ-aXvU_q"/>
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface leading-tight">Mohamed Ibrahim Abdelhady Said</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary-container" data-icon="star" data-weight="fill">star</span>
+                                4.9 Rating (124 Deliveries)
+                            </p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="bg-surface-container-low text-primary-container font-body-sm text-body-sm py-2 rounded-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 border border-primary-container/20">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+                        Call
+                    </button>
+<button class="bg-surface-container-low text-primary-container font-body-sm text-body-sm py-2 rounded-lg hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 border border-primary-container/20">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                        Message
+                    </button>
+</div>
+</div>
+<!-- Progress Timeline (Span 4) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl border border-outline-variant card-shadow p-lg relative overflow-hidden">
+<div class="flex justify-between items-center mb-lg border-b border-outline-variant pb-sm relative z-10">
+<h2 class="font-headline-md text-headline-md text-on-surface">Timeline</h2>
+<span class="material-symbols-outlined text-outline" data-icon="schedule">schedule</span>
+</div>
+<div class="relative z-10 pl-2">
+<div class="timeline-line"></div>
+<div class="flex gap-md mb-lg relative">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Collection Information</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Arrival: 2026-06-22 17:06:07</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Departure: 2026-06-22 17:15:36</p>
+</div>
+</div>
+<div class="flex gap-md mb-lg relative">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-sm z-10 shrink-0">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-semibold">Sample Placement Information</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sample Receiving: 2026-06-22 17:15:36</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sample In: 2026-06-22 17:16:00</p>
+</div>
+</div>
+<div class="flex gap-md mb-lg relative">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-primary-container flex items-center justify-center text-primary-container shadow-sm z-10 shrink-0 bg-surface-container-lowest animate-pulse">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-primary-container font-bold">Sample Delivery</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sample Out: 2026-06-22 18:32:34</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sample Delivery: 2026-06-22 18:33:00</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Temperature Monitoring & Manifest Container (Span 8) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-lg">
+<!-- Sample Manifest -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant card-shadow overflow-hidden">
+<div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low/50">
+<h2 class="font-headline-md text-headline-md text-on-surface">Sample Manifest</h2>
+<span class="bg-primary-container text-white font-label-md text-label-md px-3 py-1 rounded-full">3 Items</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-outline-variant">
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Bag Code</th>
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Bags #</th>
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Sample #</th>
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Temp Req</th>
+<th class="py-3 px-lg font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Container</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-lg font-body-md text-body-md font-semibold text-on-surface">2149256807-bag</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">1</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">1 [2149256807-bag]</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">Tubes</td>
+<td class="py-4 px-lg"><span class="bg-primary-container/10 text-primary-container font-label-md text-label-md px-2 py-1 rounded border border-primary-container/20">+2C TO +8C</span></td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface-variant">N/A</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-lg font-body-md text-body-md font-semibold text-on-surface">2149256805-bag</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">2</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">1 [2149256805-bag]</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">Tubes</td>
+<td class="py-4 px-lg"><span class="bg-primary-container/10 text-primary-container font-label-md text-label-md px-2 py-1 rounded border border-primary-container/20">+2C TO +8C</span></td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface-variant">N/A</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-lg font-body-md text-body-md font-semibold text-on-surface">2149256803-bag</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">3</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">1 [2149256803-bag]</td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface">Tubes</td>
+<td class="py-4 px-lg"><span class="bg-primary-container/10 text-primary-container font-label-md text-label-md px-2 py-1 rounded border border-primary-container/20">+2C TO +8C</span></td>
+<td class="py-4 px-lg font-body-md text-body-md text-on-surface-variant">N/A</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Temperature Graph -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant card-shadow p-lg">
+<div class="flex justify-between items-center mb-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Temperature Monitoring</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Real-time container metrics</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-4 h-1 bg-red-500"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Refrigeration</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-1 bg-blue-600"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Freezing</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-1 bg-green-500"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Room Temp</span>
+</div>
+</div>
+</div>
+<div class="w-full h-[200px] mt-md relative">
+<!-- Simple SVG Graph representation -->
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 800 200" width="100%">
+<!-- Grid Lines -->
+<line class="chart-grid-line" x1="0" x2="800" y1="40" y2="40"></line>
+<line class="chart-grid-line" x1="0" x2="800" y1="100" y2="100"></line>
+<line class="chart-grid-line" x1="0" x2="800" y1="160" y2="160"></line>
+<!-- Refrigeration Line (~4C) -->
+<path class="chart-line-refrigeration" d="M 0 60 Q 100 55 200 65 T 400 58 T 600 62 T 800 60"></path>
+<!-- Freezer Line (~-20C) -->
+<path class="chart-line-freezer" d="M 0 150 Q 150 145 300 155 T 500 148 T 700 152 T 800 150"></path>
+<!-- Current Time Indicator -->
+<line stroke="#0d7a7a" stroke-dasharray="2" stroke-width="1" x1="650" x2="650" y1="0" y2="200"></line>
+<circle cx="650" cy="61" fill="#0d7a7a" r="5"></circle>
+<circle cx="650" cy="151" fill="#7dd5d4" r="5"></circle>
+</svg>
+<div class="absolute bottom-0 left-0 w-full flex justify-between text-xs text-on-surface-variant font-body-sm mt-2 pt-2 border-t border-outline-variant/30">
+<span>17:16</span>
+<span>17:29</span>
+<span>17:41</span>
+<span class="font-bold text-primary-container">17:54</span>
+<span>18:11</span>
+<span>18:31</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

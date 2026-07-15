@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -48,5 +50,22 @@ class Handler extends ExceptionHandler
                 app('sentry')->captureException($e);
             }
         });
+    }
+
+    /**
+     * Render a styled Inertia error page for SPA (Inertia) requests only.
+     * Classic Blade pages keep Laravel's default error handling untouched.
+     */
+    public function render($request, Throwable $e)
+    {
+        $response = parent::render($request, $e);
+
+        if ($request->header('X-Inertia') && in_array($response->getStatusCode(), [403, 404, 419, 500, 503], true)) {
+            return Inertia::render('system/Error', ['status' => $response->getStatusCode()])
+                ->toResponse($request)
+                ->setStatusCode($response->getStatusCode());
+        }
+
+        return $response;
     }
 }

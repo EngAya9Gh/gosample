@@ -38,6 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
         ],
 
         'api' => [
@@ -67,5 +68,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'api.key' => \App\Http\Middleware\ApiKeyMiddleware::class,
         'client.auth' => \App\Http\Middleware\ClientApiAuth::class,
+        'force.driver.id' => \App\Http\Middleware\ForceDriverIdMiddleware::class,
     ];
 }

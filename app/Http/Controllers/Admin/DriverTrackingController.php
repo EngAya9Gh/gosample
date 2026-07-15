@@ -42,7 +42,8 @@ class DriverTrackingController extends Controller
         $clientTasks = $clientTasksQuery->get();
         $driverIds = $clientTasks->pluck('driver_id')->unique()->filter();
 
-        $driversQuery = Driver::with(['car.carTracking'])->whereIn('id', $driverIds);
+        // Load drivers and eagerly load their car, but NOT all tracking records to avoid memory leak
+        $driversQuery = Driver::with(['car'])->whereIn('id', $driverIds);
         
         if ($request->filled('driver_name')) {
             $driversQuery->where(function($q) use ($request) {
@@ -53,48 +54,43 @@ class DriverTrackingController extends Controller
         
         $drivers = $driversQuery->get();
 
+        // Get all driver IDs
+        $fetchedDriverIds = $drivers->pluck('id')->toArray();
+
+        // Load all tasks for these drivers in a SINGLE query
+        $allTasks = Task::with(['from', 'to', 'client'])
+            ->whereIn('driver_id', $fetchedDriverIds)
+            ->whereBetween('pickup_time', [
+                \Carbon\Carbon::today()->startOfDay(),
+                \Carbon\Carbon::today()->endOfDay(),
+            ])
+            ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES'])
+            ->orderBy('route_order', 'asc')
+            ->orderBy('poririty', 'asc')
+            ->get()
+            ->groupBy('driver_id');
+
+        // Load latest car tracking for cars in a single query
+        $carIds = $drivers->pluck('car.id')->filter()->toArray();
+        $latestCarTrackings = \App\Models\CarTracking::whereIn('car_id', $carIds)
+            ->whereIn('id', function($query) {
+                $query->selectRaw('MAX(id)')->from('car_tracking')->groupBy('car_id');
+            })
+            ->get()
+            ->keyBy('car_id');
+
         $driverData = [];
 
         foreach ($drivers as $driver) {
-            // Get all tasks for this driver to show the full route context
-            $driverTasks = Task::with(['from', 'to', 'client'])
-                ->where('driver_id', $driver->id)
-                ->whereBetween('pickup_time', [
-                    \Carbon\Carbon::today()->startOfDay(),
-                    \Carbon\Carbon::today()->endOfDay(),
-                ])
-                ->whereNotIn('status', ['CLOSED', 'NO_SAMPLES'])
-                ->orderBy('route_order', 'asc') // Sort by our new route_order
-                ->orderBy('poririty', 'asc')    // Fallback to old poririty
-                ->get();
-
-            $routeInfo = [];
-            foreach ($driverTasks as $task) {
-                $fromLocation = Location::find($task->from_location);
-                $toLocation = Location::find($task->to_location);
-                
-                $routeInfo[] = [
-                    'id' => $task->id,
-                    'type' => 'pickup',
-                    'location' => $fromLocation ? $fromLocation->name : '-',
-                    'destination' => $toLocation ? $toLocation->name : '-',
-                    'eta_minutes' => $task->cumulative_eta ?? $task->eta,
-                    'estimated_arrival' => $task->estimated_arrival_time,
-                    'belongs_to_client' => ($clientId ? ($task->billing_client == $clientId) : true),
-                    'status' => $task->status
-                ];
-            }
+            $driverTasks = $allTasks->get($driver->id, collect());
 
             // Current location of driver
             $lat = null;
             $lng = null;
-            $car = $driver->car;
-            if ($car) {
-                $carTracking = $car->carTracking()->orderBy('created_at', 'desc')->first();
-                if ($carTracking) {
-                    $lat = $carTracking->lat;
-                    $lng = $carTracking->lng;
-                }
+            if ($driver->car && $latestCarTrackings->has($driver->car->id)) {
+                $carTracking = $latestCarTrackings->get($driver->car->id);
+                $lat = $carTracking->lat;
+                $lng = $carTracking->lng;
             }
 
             $driverData[] = [
@@ -108,6 +104,29 @@ class DriverTrackingController extends Controller
             ];
         }
 
-        return view('admin.tasks.driver-tracking', compact('driverData'));
+        // SPA (/app) page — same data, serialized flat (driver + ordered task
+        // steps) instead of whole Eloquent models.
+            $drivers = collect($driverData)->map(function ($data) {
+                $d = $data['driver'];
+                return [
+                    'id'   => $d->id,
+                    'name' => $d->name,
+                    'lat'  => $d->lat,
+                    'lng'  => $d->lng,
+                    'tasks' => collect($data['tasks'])->map(fn ($t) => [
+                        'id'                     => $t->id,
+                        'status'                 => $t->status,
+                        'client_name'            => $t->client->english_name ?? null,
+                        'from_name'              => $t->from->name ?? null,
+                        'to_name'                => $t->to->name ?? null,
+                        'pickup_time'            => $t->pickup_time ? \Carbon\Carbon::parse($t->pickup_time)->format('Y-m-d h:i A') : null,
+                        'estimated_arrival_time' => $t->estimated_arrival_time ? \Carbon\Carbon::parse($t->estimated_arrival_time)->format('h:i A') : null,
+                    ])->values(),
+                ];
+            })->values();
+
+            return \Inertia\Inertia::render('Tasks/DriverTracking', [
+                'drivers' => $drivers,
+            ]);
     }
 }
