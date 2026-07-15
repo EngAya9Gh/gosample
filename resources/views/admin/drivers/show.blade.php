@@ -42,6 +42,20 @@
                             <p class="fw-medium mb-0 text-dark">{{ $driver->zone->name ?? 'N/A' }}</p>
                         </div>
                     </div>
+                    <div class="row border-top pt-3 mt-3">
+                        <div class="col-12 text-center">
+                            <h6 class="text-muted fs-11 text-uppercase fw-bold mb-1"><i class="ri-car-line me-1"></i> Assigned Car</h6>
+                            <p class="fw-medium mb-0">
+                                @if($driver->car)
+                                    <a href="{{ route('admin.cars.show', $driver->car->id) }}" class="badge badge-soft-success px-3 py-2 fs-13" style="text-decoration: none;">
+                                        {{ $driver->car->plate_number }}
+                                    </a>
+                                @else
+                                    <span class="text-muted">No Car Assigned</span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -389,7 +389,7 @@ class ScheduledTaskController extends Controller
 
     public function destroy(ScheduledTask $scheduledTask)
     {
-        $this->authorize('can-delete');
+        $this->authorize('scheduled_task_delete');
         $schedule = null;
         $parent_id = $scheduledTask->parent_id;
         if (empty($scheduledTask->parent_id)) {
@@ -418,7 +418,7 @@ class ScheduledTaskController extends Controller
 
     public function deleteBasedOnParent(ScheduledTask $scheduledTask)
     {
-        $this->authorize('can-delete');
+        $this->authorize('scheduled_task_delete');
         if (empty($scheduledTask->parent_id)) {
             ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
 

@@ -14,13 +14,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BarcodesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('barcode_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $barcodes = Barcode::all();
 
-        return view('admin.barcodes.index', compact('barcodes'));
+        return inertia('Barcodes/BarcodesList', [
+            'barcodes' => $barcodes,
+        ]);
     }
 
     public function create()
@@ -30,16 +32,23 @@ class BarcodesController extends Controller
         return view('admin.barcodes.create');
     }
 
-    public function generate()
+    public function generate(Request $request)
     {
         abort_if(Gate::denies('barcode_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $show = false;
+        
         $type = 'bag';
         $start = DB::table('barcodes')->where('type','sample')->max('last_number') + 1;
         $sequence = 10;
-        return view('admin.barcodes.generate',compact('type','start','sequence','show')
-        );
+        $show = false;
+
+        return inertia('Barcodes/BarcodesGenerate', [
+            'type' => $type,
+            'start' => $start,
+            'sequence' => $sequence,
+            'show' => $show
+        ]);
     }
+
     public function generateBarcodes(Request $request)
     {
         abort_if(Gate::denies('barcode_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -53,16 +62,18 @@ class BarcodesController extends Controller
         $record->last_number =  $record->last_number +  $request->range;
         $record->save();
 
-        return view('admin.barcodes.generate',compact('type','start','sequence','show')
-        
-        
-        );
+        return inertia('Barcodes/BarcodesGenerate', [
+            'type' => $type,
+            'start' => $start,
+            'sequence' => $sequence,
+            'show' => $show
+        ]);
     }
 
     public function store(StoreBarcodeRequest $request)
     {
         $barcode = Barcode::create($request->all());
-
+            return redirect()->back();
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -76,7 +87,7 @@ class BarcodesController extends Controller
     public function update(UpdateBarcodeRequest $request, Barcode $barcode)
     {
         $barcode->update($request->all());
-
+            return redirect()->back();
         return redirect()->route('admin.barcodes.index');
     }
 
@@ -87,20 +98,19 @@ class BarcodesController extends Controller
         return view('admin.barcodes.show', compact('barcode'));
     }
 
-    public function destroy(Barcode $barcode)
+    public function destroy(Barcode $barcode, Request $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('barcode_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $barcode->delete();
-
+            return redirect()->back();
         return back();
     }
 
     public function massDestroy(MassDestroyBarcodeRequest $request)
     {
-        $this->authorize('can-delete');
         Barcode::whereIn('id', request('ids'))->delete();
-
+            return redirect()->back();
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -12,6 +12,11 @@ class Container extends Model
     use SoftDeletes;
     use HasFactory;
 
+    public function setDescriptionAttribute($value)
+    {
+        $this->attributes['description'] = $value ?? '';
+    }
+
     public const STATUS_SELECT = [
         '1' => 'enabled',
         '2' => 'disabled',

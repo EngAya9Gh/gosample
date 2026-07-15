@@ -1833,12 +1833,13 @@ class TasksController extends Controller
     public function unUsedTasks(Request $request)
     {
         abort_if(Gate::denies('unused_tasks'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-	    $tasks = Task::leftjoin('clients','clients.id','=','tasks.billing_client')
+        // We use withoutGlobalScope to bypass the invisibility cloak we added for unused tasks!
+	    $tasks = Task::withoutGlobalScope('active')->leftjoin('clients','clients.id','=','tasks.billing_client')
             ->leftjoin('drivers','drivers.id','=','tasks.driver_id')
             ->leftjoin('locations as from','from.id','=','tasks.from_location')
             ->leftjoin('locations as to','to.id','=','tasks.to_location')
             ->where('drivers.status', 1)
-            ->select('tasks.*','clients.english_name','drivers.name as dname','from.name as from_name','to.name as to_name')->where('is_unused',true);
+            ->select('tasks.*','clients.english_name','drivers.name as dname','from.name as from_name','to.name as to_name')->where('is_unused',1);
         if (!empty($request->input('client_id'))){
             $tasks = $tasks->where('clients.id',$request->input('client_id'));
         }
@@ -2314,17 +2315,22 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
     public function destroy(Task $task)
     {
-        $this->authorize('can-delete');
+        $this->authorize('task_delete');
+        if ($task->status !== 'NEW') {
+            return back()->with('error', 'لا يمكن حذف المهمة إلا إذا كانت حالتها جديدة (NEW)');
+        }
 
         $task->delete();
 
-        return back();
+        return back()->with('message', trans('global.delete_success'));
     }
 
     public function massDestroy(MassDestroyTaskRequest $request)
     {
-        $this->authorize('can-delete');
-        Task::whereIn('id', request('ids'))->delete();
+        $this->authorize('task_delete');
+        
+        // Only delete tasks that are in NEW status
+        Task::whereIn('id', request('ids'))->where('status', 'NEW')->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
     }

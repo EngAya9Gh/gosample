@@ -15,13 +15,65 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CarLinkHistoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('car_link_history_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $carLinkHistories = CarLinkHistory::with(['driver', 'car'])->get();
+        $query = CarLinkHistory::with(['driver', 'car']);
 
-        return view('admin.carLinkHistories.index', compact('carLinkHistories'));
+        // Filtering
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->whereHas('driver', function ($q2) use ($keyword) {
+                    $q2->where('name', 'like', "%{$keyword}%");
+                })->orWhereHas('car', function ($q2) use ($keyword) {
+                    $q2->where('imei', 'like', "%{$keyword}%")
+                      ->orWhere('plate_number', 'like', "%{$keyword}%");
+                });
+            });
+        }
+
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sortBy', 'id');
+        $sortOrder = $request->get('sortOrder', 'desc');
+        $allowedSorts = ['id', 'created_at'];
+
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        // Pagination
+        $pageSize = $request->get('pageSize', 25);
+        $paginator = $query->paginate($pageSize);
+
+        // If it's an AJAX request (from axios in the Vue component)
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'rows' => $paginator->items(),
+                'total' => $paginator->total(),
+            ]);
+        }
+
+        // Initial page load
+        return \Inertia\Inertia::render('CarLinkHistories/CarLinkHistoriesList', [
+            'initialRows' => $paginator->items(),
+            'initialTotal' => $paginator->total(),
+        ]);
     }
 
     public function create()

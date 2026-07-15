@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
+        $existingIndexes = collect(DB::select('SHOW INDEX FROM tasks'))->pluck('Key_name')->unique()->toArray();
+
+        Schema::table('tasks', function (Blueprint $table) use ($existingIndexes) {
             // Drop the redundant index because (driver_id, collection_date) and (driver_id, billing_client) already cover driver_id lookups
-            if (Schema::hasColumn('tasks', 'driver_id')) {
-                // Ensure we only drop if we are certain it exists to prevent errors on some setups
-                try {
-                    $table->dropIndex('tasks_new_driver_id_index');
-                } catch (\Exception $e) {
-                    // Ignore if it's already dropped
-                }
+            if (in_array('tasks_new_driver_id_index', $existingIndexes)) {
+                $table->dropIndex('tasks_new_driver_id_index');
             }
         });
     }

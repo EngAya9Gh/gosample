@@ -14,13 +14,15 @@ use Illuminate\Support\Facades\Cache;
 
 class PermissionsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('permission_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $permissions = Permission::all();
+        $permissions = Permission::orderBy('name')->get();
 
-        return view('admin.permissions.index', compact('permissions'));
+        return inertia('Permissions/PermissionsList', [
+            'permissions' => $permissions
+        ]);
     }
 
     public function create()

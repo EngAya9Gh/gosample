@@ -37,4 +37,14 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+
+    /**
+     * Show the application's login form.
+     *
+     * @return \Inertia\Response
+     */
+    public function showLoginForm()
+    {
+        return \Inertia\Inertia::render('Auth/Login');
+    }
 }

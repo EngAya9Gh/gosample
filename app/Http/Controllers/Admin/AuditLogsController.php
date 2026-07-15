@@ -15,53 +15,31 @@ class AuditLogsController extends Controller
     {
         abort_if(Gate::denies('audit_log_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->ajax()) {
-            $query = AuditLog::query()->select(sprintf('%s.*', (new AuditLog())->table));
-            $table = Datatables::of($query);
+        $query = AuditLog::with([])
+            ->when($request->search, fn ($q, $s) =>
+                $q->where('description', 'like', "%{$s}%")
+                  ->orWhere('subject_type', 'like', "%{$s}%")
+                  ->orWhere('host', 'like', "%{$s}%")
+                  ->orWhere('user_id', 'like', "%{$s}%")
+            )
+            ->when($request->description, fn ($q, $v) =>
+                $q->where('description', $v)
+            )
+            ->orderBy('id', 'desc')
+            ->paginate(50)
+            ->withQueryString();
 
-            $table->addColumn('placeholder', '&nbsp;');
-            $table->addColumn('actions', '&nbsp;');
+        // Collect unique descriptions for filter dropdown
+        $descriptions = AuditLog::select('description')
+            ->distinct()
+            ->orderBy('description')
+            ->pluck('description');
 
-            $table->editColumn('actions', function ($row) {
-                $viewGate = 'audit_log_show';
-                $editGate = 'audit_log_edit';
-                $deleteGate = 'audit_log_delete';
-                $crudRoutePart = 'audit-logs';
-
-                return view('partials.datatablesActions', compact(
-                'viewGate',
-                'editGate',
-                'deleteGate',
-                'crudRoutePart',
-                'row'
-            ));
-            });
-
-            $table->editColumn('id', function ($row) {
-                return $row->id ? $row->id : '';
-            });
-            $table->editColumn('description', function ($row) {
-                return $row->description ? $row->description : '';
-            });
-            $table->editColumn('subject_id', function ($row) {
-                return $row->subject_id ? $row->subject_id : '';
-            });
-            $table->editColumn('subject_type', function ($row) {
-                return $row->subject_type ? $row->subject_type : '';
-            });
-            $table->editColumn('user_id', function ($row) {
-                return $row->user_id ? $row->user_id : '';
-            });
-            $table->editColumn('host', function ($row) {
-                return $row->host ? $row->host : '';
-            });
-
-            $table->rawColumns(['actions', 'placeholder']);
-
-            return $table->make(true);
-        }
-
-        return view('admin.auditLogs.index');
+        return inertia('AuditLogs/AuditLogsList', [
+            'logs'         => $query,
+            'descriptions' => $descriptions,
+            'filters'      => $request->only(['search', 'description']),
+        ]);
     }
 
     public function show(AuditLog $auditLog)

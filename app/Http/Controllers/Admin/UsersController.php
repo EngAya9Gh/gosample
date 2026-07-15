@@ -15,13 +15,56 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UsersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $users = User::with(['roles'])->get();
+        $query = User::with(['roles', 'clients']);
 
-        return view('admin.users.index', compact('users'));
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                  ->orWhere('email', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('role')) {
+            $query->whereHas('roles', function($q) use ($request) {
+                $q->where('id', $request->role);
+            });
+        }
+
+        if ($request->filled('client')) {
+            $query->whereHas('clients', function($q) use ($request) {
+                $q->where('id', $request->client);
+            });
+        }
+
+        $pageSize = $request->get('pageSize', 25);
+        $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'rows' => $paginator->items(),
+                'total' => $paginator->total(),
+            ]);
+        }
+
+        $roles = Role::pluck('name', 'id');
+        $logged_id_user = auth()->user();
+        if ($logged_id_user->client_id !== null) {
+            $clients = Client::whereIn('id', $logged_id_user->assigned_client_ids)->get();
+        } else {
+            $clients = Client::all();
+        }
+
+        return \Inertia\Inertia::render('Users/UsersList', [
+            'initialRows' => $paginator->items(),
+            'initialTotal' => $paginator->total(),
+            'roles' => $roles,
+            'clients' => $clients,
+        ]);
     }
 
     public function create()
@@ -47,8 +90,7 @@ class UsersController extends Controller
         $user = User::create($data);
         $user->roles()->sync($request->input('roles', []));
         $user->clients()->sync($clients);
-
-        return redirect()->route('admin.users.index');
+            return redirect()->route('app.admin.users.index');
     }
 
     public function edit(User $user)
@@ -71,18 +113,22 @@ class UsersController extends Controller
         // Gradual migration: clear client_id and put all clients in the pivot table
         $data['client_id'] = null;
 
+        // If password is empty/null, remove it from $data so we don't update it to empty
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
         $user->update($data);
         $user->roles()->sync($request->input('roles', []));
         $user->clients()->sync($clients);
-
-        return redirect()->route('admin.users.index');
+            return redirect()->route('app.admin.users.index');
     }
 
     public function show(User $user)
     {
         abort_if(Gate::denies('user_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $user->load('roles');
+        $user->load(['roles', 'clients']);
 
         return view('admin.users.show', compact('user'));
     }

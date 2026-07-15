@@ -13,13 +13,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TermsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('term_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $terms = Term::all();
 
-        return view('admin.terms.index', compact('terms'));
+        return inertia('Terms/TermsList', [
+            'terms' => $terms,
+        ]);
     }
 
     public function create()
@@ -32,7 +34,7 @@ class TermsController extends Controller
     public function store(StoreTermRequest $request)
     {
         $term = Term::create($request->all());
-
+            return redirect()->back();
         return redirect()->route('admin.terms.index');
     }
 
@@ -46,7 +48,7 @@ class TermsController extends Controller
     public function update(UpdateTermRequest $request, Term $term)
     {
         $term->update($request->all());
-
+            return redirect()->back();
         return redirect()->route('admin.terms.index');
     }
 
@@ -57,20 +59,20 @@ class TermsController extends Controller
         return view('admin.terms.show', compact('term'));
     }
 
-    public function destroy(Term $term)
+    public function destroy(Term $term, Request $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('term_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $term->delete();
-
+            return redirect()->back();
         return back();
     }
 
     public function massDestroy(MassDestroyTermRequest $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('term_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         Term::whereIn('id', request('ids'))->delete();
-
+            return redirect()->back();
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }

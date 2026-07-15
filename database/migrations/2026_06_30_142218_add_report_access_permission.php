@@ -13,22 +13,35 @@ return new class extends Migration
      */
     public function up()
     {
-        $exists = \DB::table('permissions')->where('name', 'report_access')->exists();
-        
-        if (!$exists) {
+        // Ensure the permission exists (all permissions in this app use the 'web' guard).
+        $permission = \DB::table('permissions')->where('name', 'report_access')->first();
+
+        if ($permission) {
+            $permissionId = $permission->id;
+        } else {
             $permissionId = \DB::table('permissions')->insertGetId([
                 'name' => 'report_access',
                 'guard_name' => 'web',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            
-            // Also assign it to Admin Role (assuming Admin is role_id 1)
-            \DB::table('permission_role')->insert([
+        }
+
+        // Assign it to the Admin role (role_id 1). Spatie pivot is role_has_permissions.
+        $alreadyLinked = \DB::table('role_has_permissions')
+            ->where('permission_id', $permissionId)
+            ->where('role_id', 1)
+            ->exists();
+
+        if (!$alreadyLinked) {
+            \DB::table('role_has_permissions')->insert([
                 'permission_id' => $permissionId,
-                'role_id' => 1
+                'role_id' => 1,
             ]);
         }
+
+        // Flush Spatie's cached permission map so the new grant takes effect immediately.
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     /**
@@ -40,7 +53,7 @@ return new class extends Migration
     {
         $permission = \DB::table('permissions')->where('name', 'report_access')->first();
         if ($permission) {
-            \DB::table('permission_role')->where('permission_id', $permission->id)->delete();
+            \DB::table('role_has_permissions')->where('permission_id', $permission->id)->delete();
             \DB::table('permissions')->where('id', $permission->id)->delete();
         }
     }
