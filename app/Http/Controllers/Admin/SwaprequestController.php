@@ -81,6 +81,21 @@ class SwaprequestController extends Controller
         ]);
     }
 
+    
+    public function getTasksForDriver(Request $request)
+    {
+        $tasks = \App\Models\Task::with('from')
+            ->where('tasks.driver_id', $request->driver_id)
+            ->where('tasks.status', '<>', 'NO_SAMPLES')
+            ->where('tasks.status', '<>', 'CLOSED')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $tasks
+        ]);
+    }
+
     public function store(StoreSwaprequestRequest $request)
     {
         if (!$request->filled('status')) {

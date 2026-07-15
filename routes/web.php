@@ -169,6 +169,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
 
     // Swaprequest
     Route::delete('swaprequests/destroy', 'SwaprequestController@massDestroy')->name('swaprequests.massDestroy');
+    Route::post('swaprequests/tasks/list', 'SwaprequestController@getTasksForDriver')->name('swaprequests.tasks.list');
     Route::resource('swaprequests', 'SwaprequestController');
 
 
@@ -472,3 +473,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('{any}', fn () => \Inertia\Inertia::render('system/ComingSoon'))
         ->where('any', '^(?!assets|build|storage|api).*$')->name('fallback');
 });
+
+

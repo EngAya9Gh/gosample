@@ -164,7 +164,7 @@ watch(() => form.driver_a, async (newDriverId) => {
   }
   tasksLoading.value = true;
   try {
-    const { data } = await axios.post('/api/swap/tasks/list', { driver_id: newDriverId });
+    const { data } = await axios.post('/admin/swaprequests/tasks/list', { driver_id: newDriverId });
     if (data.status) {
       dynamicTasks.value = data.data || [];
     }
@@ -471,7 +471,7 @@ const submitForm = () => {
               label="Task(s)"
               :options="taskOptions"
               :error="form.errors.task_id"
-              placeholder="Select Task (Choose Driver A first)"
+              :placeholder="form.driver_a ? 'Select Task(s)' : 'Select Task (Choose Driver A first)'"
               :multiple="!isEdit"
               required
               searchable
