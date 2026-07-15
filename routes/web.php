@@ -202,11 +202,19 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
      Route::post('task-report', 'TasksController@export')->name('reportExport');
 
       // Scheduled Task
-    Route::delete('scheduled-tasks/destroy', 'ScheduledTaskController@massDestroy')->name('scheduled-tasks.massDestroy');
+    Route::delete('scheduled-tasks/massDestroy', 'ScheduledTaskController@massDestroy')->name('scheduled-tasks.massDestroy');
     Route::delete('scheduled-tasks/{scheduledTask}/children/destroy', 'ScheduledTaskController@massDestroyChildren')->name('scheduled-tasks.childrenMassDestroy');
     Route::get('scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quick'])->name('scheduled-tasks.quick');
     Route::post('scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quickAction'])->name('scheduled-tasks.quickAction');
-    Route::resource('scheduled-tasks', 'ScheduledTaskController');
+    // --- SPA Scheduled Tasks (Vue) — must be declared BEFORE the legacy resource ---
+    Route::get('scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('scheduled-tasks.index');
+    Route::get('scheduled-tasks/create', [\App\Http\Controllers\App\ScheduledTasksController::class, 'create'])->name('scheduled-tasks.create');
+    Route::post('scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'store'])->name('scheduled-tasks.store');
+    Route::get('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'show'])->name('scheduled-tasks.show');
+    Route::put('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'update'])->name('scheduled-tasks.update');
+    Route::delete('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'destroy'])->name('scheduled-tasks.destroy');
+    // Legacy resource — only 'edit' still needed (blade redirect guard)
+    Route::resource('scheduled-tasks', 'ScheduledTaskController', ['only' => ['edit']]);
 
     // Legacy SPA routes commented out due to naming conflicts with SPA rebuild
     // Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');
@@ -312,11 +320,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('admin/tasks', [\App\Http\Controllers\App\TasksController::class, 'index'])->name('admin.tasks.index');
     Route::get('admin/driver-tracking', [\App\Http\Controllers\Admin\DriverTrackingController::class, 'clientDashboard'])->name('admin.driver-tracking');
-    Route::get('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'index'])->name('admin.scheduled-tasks.index');
-    Route::get('admin/scheduled-tasks/create', [\App\Http\Controllers\App\ScheduledTasksController::class, 'create'])->name('admin.scheduled-tasks.create');
-    Route::post('admin/scheduled-tasks', [\App\Http\Controllers\App\ScheduledTasksController::class, 'store'])->name('admin.scheduled-tasks.store');
-    // Route::get('admin/scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quick'])->name('admin.scheduled-tasks.quick');
-    // Route::post('admin/scheduled-tasks/quick', [\App\Http\Controllers\App\ScheduledTasksController::class, 'quickAction'])->name('admin.scheduled-tasks.quickAction');
 
     // System Calendar (SPA rebuild of Admin\SystemCalendarController)
     Route::get('admin/system-calendar', [\App\Http\Controllers\App\SystemCalendarController::class, 'index'])->name('admin.system-calendar');

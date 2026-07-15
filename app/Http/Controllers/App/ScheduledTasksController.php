@@ -90,9 +90,13 @@ class ScheduledTasksController extends Controller
                 'name'               => $row->name,
                 'status'             => $row->status,
                 'task_type'          => $row->task_type,
+                'driver_id'          => $row->driver_id,
                 'driver_name'        => $row->driver ? $row->driver->name : null,
+                'client_id'          => $row->client_id,
                 'client_name'        => $row->client ? $row->client->english_name : null,
+                'from_location_id'   => $row->from_location_id,
                 'from_location_name' => $row->from_location ? $row->from_location->name : null,
+                'to_location_id'     => $row->to_location_id,
                 'to_location_name'   => $row->to_location ? $row->to_location->name : null,
                 'start_date'         => $row->start_date,
                 'end_date'           => $row->end_date,
@@ -186,7 +190,7 @@ class ScheduledTasksController extends Controller
             }
         }
 
-        return redirect()->route('app.admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
+        return redirect()->route('admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
     }
 
     /** Add Quick Schedule Task page. */
@@ -227,6 +231,78 @@ class ScheduledTasksController extends Controller
             }
         }
 
-        return redirect()->route('app.admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
+        return redirect()->route('admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) created successfully.');
     }
+
+    /**
+     * Display the specified scheduled task (Vue).
+     */
+    public function show(ScheduledTask $scheduledTask)
+    {
+        abort_if(Gate::denies('scheduled_task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $scheduledTask->load('driver', 'client', 'from_location', 'to_location');
+
+        // Fetch children instances if this is a parent, else fetch parent and its other children
+        $relatedTasks = $scheduledTask->parent_id
+            ? ScheduledTask::where('parent_id', $scheduledTask->parent_id)
+                ->orWhere('id', $scheduledTask->parent_id)
+                ->with(['driver', 'client', 'from_location', 'to_location'])
+                ->get()
+            : ScheduledTask::where('parent_id', $scheduledTask->id)
+                ->orWhere('id', $scheduledTask->id)
+                ->with(['driver', 'client', 'from_location', 'to_location'])
+                ->get();
+
+        return Inertia::render('Tasks/ScheduledTaskShow', [
+            'task' => $scheduledTask,
+            'relatedTasks' => $relatedTasks
+        ]);
+    }
+
+    /**
+     * Update scheduled task(s).
+     */
+    public function update(Request $request, ScheduledTask $scheduledTask)
+    {
+        abort_if(Gate::denies('scheduled_task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'status' => 'required',
+            'task_type' => 'required',
+        ]);
+
+        $scheduledTask->update($request->all());
+
+        if ($request->update_related) {
+            // Update all children with same details except for day and selected hour
+            $dataToUpdate = $request->except(['day', 'selected_hour', 'update_related']);
+            
+            if ($scheduledTask->parent_id) {
+                // Update parent and siblings
+                ScheduledTask::where('parent_id', $scheduledTask->parent_id)
+                    ->orWhere('id', $scheduledTask->parent_id)
+                    ->update($dataToUpdate);
+            } else {
+                // Update children
+                ScheduledTask::where('parent_id', $scheduledTask->id)
+                    ->update($dataToUpdate);
+            }
+        }
+
+        return response()->json(['message' => 'Scheduled task(s) updated successfully.']);
+    }
+
+    /**
+     * Delete a scheduled task.
+     */
+    public function destroy(ScheduledTask $scheduledTask)
+    {
+        abort_if(Gate::denies('scheduled_task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $scheduledTask->delete();
+
+        return response()->json(['message' => 'Scheduled task deleted successfully.']);
+    }
+
 }
