@@ -16,11 +16,11 @@ class ForceDriverIdMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-//        if (auth()->guard('drivers')->check()) {
-//            $request->merge([
-//                'driver_id' => auth()->guard('drivers')->id()
-//            ]);
-//        }
+        if (auth()->guard('drivers')->check()) {
+            $request->merge([
+                'driver_id' => auth()->guard('drivers')->id()
+            ]);
+        }
 
         return $next($request);
     }
