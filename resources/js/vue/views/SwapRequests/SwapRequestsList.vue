@@ -473,6 +473,7 @@ const submitForm = () => {
               :error="form.errors.task_id"
               :placeholder="form.driver_a ? 'Select Task(s)' : 'Select Task (Choose Driver A first)'"
               :multiple="!isEdit"
+              :loading="tasksLoading"
               required
               searchable
               floating
