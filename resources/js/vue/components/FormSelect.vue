@@ -17,6 +17,7 @@ const props = defineProps({
   helper:  { type: String, default: '' },
   error:   { type: String, default: '' },
   required:{ type: Boolean, default: false },
+  loading: { type: Boolean, default: false },
   // Teleport the dropdown panel to <body> so it isn't clipped by an overflow
   // ancestor (e.g. a modal body). Use inside modals.
   floating:{ type: Boolean, default: false },
@@ -111,7 +112,9 @@ onBeforeUnmount(() => {
       </template>
       <span v-else-if="!multiple && singleLabel" class="text-ink dark:text-slate-100">{{ singleLabel }}</span>
       <span v-else class="text-slate-400">{{ placeholder }}</span>
-      <i class="ri-arrow-down-s-line ms-auto text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
+      
+      <i v-if="loading" class="ri-loader-4-line animate-spin ms-auto text-primary-500"></i>
+      <i v-else class="ri-arrow-down-s-line ms-auto text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
     </button>
 
     <!-- panel — teleported to <body> when floating so a modal's overflow can't clip it -->
@@ -141,7 +144,10 @@ onBeforeUnmount(() => {
             </span>
             <span class="flex-1 leading-tight break-words">{{ o.label }}</span>
           </li>
-          <li v-if="!filtered.length" class="px-2.5 py-3 text-sm text-slate-400 text-center">No matches</li>
+          <li v-if="loading" class="px-2.5 py-3 text-sm text-slate-400 text-center">
+            <i class="ri-loader-4-line animate-spin inline-block me-1"></i> Loading...
+          </li>
+          <li v-else-if="!filtered.length" class="px-2.5 py-3 text-sm text-slate-400 text-center">No matches</li>
         </ul>
       </div>
       </Teleport>

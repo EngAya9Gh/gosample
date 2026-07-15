@@ -54,11 +54,14 @@ const form = useForm({
 });
 
 
+const tasksLoading = ref(false);
+
 watch(() => form.driver_a, async (newVal) => {
   if (!newVal) {
     dynamicTasks.value = [];
     return;
   }
+  tasksLoading.value = true;
   try {
     const res = await fetch('/admin/swaprequests/tasks/list', {
       method: 'POST',
@@ -78,6 +81,8 @@ watch(() => form.driver_a, async (newVal) => {
   } catch (err) {
     console.error('Error fetching tasks', err);
     dynamicTasks.value = [];
+  } finally {
+    tasksLoading.value = false;
   }
 }, { immediate: true });
 
@@ -171,6 +176,7 @@ const submit = () => {
             :error="form.errors.task_id"
             placeholder="Select Task"
             :multiple="!isEdit"
+            :loading="tasksLoading"
             required
             searchable
           />
