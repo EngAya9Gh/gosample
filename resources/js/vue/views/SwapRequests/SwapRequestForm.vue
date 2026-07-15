@@ -23,16 +23,21 @@ const driverOptions = computed(() => {
     .map(([value, label]) => ({ value: Number(value), label }));
 });
 
+const hasSelectedDriver = computed(() => !!form.driver_a);
+
 const taskOptions = computed(() => {
-  if (dynamicTasks.value.length > 0) {
+  if (hasSelectedDriver.value) {
     return dynamicTasks.value.map(item => ({
       value: item.id,
       label: `#${item.id} ${item.from ? item.from.name : ''} - (${item.status})`
     }));
   }
-  return Object.entries(props.tasks)
-    .filter(([value, label]) => value !== '')
-    .map(([value, label]) => ({ value: Number(value), label: `#${label}` }));
+  if (isEdit.value) {
+    return Object.entries(props.tasks)
+      .filter(([value, label]) => value !== '')
+      .map(([value, label]) => ({ value: Number(value), label: `#${label}` }));
+  }
+  return [];
 });
 
 const statusOptions = [
@@ -55,7 +60,7 @@ watch(() => form.driver_a, async (newVal) => {
     return;
   }
   try {
-    const res = await fetch('/api/swap/tasks/list', {
+    const res = await fetch('/admin/swaprequests/tasks/list', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
