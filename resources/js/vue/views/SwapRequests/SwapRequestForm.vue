@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -15,6 +15,8 @@ const props = defineProps({
 const isEdit = computed(() => !!props.swaprequest.id);
 
 // Convert Laravel's pluck object into arrays for FormSelect
+const dynamicTasks = ref([]);
+
 const driverOptions = computed(() => {
   return Object.entries(props.drivers)
     .filter(([value, label]) => value !== '')
@@ -22,6 +24,12 @@ const driverOptions = computed(() => {
 });
 
 const taskOptions = computed(() => {
+  if (dynamicTasks.value.length > 0) {
+    return dynamicTasks.value.map(item => ({
+      value: item.id,
+      label: `#${item.id} ${item.from ? item.from.name : ''} - (${item.status})`
+    }));
+  }
   return Object.entries(props.tasks)
     .filter(([value, label]) => value !== '')
     .map(([value, label]) => ({ value: Number(value), label: `#${label}` }));
@@ -39,6 +47,35 @@ const form = useForm({
   task_id: isEdit.value ? props.swaprequest.task_id || '' : [],
   status: props.swaprequest.status || 'new',
 });
+
+
+watch(() => form.driver_a, async (newVal) => {
+  if (!newVal) {
+    dynamicTasks.value = [];
+    return;
+  }
+  try {
+    const res = await fetch('/api/swap/tasks/list', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      },
+      body: JSON.stringify({ driver_id: newVal })
+    });
+    const data = await res.json();
+    if (data && data.status && data.data) {
+      dynamicTasks.value = data.data;
+    } else {
+      dynamicTasks.value = [];
+    }
+  } catch (err) {
+    console.error('Error fetching tasks', err);
+    dynamicTasks.value = [];
+  }
+}, { immediate: true });
+
 
 const submit = () => {
   if (isEdit.value) {
