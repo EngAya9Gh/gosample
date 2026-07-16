@@ -266,6 +266,7 @@ const copyToClipboard = async (text) => {
       :loading="loading"
       :sort-by="searchForm.sortBy"
       :sort-order="searchForm.sortOrder"
+      server-side
       @query="onQuery"
     >
       <!-- ID — same design as the Tasks page ID column -->
