@@ -84,7 +84,7 @@ class LocationsController extends Controller
                 $clientLocation->save();
             }
         }
-            return redirect()->route('app.admin.locations.index');
+            return redirect()->route('admin.locations.index');
     }
 
     public function edit($id)
@@ -99,7 +99,7 @@ class LocationsController extends Controller
     {
         $location = Location::withoutGlobalScope('enabled')->findOrFail($id);
         $location->update($request->all());
-            return redirect()->route('app.admin.locations.index');
+            return redirect()->route('admin.locations.index');
     }
 
     public function show($id)
