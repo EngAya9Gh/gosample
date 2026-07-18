@@ -56,11 +56,11 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->from_location != $request->location_id)
                     {
-                        return $this->response(false,'location is not found');
+                        return $this->response(false,__('messages.location_not_found'));
                     }
                 }
 
@@ -68,7 +68,7 @@ class SampleController extends Controller
                 $oldSample = Sample::where('barcode_id',$request->barcode_id)->get();
                 if($oldSample != null && count($oldSample) > 0)
                 {
-                    return $this->response(false,'sample already added to task');
+                    return $this->response(false,__('messages.sample_already_added_to_task'));
                 }
                 // check location
                 $record = new Sample();
@@ -82,7 +82,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$record);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -103,7 +103,7 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($request->bag_code != null)
                     {
@@ -115,7 +115,7 @@ class SampleController extends Controller
                 }
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -149,7 +149,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$record);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -169,7 +169,7 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     $driver = Driver::find($task->driver_id);
                     $task->status = 'NO_SAMPLES';
@@ -186,7 +186,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function collect(Request $request)
@@ -207,11 +207,11 @@ class SampleController extends Controller
                 $task = Task::with(['driver', 'from'])->find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->status != 'NEW' && $task->status != 'NO_SAMPLES')
                     {
-                        return $this->response(false,'task status is not valid');
+                        return $this->response(false,__('messages.task_status_not_valid'));
                     }
 
 
@@ -223,14 +223,14 @@ class SampleController extends Controller
                             // should update sample to add box_count & sample_count
                         }
                         else{
-                            return $this->response(false,'box count  is required');
+                            return $this->response(false,__('messages.box_count_is_required'));
                         }
                         if($request->sample_count != null)
                         {
                             $task->sample_count = $request->sample_count;
                         }
                         else{
-                            return $this->response(false,'sample count  is required');
+                            return $this->response(false,__('messages.sample_count_is_required'));
                         }
                     }
 
@@ -245,7 +245,7 @@ class SampleController extends Controller
                     // {
                         if($distance > 0.4 )
                         {
-                            return $this->response(false,'you cannot close task in this location');
+                            return $this->response(false,__('messages.cannot_close_task_in_this_location'));
                         }
                     // }
 
@@ -314,7 +314,7 @@ class SampleController extends Controller
                 'task_id' => $request->task_id,
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -334,17 +334,17 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->status != 'COLLECTED')
                     {
-                        return $this->response(false,'task status is not valid');
+                        return $this->response(false,__('messages.task_status_not_valid'));
                     }
                     // check if driver added all bags to freezers
                     $sample = Sample::where('task_id',$request->task_id)
                         ->whereNull('container_id')->get();
                     if(count($sample)  > 0 ){
-                        return $this->response(false,'please add all bags');
+                        return $this->response(false,__('messages.please_add_all_bags'));
                     }
 
 
@@ -369,7 +369,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -391,20 +391,20 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     $sample = Sample::where('task_id',$request->task_id)->where('bag_code',$request->bag_code)->first();
 
                     if($sample == null)
                     {
-                        return $this->response(false,'bag is not found');
+                        return $this->response(false,__('messages.bag_not_found'));
                     }
                     $driver = Driver::where('id',$task->driver_id)->with(['car'])
                         ->first();
 
                     if($driver->car == null)
                     {
-                        return $this->response(false,'Please add car to driver');
+                        return $this->response(false,__('messages.please_add_car_to_driver'));
                     }
                     $containers = $driver->car->containers;
                     foreach ($containers as $container){
@@ -424,7 +424,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -444,18 +444,18 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
 
                     if($task->status != 'IN_FREEZER')
                     {
-                        return $this->response(false,'task status is not valid');
+                        return $this->response(false,__('messages.task_status_not_valid'));
                     }
                     // check that all bags are removed from container before changing status
                     $sample = Sample::where('task_id',$request->task_id)
                         ->whereNotNull('container_id')->get();
                    if(count($sample)  > 0 ){
-                       return $this->response(false,'please remove all bags');
+                       return $this->response(false,__('messages.please_remove_all_bags'));
                    }
                     $driver = Driver::find($task->driver_id);
                     $task->status = 'OUT_FREEZER';
@@ -478,7 +478,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -502,20 +502,20 @@ class SampleController extends Controller
                     $task = Task::find($task_id);
                     if($task == null)
                     {
-                        return $this->response(false,'task is not found');
+                        return $this->response(false,__('messages.task_not_found'));
                     } else{
 
                         if($task->status != 'IN_FREEZER')
                         {
                             DB::rollBack();
-                            return $this->response(false,'task status is not valid');
+                            return $this->response(false,__('messages.task_status_not_valid'));
                         }
                         // check that all bags are removed from container before changing status
                         $sample = Sample::where('task_id',$task_id)
                             ->whereNotNull('container_id')->get();
                         if(count($sample)  > 0 ){
                             DB::rollBack();
-                            return $this->response(false,'please remove all bags');
+                            return $this->response(false,__('messages.please_remove_all_bags'));
                         }
                         $driver = Driver::find($task->driver_id);
                         $task->status = 'OUT_FREEZER';
@@ -539,7 +539,7 @@ class SampleController extends Controller
             }
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -561,12 +561,12 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
 
                     if($task->status != 'OUT_FREEZER')
                     {
-                        return $this->response(false,'task status is not valid');
+                        return $this->response(false,__('messages.task_status_not_valid'));
                     }
 
                     $driver = Driver::find($task->driver_id);
@@ -604,7 +604,7 @@ class SampleController extends Controller
                 'task_id' => $request->task_id,
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -630,7 +630,7 @@ class SampleController extends Controller
                 $tasks = Task::whereIn('id',$tasksParam)->with(['driver', 'from', 'to'])->get();
                 if($tasks->isEmpty())
                 {
-                    return $this->response(false,'tasks are not found');
+                    return $this->response(false,__('messages.tasks_not_found'));
                 } else {
                     $ldate = date('Y-m-d H:i:s');
                     $driver = $tasks->first()->driver;
@@ -655,14 +655,14 @@ class SampleController extends Controller
                     foreach ($tasks as $task){
                         if($task->status != 'OUT_FREEZER')
                         {
-                            return $this->response(false,'task status is not valid for task ' . $task->id);
+                            return $this->response(false,__('messages.task_status_not_valid_for_task', ['task' => $task->id]));
                         }
                         
                         $to_location = $task->to;
                         $distance = parent::distance($lat, $lng, $to_location->lat, $to_location->lng, "K");
                         if($distance > 0.2)
                         {
-                            return $this->response(false,'you cannot close task in this location for task ' . $task->id);
+                            return $this->response(false,__('messages.cannot_close_task_in_this_location_for_task', ['task' => $task->id]));
                         }
 
                         $task->status = 'CLOSED';
@@ -693,7 +693,7 @@ class SampleController extends Controller
                 'tasks' => $request->tasks,
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -718,18 +718,18 @@ class SampleController extends Controller
                 $location = Location::find($request->location_id);
                 if($location == null)
                 {
-                    return $this->response(false,'location is not found');
+                    return $this->response(false,__('messages.location_not_found'));
                 }
 
                 // check task
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->from_location != $request->location_id)
                     {
-                        return $this->response(false,'location is not found');
+                        return $this->response(false,__('messages.location_not_found'));
                     }
                 }
                 $with_blazma = $location->integration_branch_id ?? false;
@@ -741,7 +741,7 @@ class SampleController extends Controller
                 $oldSample = Sample::where('bag_code',$request->bag_code)->where('task_id',$request->task_id)->get();
                 if($oldSample != null && count($oldSample) > 0)
                 {
-                    return $this->response(false,'bag already added to task');
+                    return $this->response(false,__('messages.bag_already_added_to_task'));
                 }
                 DB::beginTransaction();
                 $blazmaSamples = collect();
@@ -806,7 +806,7 @@ class SampleController extends Controller
                 'barcode_ids_count' => count($request->barcode_ids ?? []),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function getBagsByTaskId(Request $request)
@@ -829,7 +829,7 @@ class SampleController extends Controller
 
             return $this->response(true, 'success', $data);
         } catch (Exception $e) {
-            return $this->response(false, 'system error');
+            return $this->response(false, __('messages.system_error'));
         }
     }
 
@@ -860,17 +860,17 @@ class SampleController extends Controller
                 $location = Location::find($data['location_id']);
                 if ($location == null) {
                     DB::rollBack();
-                    return $this->response(false, 'location is not found');
+                    return $this->response(false, __('messages.location_not_found'));
                 }
 
                 $task = Task::find($data['task_id']);
                 if ($task == null) {
                     DB::rollBack();
-                    return $this->response(false, 'task is not found');
+                    return $this->response(false, __('messages.task_not_found'));
                 } else {
                     if ($task->from_location != $data['location_id']) {
                         DB::rollBack();
-                        return $this->response(false, 'location is not found');
+                        return $this->response(false, __('messages.location_not_found'));
                     }
                 }
                 $with_blazma = $location->integration_branch_id ?? false;
@@ -881,7 +881,7 @@ class SampleController extends Controller
                 $oldSample = Sample::where('bag_code', $data['bag_code'])->where('task_id', $data['task_id'])->get();
                 if ($oldSample != null && count($oldSample) > 0) {
                     DB::rollBack();
-                    return $this->response(false, 'bag already added to task');
+                    return $this->response(false, __('messages.bag_already_added_to_task'));
                 }
                 if ($is_blazma_integration && isset($data['barcode_ids'][0])) {
                     SampleTracking::where('sample_id', $data['barcode_ids'][0])->where('collection_hospital_id',$location->integration_branch_id)->whereNull('task_id')->update(['is_collected' => true,'task_id'=>$task->id]);
@@ -934,7 +934,7 @@ class SampleController extends Controller
                 'data_array_count' => count($dataArray ?? []),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false, 'system error');
+            return $this->response(false, __('messages.system_error'));
         }
     }
 
@@ -997,16 +997,16 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->from_location != $request->location_id)
                     {
-                        return $this->response(false,'location is not found');
+                        return $this->response(false,__('messages.location_not_found'));
                     }
 
                     if($task->task_type != 'BOX')
                     {
-                        return $this->response(false,'task type is not correct');
+                        return $this->response(false,__('messages.task_type_not_correct'));
                     }
                 }
                 $logService = new LogService();
@@ -1014,7 +1014,7 @@ class SampleController extends Controller
                 $location = Location::find($request->location_id);
                 if($location == null)
                 {
-                    return $this->response(false,'location is not found');
+                    return $this->response(false,__('messages.location_not_found'));
                 }
                 $with_blazma = $location->integration_branch_id ?? false;
                 if ($with_blazma && $logService->hasIntegration($task)) {
@@ -1025,7 +1025,7 @@ class SampleController extends Controller
                 $oldSample = Sample::whereIn('bag_code',$request->barcode_ids)->where('task_id',$request->task_id)->get();
                 if($oldSample != null && count($oldSample) > 0)
                 {
-                    return $this->response(false,'bag already added to task');
+                    return $this->response(false,__('messages.bag_already_added_to_task'));
                 }
                 DB::beginTransaction();
                 $blazmaSamples = collect();
@@ -1092,7 +1092,7 @@ class SampleController extends Controller
                 'barcode_ids_count' => count($request->barcode_ids ?? []),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1113,13 +1113,13 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
                 $samples = Sample::where('bag_code',$request->bag_code)->where('task_id',$request->task_id)->get();
                 return $this->response(true,'success',$samples);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function getBagSamplesWithType(Request $request)
@@ -1140,7 +1140,7 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
                 $samples = Sample::where('bag_code',$request->bag_code)->where('task_id',$request->task_id)->get();
 //                return count($samples);
@@ -1155,7 +1155,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$samples);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1177,7 +1177,7 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
 
@@ -1185,18 +1185,18 @@ class SampleController extends Controller
                 $container = Container::find($request->container_id);
                 if($container == null)
                 {
-                    return $this->response(false,'container is not found');
+                    return $this->response(false,__('messages.container_not_found'));
                 }
 
                 // check if sample is already existed
                 $oldSample = Sample::where('barcode_id',$request->barcode_id)->where('task_id',$request->task_id)->first();
                 if($oldSample == null )
                 {
-                    return $this->response(false,'sample is not existed');
+                    return $this->response(false,__('messages.sample_not_existed'));
                 } else{
                     if($container->type != $oldSample->type)
                     {
-                        return $this->response(false,'sample type is not equal to container type');
+                        return $this->response(false,__('messages.sample_type_not_equal_to_container_type'));
                     }
 
                 }
@@ -1207,7 +1207,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$record);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1230,7 +1230,7 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
 
@@ -1238,7 +1238,7 @@ class SampleController extends Controller
                 $container = Container::find($request->container_id);
                 if($container == null)
                 {
-                    return $this->response(false,'container is not found');
+                    return $this->response(false,__('messages.container_not_found'));
                 }
 
                 // check if sample is already existed
@@ -1260,7 +1260,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1301,7 +1301,7 @@ class SampleController extends Controller
 
                 $task = Task::find($data['task_id']);
                 if ($task == null) {
-                    return $this->response(false, 'task is not found');
+                    return $this->response(false, __('messages.task_not_found'));
                 }
 
                 // Security Check: Ensure the logged-in driver is the owner of the task
@@ -1326,7 +1326,7 @@ class SampleController extends Controller
                $container = Container::find($container_id);
                 //    \Log::info($container_id);
                if ($container == null) {
-                   return $this->response(false, 'container is not found');
+                   return $this->response(false, __('messages.container_not_found'));
                }
 
                if (!in_array($container_id, $driver_containers)) {
@@ -1351,7 +1351,7 @@ class SampleController extends Controller
 
             return $this->response(true, 'success');
         } catch (Exception $e) {
-            return $this->response(false, 'system error');
+            return $this->response(false, __('messages.system_error'));
         }
     }
 
@@ -1373,14 +1373,14 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
                 // check if sample is already existed
                 $oldSample = Sample::where('barcode_id',$request->barcode_id)->where('task_id',$request->task_id)->first();
                 if($oldSample == null )
                 {
-                    return $this->response(false,'sample is not existed');
+                    return $this->response(false,__('messages.sample_not_existed'));
                 }
                 // check location
                 $record = $oldSample;
@@ -1389,7 +1389,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1412,7 +1412,7 @@ class SampleController extends Controller
                 $tasksCount = Task::whereIn('id', $taskIds)->count();
                 if($tasksCount == 0)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
                 $bagCodes = is_array($request->bag_code) ? $request->bag_code : [$request->bag_code];
@@ -1443,7 +1443,7 @@ class SampleController extends Controller
                 return $this->response(true,'success', $responseData);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1463,14 +1463,14 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
                 // check if sample is already existed
                 $oldSample = Sample::where('barcode_id',$request->barcode_id)->delete();
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1491,9 +1491,9 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
-                // return $this->response(false,'cannot collect in this location');
+                // return $this->response(false,__('messages.cannot_collect_in_this_location'));
 
                 $driver = Driver::find($task->driver_id);
                 $lat = $driver->lat;
@@ -1513,7 +1513,7 @@ class SampleController extends Controller
                         // \Log::info($from_location->lat);
                         // \Log::info($from_location->lng);
                         // \Log::info('--------');
-                        return $this->response(false,'cannot collect in this location');
+                        return $this->response(false,__('messages.cannot_collect_in_this_location'));
                     }
                 // }
 
@@ -1554,7 +1554,7 @@ class SampleController extends Controller
 
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1580,21 +1580,21 @@ class SampleController extends Controller
                 }
                 if(sizeof($tasksParam) == 0)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
 
                 $location= Location::find($request->to_location);
                 if($location == null)
                 {
-                    return $this->response(false,'location is not found');
+                    return $this->response(false,__('messages.location_not_found'));
                 }
 
 
                 // check if location of task is equal to sent location
                 $firstTask = Task::find($tasksParam[0]);
                 if($firstTask->to_location != $request->to_location){
-                    return $this->response(false,'location is not valid');
+                    return $this->response(false,__('messages.location_not_valid'));
                 }
 
 
@@ -1621,7 +1621,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1641,13 +1641,13 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
                 $container = Container::find($request->container_id);
                 if($container == null)
                 {
-                    return $this->response(false,'container is not found');
+                    return $this->response(false,__('messages.container_not_found'));
                 }
 
                 $samples = Sample::select('bag_code','temperature_type')->where('task_id',$request->task_id)
@@ -1658,7 +1658,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$samples);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function checkSample(Request $request)
@@ -1679,11 +1679,11 @@ class SampleController extends Controller
 //                $task = Task::find($request->task_id);
 //                if($task == null)
 //                {
-//                    return $this->response(false,'task is not found');
+//                    return $this->response(false,__('messages.task_not_found'));
 //                } else{
 //                    if($task->status != 'CLOSED')
 //                    {
-//                        return $this->response(false,'task status is not closed from driver');
+//                        return $this->response(false,__('messages.task_status_not_closed_from_driver'));
 //                    }
 //
 //
@@ -1708,11 +1708,11 @@ class SampleController extends Controller
                     return $this->response(true,'success');
                 }
                 else{
-                    return $this->response(false,'sample is not under this task');
+                    return $this->response(false,__('messages.sample_not_under_this_task'));
                 }
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1733,11 +1733,11 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->status != 'CLOSED')
                     {
-                        return $this->response(false,'task status is not closed from driver');
+                        return $this->response(false,__('messages.task_status_not_closed_from_driver'));
                     }
 
                     // check sample
@@ -1753,12 +1753,12 @@ class SampleController extends Controller
                         return $this->response(true,'success');
                     }
                     else{
-                        return $this->response(false,'sample is not under this task');
+                        return $this->response(false,__('messages.sample_not_under_this_task'));
                     }
                 }
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function getConfirmedSamples(Request $request)
@@ -1777,10 +1777,10 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task is not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 } else{
                     if($task->status != 'CLOSED') {
-                        return $this->response(false,'task status is not closed from driver');
+                        return $this->response(false,__('messages.task_status_not_closed_from_driver'));
                     }
 
                     // check sample
@@ -1793,7 +1793,7 @@ class SampleController extends Controller
 
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1816,12 +1816,12 @@ class SampleController extends Controller
                 // // \Log::info($task);
                 // if($task == null)
                 // {
-                //     return $this->response(false,'task is not found');
+                //     return $this->response(false,__('messages.task_not_found'));
                 // } else{
 ////                    return $task;
 //                    if($task->status != 'CLOSED')
 //                    {
-//                        return $this->response(false,'task status is not closed from driver');
+//                        return $this->response(false,__('messages.task_status_not_closed_from_driver'));
 //                    }
 
                     // get last task of this dirver
@@ -1835,7 +1835,7 @@ class SampleController extends Controller
                     $to_location = null;
                     if($lastestTask  == null)
                     {
-                        return $this->response(false,'no task available');
+                        return $this->response(false,__('messages.no_task_available'));
                     }
                     $billing_client= $lastestTask->billing_client;
                     if($request->location_id == null)
@@ -1887,7 +1887,7 @@ class SampleController extends Controller
 
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1927,13 +1927,13 @@ class SampleController extends Controller
                         return $this->response(true,'success');
                 } else{
 
-                    return $this->response(false,'sample not found');
+                    return $this->response(false,__('messages.sample_not_found'));
                 }
 
 
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1961,7 +1961,7 @@ class SampleController extends Controller
 //                return $this->response(true,'success',$sample);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -1980,11 +1980,11 @@ class SampleController extends Controller
                 $sample = Sample::where('barcode_id',$request->sample)->first();
                 if($sample == null)
                 {
-                    return $this->response(false,'sample not found');
+                    return $this->response(false,__('messages.sample_not_found'));
                 } else{
                     if($sample->confirmed_by_client == 'YES')
                     {
-                        return $this->response(false,'sample already confirmed by '.$sample->confirmed_by);
+                        return $this->response(false,__('messages.sample_already_confirmed_by', ['confirmed_by' => $sample->confirmed_by]));
                     }
                     $sample->confirmed_by_client = 'LOST';
                     $sample->confirmed_by = $request->marked_by;
@@ -1997,7 +1997,7 @@ class SampleController extends Controller
 
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
     public function confirmAll(Request $request)
@@ -2063,7 +2063,7 @@ class SampleController extends Controller
                 return $this->response(true,'success', $result);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -2240,7 +2240,7 @@ class SampleController extends Controller
                 return $this->response(true,'success',$results);
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
 
     }
@@ -2276,7 +2276,7 @@ class SampleController extends Controller
         $task = Task::find($request->task_id);
         if($task == null)
         {
-            return $this->response(false,'task not found');
+            return $this->response(false,__('messages.task_not_found'));
         }
         // Perform the task confirmation logic here
         $task->confirmed_received_by_driver = true;
@@ -2309,13 +2309,13 @@ class SampleController extends Controller
         $task = Task::find($request->task_id);
         if($task == null)
         {
-            return $this->response(false,'task not found');
+            return $this->response(false,__('messages.task_not_found'));
         }
 
         if ($task->from) {
             $distance = parent::distance($request->lat, $request->lng, $task->from->lat, $task->from->lng, "K");
             if ($distance > 0.5) {
-                return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع. يرجى الاقتراب أولاً.');
+                return $this->response(false, __('messages.far_from_location_approach'));
             }
         }
 
@@ -2349,13 +2349,13 @@ class SampleController extends Controller
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
-                    return $this->response(false,'task not found');
+                    return $this->response(false,__('messages.task_not_found'));
                 }
 
                 if ($task->from) {
                     $distance = parent::distance($request->lat, $request->lng, $task->from->lat, $task->from->lng, "K");
                     if ($distance > 0.5) {
-                        return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع.');
+                        return $this->response(false, __('messages.far_from_location'));
                     }
                 }
 
@@ -2368,7 +2368,7 @@ class SampleController extends Controller
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
-            return $this->response(false,'system error');
+            return $this->response(false,__('messages.system_error'));
         }
     }
 
@@ -2397,7 +2397,7 @@ class SampleController extends Controller
                     if ($task->to) {
                         $distance = parent::distance($request->lat, $request->lng, $task->to->lat, $task->to->lng, "K");
                         if ($distance > 0.5) {
-                            return $this->response(false, 'عذراً، أنت بعيد جداً عن الموقع لمهمة رقم ' . $task_id);
+                            return $this->response(false, __('messages.far_from_location_for_task', ['task' => $task_id]));
                         }
                     }
 
