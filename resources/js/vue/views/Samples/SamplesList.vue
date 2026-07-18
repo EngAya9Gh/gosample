@@ -69,7 +69,7 @@ const columns = [
   { key: 'driver_name',       label: 'Driver',            width: '140px' },
   { key: 'collection_date',   label: 'Collection Date',   ltr: true, width: '130px' },
   { key: 'close_date',        label: 'Close Date',        ltr: true, width: '130px' },
-  { key: 'confirmed_by_client',label: 'Status',           width: '140px' },
+  { key: 'confirmed_by_client',label: 'Confirmed by client', width: '150px' },
   { key: 'actions',           label: 'Actions',           sticky: 'end', width: '80px', align: 'center' },
 ];
 
@@ -232,7 +232,16 @@ async function confirmDelete() {
       </template>
 
       <template #cell-confirmed_by_client="{ row }">
-        <StatusBadge :status="row.confirmed_by_client === 'YES' ? 'RECEIVED' : (row.confirmed_by_client === 'NO' ? 'PENDING' : 'LOST')" />
+        <span v-if="row.confirmed_by_client === 'YES'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-xs font-bold border border-emerald-100 dark:border-emerald-500/20">
+          <i class="ri-check-line text-sm"></i> Yes
+        </span>
+        <span v-else-if="row.confirmed_by_client === 'NO'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 text-xs font-bold border border-amber-100 dark:border-amber-500/20">
+          <i class="ri-time-line text-sm"></i> No
+        </span>
+        <span v-else-if="row.confirmed_by_client === 'LOST'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 text-xs font-bold border border-rose-100 dark:border-rose-500/20">
+          <i class="ri-close-circle-line text-sm"></i> Lost
+        </span>
+        <span v-else class="text-slate-400">—</span>
       </template>
 
       <template #cell-actions="{ row }">
