@@ -353,6 +353,7 @@ async function confirmBulkDelete() {
       :page-size="pageSize"
       :loading="loading"
       :selectable="true"
+      :bulk-actions="can('scheduled_task_delete') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @update="onQuery"
       @bulk-delete="handleBulkDelete"
       @export="onExport"
