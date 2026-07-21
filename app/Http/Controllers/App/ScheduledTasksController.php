@@ -25,7 +25,7 @@ class ScheduledTasksController extends Controller
         $user = auth()->user();
 
         // 1. Base Query with parent_id = null
-        $query = ScheduledTask::with(['from_location', 'to_location', 'client', 'driver'])
+        $query = ScheduledTask::with(['from_location', 'to_location', 'client', 'driver', 'user', 'children'])
             ->whereNull('parent_id')
             ->select('scheduled_tasks.*');
 
@@ -85,6 +85,12 @@ class ScheduledTasksController extends Controller
 
         // 7. Get and Transform rows
         $rows = $query->offset($offset)->limit($pageSize)->get()->map(function ($row) {
+            $computedDays = $row->selected_days;
+            if (empty($computedDays)) {
+                $allDays = array_merge([$row->day], $row->children->pluck('day')->toArray());
+                $computedDays = implode(',', array_unique(array_filter($allDays)));
+            }
+
             return [
                 'id'                 => $row->id,
                 'name'               => $row->name,
@@ -100,9 +106,9 @@ class ScheduledTasksController extends Controller
                 'to_location_name'   => $row->to_location ? $row->to_location->name : null,
                 'start_date'         => $row->start_date,
                 'end_date'           => $row->end_date,
-                'selected_days'      => $row->selected_days,
+                'selected_days'      => $computedDays,
                 'selected_hour'      => $row->selected_hour,
-                'added_by'           => $row->added_by,
+                'added_by'           => $row->user ? $row->user->name : 'System',
                 'created_at'         => $row->created_at ? $row->created_at->format('Y-m-d H:i') : null,
             ];
         });
@@ -158,12 +164,16 @@ class ScheduledTasksController extends Controller
     public function store(StoreScheduledTaskRequest $request)
     {
         $data = $request->except(['from_location_id', 'days', 'visit_hours']);
+        $data['added_by'] = auth()->id();
+        
         $driver = Driver::find($request->driver_id);
         $data['name'] = optional($driver)->name . ' - ' . Carbon::parse($request->start_date)->format('Y-m-d');
 
         $fromLocations = $request->input('from_location_id', []);
         $selectedDays  = $request->input('days', []);
         $selectedHours = $request->input('visit_hours', []);
+        
+        $data['selected_days'] = implode(',', $selectedDays);
 
         // Each selected from-location must have a visit hour.
         foreach ($fromLocations as $fromLocationId) {
@@ -208,9 +218,13 @@ class ScheduledTasksController extends Controller
     public function quickAction(StoreScheduledTaskRequest $request)
     {
         $data = $request->except(['from_location_id', 'days', 'visit_hours']);
+        $data['added_by'] = auth()->id();
+        
         $fromLocationId = $request->input('from_location_id');
         $selectedDays   = $request->input('days', []);
         $selectedHours  = $request->input('visit_hours', []);
+        
+        $data['selected_days'] = implode(',', $selectedDays);
 
         if (count($selectedDays) * count($selectedHours) === 0) {
             return back()->withErrors(['general' => 'You must select at least one day and one visit hour.']);
@@ -299,6 +313,14 @@ class ScheduledTasksController extends Controller
     public function destroy(ScheduledTask $scheduledTask)
     {
         abort_if(Gate::denies('scheduled_task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        // Delete future generated tasks starting from tomorrow
+        \App\Models\Task::where('from_location', $scheduledTask->from_location_id)
+            ->where('to_location', $scheduledTask->to_location_id)
+            ->where('driver_id', $scheduledTask->driver_id)
+            ->where('billing_client', $scheduledTask->client_id)
+            ->whereDate('created_at', '>=', \Carbon\Carbon::tomorrow())
+            ->delete();
 
         $scheduledTask->delete();
 

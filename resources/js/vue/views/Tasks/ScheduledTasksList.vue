@@ -161,7 +161,7 @@ async function confirmDelete() {
 
 function formatDays(daysStr) {
   if (!daysStr) return '';
-  const days = daysStr.split(',');
+  const days = Array.isArray(daysStr) ? daysStr : String(daysStr).split(',');
   return days.map(d => d.substring(0, 3)).join(', ');
 }
 
@@ -354,7 +354,7 @@ async function confirmBulkDelete() {
       :loading="loading"
       :selectable="true"
       :bulk-actions="can('scheduled_task_delete') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
-      @update="onQuery"
+      @query="onQuery"
       @bulk-delete="handleBulkDelete"
       @export="onExport"
     >
