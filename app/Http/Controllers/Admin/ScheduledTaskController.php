@@ -436,6 +436,15 @@ class ScheduledTaskController extends Controller
             if (empty($scheduledTask->parent_id)) {
                 ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
             }
+
+            // Delete future generated tasks starting from tomorrow
+            \App\Models\Task::where('from_location', $scheduledTask->from_location_id)
+                ->where('to_location', $scheduledTask->to_location_id)
+                ->where('driver_id', $scheduledTask->driver_id)
+                ->where('billing_client', $scheduledTask->client_id)
+                ->whereDate('created_at', '>=', \Carbon\Carbon::tomorrow())
+                ->delete();
+
             $scheduledTask->delete();
         }
 

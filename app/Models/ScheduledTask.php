@@ -104,10 +104,21 @@ class ScheduledTask extends Model
     //     return true;
     // }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(ScheduledTask::class, 'parent_id');
+    }
+
     public function isDue()
     {
         $now = Carbon::now();
 	$nowDate = Carbon::parse($now)->format('Y-m-d');
+
         // Check if the task is within the date range of the scheduled task
         if ($now < $this->start_date || $now > $this->end_date) {
             return false;
