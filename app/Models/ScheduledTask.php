@@ -42,7 +42,6 @@ class ScheduledTask extends Model
         'day',
         'end_date',
         'driver_id',
-        'selected_days',
         'from_location_id',
         'to_location_id',
         'client_id',

@@ -172,8 +172,6 @@ class ScheduledTasksController extends Controller
         $fromLocations = $request->input('from_location_id', []);
         $selectedDays  = $request->input('days', []);
         $selectedHours = $request->input('visit_hours', []);
-        
-        $data['selected_days'] = implode(',', $selectedDays);
 
         // Each selected from-location must have a visit hour.
         foreach ($fromLocations as $fromLocationId) {
@@ -221,10 +219,8 @@ class ScheduledTasksController extends Controller
         $data['added_by'] = auth()->id();
         
         $fromLocationId = $request->input('from_location_id');
-        $selectedDays   = $request->input('days', []);
-        $selectedHours  = $request->input('visit_hours', []);
-        
-        $data['selected_days'] = implode(',', $selectedDays);
+        $selectedDays  = $request->input('days', []);
+        $selectedHours = $request->input('visit_hours', []);
 
         if (count($selectedDays) * count($selectedHours) === 0) {
             return back()->withErrors(['general' => 'You must select at least one day and one visit hour.']);
