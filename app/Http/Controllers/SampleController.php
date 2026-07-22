@@ -236,6 +236,7 @@ class SampleController extends Controller
 
                     // get driver
                     $driver = $task->driver;
+                    $this->updateDriverLocationFromRequest($driver, $request);
                     // save location of driver
                     $lat = $request->lat ?? $driver->lat;
                     $lng = $request->lng ?? $driver->lng;
@@ -634,6 +635,7 @@ class SampleController extends Controller
                 } else {
                     $ldate = date('Y-m-d H:i:s');
                     $driver = $tasks->first()->driver;
+                    $this->updateDriverLocationFromRequest($driver, $request);
                     $lat = $request->lat ?? $driver->lat;
                     $lng = $request->lng ?? $driver->lng;
 
@@ -2306,6 +2308,10 @@ class SampleController extends Controller
             return $this->response(false,$this->validationHandle($validator->messages()));
         }
 
+        if ($request->has('driver_id')) {
+            $this->updateDriverLocationFromRequest(\App\Models\Driver::find($request->driver_id), $request);
+        }
+
         $task = Task::find($request->task_id);
         if($task == null)
         {
@@ -2346,6 +2352,10 @@ class SampleController extends Controller
             if ($validator->fails()) {
                 return $this->response(false,$this->validationHandle($validator->messages()));
             } else {
+                if ($request->has('driver_id')) {
+                    $this->updateDriverLocationFromRequest(\App\Models\Driver::find($request->driver_id), $request);
+                }
+                
                 $task = Task::find($request->task_id);
                 if($task == null)
                 {
@@ -2387,6 +2397,10 @@ class SampleController extends Controller
             if ($validator->fails()) {
                 return $this->response(false, $this->validationHandle($validator->messages()));
             } else {
+                if ($request->has('driver_id')) {
+                    $this->updateDriverLocationFromRequest(\App\Models\Driver::find($request->driver_id), $request);
+                }
+                
                 // Iterate through the task_ids array
                 foreach ($request->task_ids as $task_id) {
                     $task = Task::find($task_id);
@@ -2447,5 +2461,19 @@ class SampleController extends Controller
         }
 
         $task->save();
+    }
+
+    private function updateDriverLocationFromRequest($driver, $request)
+    {
+        if ($driver && $request->filled('lat') && $request->filled('lng')) {
+            $driver->lat = $request->lat;
+            $driver->lng = $request->lng;
+            $driver->save();
+
+            \App\Models\Car::where('driver_id', $driver->id)->update([
+                'lat' => $request->lat,
+                'lng' => $request->lng,
+            ]);
+        }
     }
 }

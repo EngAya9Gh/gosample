@@ -151,13 +151,22 @@ const formatDate = (dateString) => {
                 <dt class="text-sm text-slate-500 font-medium">Join Date</dt>
                 <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ formatDate(driver.created_at) }}</dd>
               </div>
-              <div class="flex items-center justify-between py-3">
+              <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-white/5">
                 <dt class="text-sm text-slate-500 font-medium">Assigned Car</dt>
                 <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">
                   <Link v-if="driver.car" :href="`/admin/cars/${driver.car.id}`" class="text-[#0ab39c] hover:underline">
                     {{ driver.car.plate_number }}
                   </Link>
                   <span v-else class="text-slate-400">None</span>
+                </dd>
+              </div>
+              <div class="flex items-center justify-between py-3">
+                <dt class="text-sm text-slate-500 font-medium">Location</dt>
+                <dd class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  <a v-if="driver.lat && driver.lng" :href="`https://maps.google.com/?q=${driver.lat},${driver.lng}`" target="_blank" class="text-[#0ab39c] hover:underline inline-flex items-center gap-1">
+                    <i class="ri-map-pin-user-line"></i> View Map
+                  </a>
+                  <span v-else class="text-slate-400">Unknown</span>
                 </dd>
               </div>
             </dl>
