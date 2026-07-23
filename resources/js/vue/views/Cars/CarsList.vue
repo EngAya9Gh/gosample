@@ -41,11 +41,12 @@ function onDateRange({ from, to }) {
   searchForm.value.date_to = to || '';
 }
 
-// Quick Filter Tabs
+// Quick Filter Tabs — styled to match the Tasks page status pills (colored dot +
+// soft tinted active state). Class strings are static literals so Tailwind keeps them.
 const statusTabs = [
-  { key: '',  label: 'All Statuses' },
-  { key: '1', label: 'Enabled',  activeClass: 'bg-success text-white dark:bg-emerald-600' },
-  { key: '2', label: 'Disabled', activeClass: 'bg-danger text-white dark:bg-danger/90' },
+  { key: '',  label: 'All Statuses', dot: 'bg-primary-500',    active: 'bg-primary-500/10 border-primary-500/40 text-primary-500' },
+  { key: '1', label: 'Enabled',      dot: 'bg-status-closed',  active: 'bg-status-closed/10 border-status-closed/40 text-status-closed' },
+  { key: '2', label: 'Disabled',     dot: 'bg-status-lost',    active: 'bg-status-lost/10 border-status-lost/40 text-status-lost' },
 ];
 
 const onQuery = ({ page, pageSize, sortBy, sortOrder }) => {
@@ -215,8 +216,8 @@ const applyFilters = () => {
 const statusTabClasses = (tab) => {
   const isActive = searchForm.value.status === tab.key;
   return isActive
-    ? tab.activeClass || 'bg-primary-500 text-white dark:bg-primary-600'
-    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 dark:bg-dark-800 dark:border-dark-700 dark:text-gray-300 dark:hover:bg-dark-700';
+    ? tab.active
+    : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300';
 };
 
 const setStatusTab = (key) => {
@@ -255,11 +256,12 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
       <!-- Quick Filters (Tabs) -->
       <div class="flex flex-wrap items-center gap-2 flex-1">
         <button
-          v-for="s in statusTabs" :key="s.key"
+          v-for="s in statusTabs" :key="s.key" type="button"
           @click="setStatusTab(s.key)"
-          class="h-8 px-3.5 rounded-full text-[13px] font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 border"
+          class="inline-flex items-center gap-2 ps-3 pe-3.5 h-9 rounded-full border text-[13px] font-bold transition"
           :class="statusTabClasses(s)"
         >
+          <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
           {{ s.label }}
         </button>
       </div>
