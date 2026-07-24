@@ -7,7 +7,7 @@
  * gate; first sample's type/temperature per bag). Design follows the Tasks
  * details page: gradient header + back button + action buttons, bento cards.
  */
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseCard from '../../components/BaseCard.vue';
@@ -32,6 +32,23 @@ const { push } = useToast();
 const { can } = usePermissions();
 
 function goBack() { router.visit('/admin/containers'); }
+
+// The generated barcode SVG has a fixed pixel width (e.g. width="501") and no
+// viewBox, so in the narrow card it overflowed and scrolled — hiding the human
+// readable number rendered at the bottom. Inject a viewBox from its width/height
+// and make it fluid so the whole barcode (number included) always fits, no scroll.
+const responsiveBarcode = computed(() => {
+  const svg = props.barcodeSvg || '';
+  return svg.replace(/<svg\b([^>]*)>/i, (full, attrs) => {
+    const w = (attrs.match(/\bwidth="([\d.]+)"/i) || [])[1];
+    const h = (attrs.match(/\bheight="([\d.]+)"/i) || [])[1];
+    if (!w || !h) return full;
+    const cleaned = attrs
+      .replace(/\s*\bwidth="[^"]*"/i, '')
+      .replace(/\s*\bheight="[^"]*"/i, '');
+    return `<svg${cleaned} viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">`;
+  });
+});
 
 // Same print flow as the list page: the barcode route prints itself.
 function printBarcode() {
@@ -170,8 +187,9 @@ function submitEdit() {
           <span class="text-[11px] font-mono text-slate-400">{{ container.id }}-container</span>
         </div>
         <div class="flex-1 grid place-items-center">
-          <!-- white plate so the barcode stays scannable in dark mode -->
-          <div class="bg-white rounded-xl border border-slate-200 p-4 max-w-full overflow-x-auto" v-html="barcodeSvg"></div>
+          <!-- white plate so the barcode stays scannable in dark mode; SVG scales
+               to fit (viewBox injected above) so it never scrolls -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 w-full max-w-full" v-html="responsiveBarcode"></div>
         </div>
         <BaseButton variant="light" icon="ri-printer-line" class="mt-4 w-full justify-center" @click="printBarcode">
           Print Barcode

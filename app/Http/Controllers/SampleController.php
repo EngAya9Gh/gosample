@@ -2465,15 +2465,19 @@ class SampleController extends Controller
 
     private function updateDriverLocationFromRequest($driver, $request)
     {
-        if ($driver && $request->filled('lat') && $request->filled('lng')) {
-            $driver->lat = $request->lat;
-            $driver->lng = $request->lng;
-            $driver->save();
+        try {
+            if ($driver && $request->filled('lat') && $request->filled('lng')) {
+                $driver->lat = $request->lat;
+                $driver->lng = $request->lng;
+                $driver->save();
 
-            \App\Models\Car::where('driver_id', $driver->id)->update([
-                'lat' => $request->lat,
-                'lng' => $request->lng,
-            ]);
+                \App\Models\Car::where('driver_id', $driver->id)->update([
+                    'lat' => $request->lat,
+                    'lng' => $request->lng,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error updating driver location from task API: ' . $e->getMessage());
         }
     }
 }

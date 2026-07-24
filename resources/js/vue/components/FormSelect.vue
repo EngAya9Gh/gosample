@@ -29,6 +29,7 @@ const q = ref('');
 const root = ref(null);
 const trigger = ref(null);
 const panel = ref(null);
+const search = ref(null);
 const floatStyle = ref({});
 
 // Position the teleported panel under the trigger (fixed → viewport coords).
@@ -47,7 +48,15 @@ function positionPanel() {
     : { top: `${r.bottom + 6}px`, left: `${r.left}px`, width: `${r.width}px` };
 }
 function onReflow() { if (open.value && props.floating) positionPanel(); }
-watch(open, (v) => { if (v && props.floating) nextTick(positionPanel); });
+// On open: position the (teleported) panel and drop the cursor straight into the
+// search box so the user can type immediately without a second click.
+watch(open, (v) => {
+  if (!v) return;
+  nextTick(() => {
+    if (props.floating) positionPanel();
+    if (props.searchable) search.value?.focus();
+  });
+});
 
 const filtered = computed(() =>
   props.options.filter((o) => o.label.toLowerCase().includes(q.value.toLowerCase()))
@@ -126,7 +135,7 @@ onBeforeUnmount(() => {
         :class="floating ? 'fixed z-[200]' : 'absolute z-30 mt-1.5 w-full'">
         <div v-if="searchable" class="relative mb-1.5">
           <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-2.5 text-slate-400 text-sm" style="inset-inline-start:.625rem"></i>
-          <input v-model="q" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
+          <input ref="search" v-model="q" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
         </div>
         <div v-if="multiple" class="flex gap-1 px-1 pb-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
           <button type="button" @click="allOn" class="text-xs font-medium text-primary-600 hover:underline">Select all</button>

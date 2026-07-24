@@ -52,11 +52,11 @@ const altFmt = computed(() =>
 const field =
   'w-full h-11 bg-surface dark:bg-white/5 text-ink dark:text-slate-100 ' +
   'border rounded-xl text-sm transition-all duration-200 placeholder:text-slate-400 ps-10 pe-3.5 ' +
-  'focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 cursor-pointer ' +
+  'focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 cursor-pointer ' +
   'disabled:opacity-60 disabled:cursor-not-allowed';
 const borderCls = computed(() =>
   props.error
-    ? 'border-danger/60 focus:ring-danger/30 focus:border-danger'
+    ? 'border-danger/60 focus:ring-danger/30 focus:border-danger dark:focus:border-danger'
     : 'border-slate-200 dark:border-white/10'
 );
 

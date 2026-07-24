@@ -86,35 +86,35 @@ const afaqiOpts = [
           <!-- IMEI -->
           <div class="space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">IMEI <span class="text-danger">*</span></label>
-            <input type="text" v-model="form.imei" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="GPS device IMEI" required>
+            <input type="text" v-model="form.imei" class="block w-full h-10 rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="GPS device IMEI" required>
             <div v-if="form.errors.imei" class="text-xs text-danger mt-1">{{ form.errors.imei }}</div>
           </div>
 
           <!-- Plate Number -->
           <div class="space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Plate Number <span class="text-danger">*</span></label>
-            <input type="text" v-model="form.plate_number" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Plate number" required>
+            <input type="text" v-model="form.plate_number" class="block w-full h-10 rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Plate number" required>
             <div v-if="form.errors.plate_number" class="text-xs text-danger mt-1">{{ form.errors.plate_number }}</div>
           </div>
 
           <!-- Model -->
           <div class="space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Model</label>
-            <input type="text" v-model="form.model" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Car model">
+            <input type="text" v-model="form.model" class="block w-full h-10 rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Car model">
             <div v-if="form.errors.model" class="text-xs text-danger mt-1">{{ form.errors.model }}</div>
           </div>
 
           <!-- Color -->
           <div class="space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Color</label>
-            <input type="text" v-model="form.color" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Car color">
+            <input type="text" v-model="form.color" class="block w-full h-10 rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Car color">
             <div v-if="form.errors.color" class="text-xs text-danger mt-1">{{ form.errors.color }}</div>
           </div>
 
           <!-- Contact Person -->
           <div class="space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Contact Person <span class="text-danger">*</span></label>
-            <input type="text" v-model="form.contact_person" class="block w-full h-10 rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Contact person name" required>
+            <input type="text" v-model="form.contact_person" class="block w-full h-10 rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Contact person name" required>
             <div v-if="form.errors.contact_person" class="text-xs text-danger mt-1">{{ form.errors.contact_person }}</div>
           </div>
 
@@ -128,7 +128,7 @@ const afaqiOpts = [
           <!-- Description -->
           <div class="md:col-span-2 space-y-1.5">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Description</label>
-            <textarea v-model="form.description" rows="3" class="block w-full rounded-md border-gray-300 dark:border-dark-600 dark:bg-dark-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Optional notes about this car..."></textarea>
+            <textarea v-model="form.description" rows="3" class="block w-full rounded-md bg-surface dark:bg-white/5 text-ink dark:text-slate-100 border-slate-300 dark:border-white/10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm" placeholder="Optional notes about this car..."></textarea>
             <div v-if="form.errors.description" class="text-xs text-danger mt-1">{{ form.errors.description }}</div>
           </div>
 
