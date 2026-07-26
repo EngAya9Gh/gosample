@@ -30,6 +30,8 @@ const root = ref(null);
 const trigger = ref(null);
 const panel = ref(null);
 const search = ref(null);
+const list = ref(null);
+const active = ref(0); // index of the keyboard-highlighted option within `filtered`
 const floatStyle = ref({});
 
 // Position the teleported panel under the trigger (fixed → viewport coords).
@@ -52,15 +54,46 @@ function onReflow() { if (open.value && props.floating) positionPanel(); }
 // search box so the user can type immediately without a second click.
 watch(open, (v) => {
   if (!v) return;
+  // Highlight the currently-selected option (single) or the first row.
+  const sel = filtered.value.findIndex((o) => o.value === props.modelValue);
+  active.value = !props.multiple && sel >= 0 ? sel : 0;
   nextTick(() => {
     if (props.floating) positionPanel();
     if (props.searchable) search.value?.focus();
+    scrollActiveIntoView();
   });
 });
 
 const filtered = computed(() =>
   props.options.filter((o) => o.label.toLowerCase().includes(q.value.toLowerCase()))
 );
+// Typing in the search box re-filters, so reset the highlight to the top.
+watch(q, () => { active.value = 0; });
+
+// Keep the highlighted row scrolled into view as the user arrows through.
+function scrollActiveIntoView() {
+  const ul = list.value;
+  const el = ul && ul.children[active.value];
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+}
+
+// Arrow / Enter / Escape navigation. Bound to both the trigger (non-searchable
+// selects keep focus there) and the search input (searchable selects focus it).
+function onKeydown(e) {
+  if (!open.value) {
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open.value = true; }
+    return;
+  }
+  const items = filtered.value;
+  switch (e.key) {
+    case 'ArrowDown': e.preventDefault(); active.value = Math.min(active.value + 1, items.length - 1); scrollActiveIntoView(); break;
+    case 'ArrowUp':   e.preventDefault(); active.value = Math.max(active.value - 1, 0); scrollActiveIntoView(); break;
+    case 'Home':      e.preventDefault(); active.value = 0; scrollActiveIntoView(); break;
+    case 'End':       e.preventDefault(); active.value = items.length - 1; scrollActiveIntoView(); break;
+    case 'Enter':     e.preventDefault(); if (items[active.value]) pick(items[active.value].value); break;
+    case 'Escape':    e.preventDefault(); open.value = false; trigger.value?.focus(); break;
+  }
+}
 const selectedArr = computed(() =>
   props.multiple ? (Array.isArray(props.modelValue) ? props.modelValue : []) : []
 );
@@ -108,7 +141,7 @@ onBeforeUnmount(() => {
 
     <button
       ref="trigger"
-      type="button" @click="open = !open"
+      type="button" @click="open = !open" @keydown="onKeydown"
       class="w-full min-h-11 px-3.5 py-1.5 flex items-center gap-1.5 flex-wrap text-start bg-surface dark:bg-white/5 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500/40"
       :class="error ? 'border-danger/60' : 'border-slate-200 dark:border-white/10'"
     >
@@ -135,18 +168,20 @@ onBeforeUnmount(() => {
         :class="floating ? 'fixed z-[200]' : 'absolute z-30 mt-1.5 w-full'">
         <div v-if="searchable" class="relative mb-1.5">
           <i class="ri-search-line absolute top-1/2 -translate-y-1/2 inset-inline-start-2.5 text-slate-400 text-sm" style="inset-inline-start:.625rem"></i>
-          <input ref="search" v-model="q" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
+          <input ref="search" v-model="q" @keydown="onKeydown" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
         </div>
         <div v-if="multiple" class="flex gap-1 px-1 pb-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
           <button type="button" @click="allOn" class="text-xs font-medium text-primary-600 hover:underline">Select all</button>
           <span class="text-slate-300">·</span>
           <button type="button" @click="allOff" class="text-xs font-medium text-slate-500 hover:underline">Clear</button>
         </div>
-        <ul class="max-h-56 overflow-y-auto">
+        <ul ref="list" class="max-h-56 overflow-y-auto">
           <li
-            v-for="o in filtered" :key="o.value"
+            v-for="(o, i) in filtered" :key="o.value"
             @click="pick(o.value)"
-            class="flex items-center gap-2.5 px-2.5 min-h-[36px] py-2 rounded-lg text-sm cursor-pointer text-ink dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-white/5"
+            @mouseenter="active = i"
+            class="flex items-center gap-2.5 px-2.5 min-h-[36px] py-2 rounded-lg text-sm cursor-pointer text-ink dark:text-slate-200"
+            :class="i === active ? 'bg-primary-50 dark:bg-white/10' : 'hover:bg-primary-50 dark:hover:bg-white/5'"
           >
             <span class="grid place-items-center w-4 h-4 shrink-0 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
               <i v-if="isSel(o.value)" class="ri-check-line text-xs"></i>
