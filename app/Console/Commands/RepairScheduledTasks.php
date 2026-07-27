@@ -22,7 +22,20 @@ use Illuminate\Support\Facades\Storage;
  */
 class RepairScheduledTasks extends Command
 {
+    /**
+     * Dash-free positional syntax is offered alongside the flags because this is
+     * usually run from a web control panel's command box, where macOS smart
+     * dashes silently rewrite "--force" as an em dash. Symfony then rejects it
+     * on stderr, which such panels typically do not display - the command looks
+     * like it succeeded with no output.
+     *
+     *   schedules:repair                  dry run, every step
+     *   schedules:repair orphans          dry run, orphans only
+     *   schedules:repair orphans apply    apply, orphans only
+     */
     protected $signature = 'schedules:repair
+        {steps?             : Steps to run: orphans,drift,backfill,seed,phantoms,report. Omit for all.}
+        {mode?              : Pass "apply" to write changes. Omit for a dry run.}
         {--dry-run          : Report only, change nothing. This is the default; the flag exists so it can be stated explicitly.}
         {--force            : Apply changes. Without this the command only reports.}
         {--days=30          : How far back to backfill tasks.scheduled_task_id.}
@@ -35,16 +48,34 @@ class RepairScheduledTasks extends Command
 
     public function handle(): int
     {
-        // --dry-run always wins over --force, so an operator who passes both by
-        // accident gets the safe outcome.
-        $apply = $this->option('force') && ! $this->option('dry-run');
+        $ALL_STEPS = ['orphans', 'drift', 'backfill', 'seed', 'phantoms', 'report'];
 
-        if ($this->option('force') && $this->option('dry-run')) {
-            $this->warn('Both --force and --dry-run given; --dry-run wins, nothing will be written.');
+        $mode = strtolower(trim((string) $this->argument('mode')));
+
+        if ($mode !== '' && $mode !== 'apply') {
+            $this->error("Unknown mode \"{$mode}\". Pass \"apply\" to write changes, or omit it for a dry run.");
+
+            return self::INVALID;
         }
-        $steps = $this->option('only')
-            ? array_map('trim', explode(',', $this->option('only')))
-            : ['orphans', 'drift', 'backfill', 'seed', 'phantoms', 'report'];
+
+        // --dry-run always wins, so an operator who passes both by accident gets
+        // the safe outcome.
+        $wantsApply = $this->option('force') || $mode === 'apply';
+        $apply      = $wantsApply && ! $this->option('dry-run');
+
+        if ($wantsApply && $this->option('dry-run')) {
+            $this->warn('Both apply and --dry-run given; --dry-run wins, nothing will be written.');
+        }
+
+        $requested = $this->option('only') ?: trim((string) $this->argument('steps'));
+        $steps     = $requested ? array_map('trim', explode(',', $requested)) : $ALL_STEPS;
+
+        if ($unknown = array_diff($steps, $ALL_STEPS)) {
+            $this->error('Unknown step(s): ' . implode(', ', $unknown));
+            $this->line('  Valid steps: ' . implode(', ', $ALL_STEPS));
+
+            return self::INVALID;
+        }
 
         $this->line('');
         $this->info($apply ? '*** APPLYING CHANGES ***' : '--- DRY RUN (no changes will be written) ---');
