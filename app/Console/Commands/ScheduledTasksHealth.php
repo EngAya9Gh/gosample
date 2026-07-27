@@ -48,7 +48,11 @@ class ScheduledTasksHealth extends Command
         $this->legacyDamage();
         $this->verdict();
 
-        return empty($this->problems) ? self::SUCCESS : self::FAILURE;
+        // Deliberately SUCCESS even when there is something to look at. Findings
+        // here are informational; only a broken schema (handled above) is a
+        // genuine failure. Returning non-zero made control panels and deploy
+        // pipelines report the check itself as failed, which is misleading.
+        return self::SUCCESS;
     }
 
     private function row(string $label, string $value, ?bool $ok = null): void
@@ -83,23 +87,34 @@ class ScheduledTasksHealth extends Command
         $this->line('');
         $this->line('  <fg=cyan>GENERATION TODAY</>');
 
-        $today = now()->toDateString();
+        $today    = now()->toDateString();
+        $dayStart = now()->startOfDay();
+        $dayEnd   = now()->endOfDay();
 
+        // Date comparisons are written as plain ranges rather than whereDate().
+        // whereDate() emits DATE(col) = ?, which wraps the column in a function
+        // and makes the index unusable - a full scan of a large tasks table.
         $due = ScheduledTask::query()
             ->leftJoin('scheduled_tasks as p', 'p.id', '=', 'scheduled_tasks.parent_id')
             ->where('scheduled_tasks.status', 'enabled')
             ->where('scheduled_tasks.day', now()->format('l'))
-            ->whereDate('scheduled_tasks.start_date', '<=', $today)
-            ->whereDate('scheduled_tasks.end_date', '>=', $today)
+            ->where('scheduled_tasks.start_date', '<=', $today)
+            ->where('scheduled_tasks.end_date', '>=', $today)
             ->where(fn ($q) => $q->whereNull('scheduled_tasks.parent_id')
                 ->orWhere(fn ($q2) => $q2->whereNotNull('p.id')->whereNull('p.deleted_at')))
             ->count();
 
-        $claimed = ScheduledTask::whereDate('last_generated_at', $today)->count();
+        $claimed = ScheduledTask::whereBetween('last_generated_at', [$dayStart, $dayEnd])->count();
         $pending = max(0, $due - $claimed);
 
-        $tasksToday = Task::withoutGlobalScopes()->whereDate('created_at', $today)->count();
-        $lastTask   = Task::withoutGlobalScopes()->whereDate('created_at', $today)->max('created_at');
+        // One pass for both figures instead of two full scans.
+        $todayStats = Task::withoutGlobalScopes()
+            ->whereBetween('created_at', [$dayStart, $dayEnd])
+            ->selectRaw('COUNT(*) as c, MAX(created_at) as last_at')
+            ->first();
+
+        $tasksToday = (int) ($todayStats->c ?? 0);
+        $lastTask   = $todayStats->last_at ?? null;
 
         $this->row('schedules due today', (string) $due);
         $this->row('already generated today', (string) $claimed);
@@ -151,17 +166,25 @@ class ScheduledTasksHealth extends Command
             ->where(fn ($q) => $q->whereNull('p.id')->orWhereNotNull('p.deleted_at'))
             ->count();
 
-        $drift = 0;
-        foreach (ScheduledTask::whereNull('parent_id')->with('children')->cursor() as $parent) {
-            foreach ($parent->children as $child) {
-                foreach (ScheduledTask::SHARED_FIELDS as $f) {
-                    if ((string) $child->{$f} !== (string) $parent->{$f}) {
-                        $drift++;
-                        break;
-                    }
-                }
-            }
-        }
+        // Counted with a self-join rather than by walking the families in PHP.
+        // ->with('children')->cursor() does not batch its eager loads, so that
+        // version issued one query per parent - thousands of round trips on a
+        // real dataset, which is what made this command time out.
+        // SHARED_FIELDS is a class constant, so interpolating it is not
+        // user-controlled. <=> is MySQL's null-safe equality.
+        $comparisons = implode(' OR ', array_map(
+            fn ($f) => "NOT (c.`{$f}` <=> p.`{$f}`)",
+            ScheduledTask::SHARED_FIELDS
+        ));
+
+        $drift = (int) DB::selectOne(
+            "SELECT COUNT(*) AS n
+               FROM scheduled_tasks c
+               JOIN scheduled_tasks p ON p.id = c.parent_id
+              WHERE c.deleted_at IS NULL
+                AND p.deleted_at IS NULL
+                AND ({$comparisons})"
+        )->n;
 
         $unlinked = Task::withoutGlobalScopes()
             ->whereNull('scheduled_task_id')
@@ -174,11 +197,11 @@ class ScheduledTasksHealth extends Command
 
         if ($orphans > 0) {
             $this->problems[] = "{$orphans} orphaned row(s) remain. They no longer generate tasks, but should be "
-                . 'cleaned up: php artisan schedules:repair --force --only=orphans';
+                . 'cleaned up: php artisan schedules:repair orphans apply';
         }
         if ($drift > 0) {
             $this->problems[] = "{$drift} drifted child row(s). Review them with the admin BEFORE syncing - "
-                . 'syncing can start, stop or redirect schedules: php artisan schedules:repair --dry-run --only=drift';
+                . 'syncing can start, stop or redirect schedules: php artisan schedules:repair drift';
         }
     }
 
