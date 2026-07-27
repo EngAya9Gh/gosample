@@ -51,16 +51,68 @@ class ScheduledTask extends Model
         'execution_status',
         'executed_at',
         'last_checked_at',
+        'last_generated_at',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
 
     protected $casts = [
-        'executed_at'     => 'datetime',
-        'last_checked_at' => 'datetime',
+        'executed_at'       => 'datetime',
+        'last_checked_at'   => 'datetime',
+        'last_generated_at' => 'datetime',
     ];
-    
+
+    /**
+     * Fields that describe the schedule as a whole rather than a single
+     * occurrence. Editing any of these on one row must apply to the entire
+     * family.
+     *
+     * Deliberately excluded - these vary legitimately between rows of the same
+     * family and are written per-occurrence only:
+     *   day, selected_hour  - one row per weekday, quick-create adds one per hour
+     *   from_location_id    - one row per pickup location in a multi-location schedule
+     */
+    public const SHARED_FIELDS = [
+        'name',
+        'status',
+        'start_date',
+        'end_date',
+        'driver_id',
+        'client_id',
+        'to_location_id',
+        'task_type',
+    ];
+
+    /** Written on a single row, never propagated across the family. */
+    public const OCCURRENCE_FIELDS = [
+        'day',
+        'selected_hour',
+        'from_location_id',
+    ];
+
+    protected static function booted()
+    {
+        // A schedule is stored as one parent row plus one child row per
+        // (from_location x weekday). Deleting the parent must take the whole
+        // family with it, otherwise the children survive as invisible rows -
+        // no list query can reach them - while the cron keeps generating tasks
+        // from them. Handled here rather than in a controller so that every
+        // code path, present and future, inherits the behaviour.
+        static::deleting(function (self $scheduledTask) {
+            if (! is_null($scheduledTask->parent_id)) {
+                return; // deleting a single occurrence is legitimate
+            }
+
+            $children = static::where('parent_id', $scheduledTask->id)->get();
+
+            foreach ($children as $child) {
+                $scheduledTask->isForceDeleting() ? $child->forceDelete() : $child->delete();
+            }
+        });
+    }
+
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
@@ -86,23 +138,6 @@ class ScheduledTask extends Model
         return $this->belongsTo(Driver::class, 'driver_id');
     }
 
-    // public function isDue()
-    // {
-    //     $now = Carbon::now();
-
-    //     if ($now < $this->start_date || $now > $this->end_date) {
-    //         return false;
-    //     }
-
-    //     $days = explode(',', $this->days_of_week);
-
-    //     if (!in_array(strtolower($now->englishDayOfWeek), $days)) {
-    //         // ScheduledTask is not set to run on this day of the week
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
     public function user()
     {
         return $this->belongsTo(User::class, 'added_by');
@@ -113,31 +148,30 @@ class ScheduledTask extends Model
         return $this->hasMany(ScheduledTask::class, 'parent_id');
     }
 
-    public function isDue()
+    public function parent()
     {
-        $now = Carbon::now();
-	$nowDate = Carbon::parse($now)->format('Y-m-d');
-
-        // Check if the task is within the date range of the scheduled task
-        if ($now < $this->start_date || $now > $this->end_date) {
-            return false;
-        }
-
-        // Check if a task with the same parameters and created after the scheduled task exists
-        $existingTask = Task::where('driver_id', $this->driver_id)
-            ->where('from_location', $this->from_location_id)
-            ->where('to_location', $this->to_location_id)
-            ->where('billing_client', $this->client_id)
-            //->where('created_at', '>', $this->created_at)
-	    ->where('created_at', '>', $nowDate.' 00:00:00')
-            ->first();
-
-        if ($existingTask) {
-            // A task with the same parameters and created later already exists
-            return false;
-        }
-
-        return true;
+        return $this->belongsTo(ScheduledTask::class, 'parent_id');
     }
 
+    public function generatedTasks()
+    {
+        return $this->hasMany(Task::class, 'scheduled_task_id');
+    }
+
+    /** The id of the row that owns this family (the parent). */
+    public function familyRootId(): int
+    {
+        return $this->parent_id ?: $this->id;
+    }
+
+    /**
+     * Every row belonging to the same schedule - the parent and all of its
+     * children - regardless of which row we were handed.
+     */
+    public function familyQuery()
+    {
+        $rootId = $this->familyRootId();
+
+        return static::where('id', $rootId)->orWhere('parent_id', $rootId);
+    }
 }
