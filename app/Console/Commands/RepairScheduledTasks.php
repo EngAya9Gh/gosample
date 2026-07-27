@@ -97,7 +97,8 @@ class RepairScheduledTasks extends Command
 
         if (! $apply) {
             $this->line('');
-            $this->comment('Re-run with --force to apply.');
+            $this->comment('Nothing was written. To apply, add "apply" as the last argument:');
+            $this->comment('  php artisan schedules:repair ' . ($requested ?: 'orphans') . ' apply');
         }
 
         return self::SUCCESS;
