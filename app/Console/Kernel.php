@@ -11,7 +11,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 // use App\Console\TaskDelayedCommand;
 use App\Jobs\GenerateAtenatiTokenJob;
 use App\Jobs\CheckScheduledTasks;
-use App\Jobs\DailyScheduledJob;
 //use App\Console\Commands\CarTrackCommand;
 class Kernel extends ConsoleKernel
 {
@@ -83,7 +82,10 @@ class Kernel extends ConsoleKernel
         // })->dailyAt('23:00');
         $schedule->job(new RemoveOldNewTasks)->everyMinute();
         // $schedule->job(new GenerateAtenatiTokenJob)->everyThirtyMinutes();
-        $schedule->job(new CheckScheduledTasks)->everyMinute();
+        // QUEUE_CONNECTION=sync means this runs inline in schedule:run. Without
+        // withoutOverlapping() a slow pass lets the next minute's run start on
+        // top of it.
+        $schedule->job(new CheckScheduledTasks)->everyMinute()->withoutOverlapping();
         //$schedule->job(new DailyScheduledJob)->everyMinute(); 
         // $schedule->job(new DailyScheduledJob)->dailyAt('20:00'); 
         //	$schedule->job(new CarTrackCommand)->everyMinute();

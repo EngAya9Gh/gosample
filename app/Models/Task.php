@@ -158,8 +158,17 @@ class Task extends Model
         'to_location_confirmation_timestamp',
         'driver_start_date',
 
-        'poririty'
+        'poririty',
+
+        // Links a generated task back to the ScheduledTask that produced it.
+        // Null for manually created tasks.
+        'scheduled_task_id',
     ];
+
+    public function scheduledTask()
+    {
+        return $this->belongsTo(ScheduledTask::class, 'scheduled_task_id');
+    }
 
 
     public function delayed_tasks_in_freezer($client_id = null)

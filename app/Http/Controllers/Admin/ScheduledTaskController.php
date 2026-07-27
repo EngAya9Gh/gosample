@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -387,66 +388,33 @@ class ScheduledTaskController extends Controller
         return view('admin.scheduledTasks.show', compact('scheduledTask'));
     }
 
-    public function destroy(ScheduledTask $scheduledTask)
-    {
-        $this->authorize('scheduled_task_delete');
-        $schedule = null;
-        $parent_id = $scheduledTask->parent_id;
-        if (empty($scheduledTask->parent_id)) {
-            $schedule = ScheduledTask::where('parent_id', $scheduledTask->id)->first();
-            if (isset($schedule->id)) {
-                $schedule->parent_id = null;
-                $schedule->save();
-                $allParent = ScheduledTask::where('parent_id', $scheduledTask->id)->update(['parent_id' => $schedule->id]);
-            }
-        }
-        $scheduledTask->delete();
-        if (!empty($schedule)) {
-            if (isset($schedule->id)) {
-                return redirect()->route('admin.scheduled-tasks.show', $schedule);
-            }
-        }
-
-        if (!empty($parent_id)) {
-            $newScheduled = ScheduledTask::where('id', $parent_id)->first();
-            if (isset($newScheduled->id)) {
-                return redirect()->route('admin.scheduled-tasks.show', $newScheduled);
-            }
-        }
-        return redirect()->route('admin.scheduled-tasks.index');
-    }
-
-    public function deleteBasedOnParent(ScheduledTask $scheduledTask)
-    {
-        $this->authorize('scheduled_task_delete');
-        if (empty($scheduledTask->parent_id)) {
-            ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
-
-        }
-        $scheduledTask->delete();
-        return redirect()->route('admin.scheduled-tasks.index');
-    }
+    // destroy() and deleteBasedOnParent() were removed. Neither was routed any
+    // more (the resource route is limited to 'edit'), and destroy() promoted a
+    // child to parent on delete, so "deleting" a schedule left it running under
+    // a new root. Deletion now goes through App\ScheduledTasksController@destroy
+    // and the cascade on the model.
 
     public function massDestroy(MassDestroyScheduledTaskRequest $request)
     {
         $scheduledTasks = ScheduledTask::find(request('ids'));
 
-        foreach ($scheduledTasks as $scheduledTask) {
-            // Delete all children if this is a parent task
-            if (empty($scheduledTask->parent_id)) {
-                ScheduledTask::where('parent_id', $scheduledTask->id)->delete();
+        DB::transaction(function () use ($scheduledTasks) {
+            foreach ($scheduledTasks as $scheduledTask) {
+                $familyIds = $scheduledTask->familyQuery()->pluck('id');
+
+                // Cancel future tasks this schedule generated. Scoped by
+                // scheduled_task_id: the previous filter matched on route +
+                // created_at >= tomorrow, which never matched any row, and
+                // would have hit other schedules sharing the route if it had.
+                \App\Models\Task::whereIn('scheduled_task_id', $familyIds)
+                    ->where('status', 'NEW')
+                    ->whereDate('pickup_time', '>=', \Carbon\Carbon::tomorrow())
+                    ->delete();
+
+                // Cascades to the children via the model's 'deleting' event.
+                ScheduledTask::whereKey($scheduledTask->familyRootId())->first()?->delete();
             }
-
-            // Delete future generated tasks starting from tomorrow
-            \App\Models\Task::where('from_location', $scheduledTask->from_location_id)
-                ->where('to_location', $scheduledTask->to_location_id)
-                ->where('driver_id', $scheduledTask->driver_id)
-                ->where('billing_client', $scheduledTask->client_id)
-                ->whereDate('created_at', '>=', \Carbon\Carbon::tomorrow())
-                ->delete();
-
-            $scheduledTask->delete();
-        }
+        });
 
         return response(null, Response::HTTP_NO_CONTENT);
     }

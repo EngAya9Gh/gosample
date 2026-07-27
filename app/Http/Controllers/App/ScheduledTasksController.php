@@ -11,6 +11,7 @@ use App\Models\ScheduledTask;
 use App\Models\Task;
 use Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
@@ -282,43 +283,55 @@ class ScheduledTasksController extends Controller
             'task_type' => 'required',
         ]);
 
-        $scheduledTask->update($request->all());
+        // Only ever write known columns. The previous implementation passed
+        // $request->except([...]) straight into a builder update, which bypasses
+        // $fillable and carried the payload's own 'id' into the SET clause -
+        // every "apply to all" attempt died on a duplicate primary key.
+        $shared = $request->only(ScheduledTask::SHARED_FIELDS);
 
-        if ($request->update_related) {
-            // Update all children with same details except for day and selected hour
-            $dataToUpdate = $request->except(['day', 'selected_hour', 'update_related']);
-            
-            if ($scheduledTask->parent_id) {
-                // Update parent and siblings
-                ScheduledTask::where('parent_id', $scheduledTask->parent_id)
-                    ->orWhere('id', $scheduledTask->parent_id)
-                    ->update($dataToUpdate);
-            } else {
-                // Update children
-                ScheduledTask::where('parent_id', $scheduledTask->id)
-                    ->update($dataToUpdate);
-            }
-        }
+        DB::transaction(function () use ($request, $scheduledTask, $shared) {
+            // Shared fields describe the schedule, not one occurrence, so they
+            // always apply to the whole family. Updating the parent alone left
+            // the children pointing at the previous driver/client/dates and the
+            // cron kept generating from those stale rows.
+            $scheduledTask->familyQuery()->each(function (ScheduledTask $row) use ($shared) {
+                $row->update($shared);
+            });
+
+            // day / selected_hour / from_location_id belong to this row only -
+            // a family legitimately holds one row per weekday and per pickup
+            // location, so propagating these would flatten the schedule.
+            $scheduledTask->refresh()->update($request->only(ScheduledTask::OCCURRENCE_FIELDS));
+        });
 
         return response()->json(['message' => 'Scheduled task(s) updated successfully.']);
     }
 
     /**
-     * Delete a scheduled task.
+     * Delete a scheduled task and its entire family.
      */
     public function destroy(ScheduledTask $scheduledTask)
     {
         abort_if(Gate::denies('scheduled_task_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Delete future generated tasks starting from tomorrow
-        \App\Models\Task::where('from_location', $scheduledTask->from_location_id)
-            ->where('to_location', $scheduledTask->to_location_id)
-            ->where('driver_id', $scheduledTask->driver_id)
-            ->where('billing_client', $scheduledTask->client_id)
-            ->whereDate('created_at', '>=', \Carbon\Carbon::tomorrow())
-            ->delete();
+        DB::transaction(function () use ($scheduledTask) {
+            $familyIds = $scheduledTask->familyQuery()->pluck('id');
 
-        $scheduledTask->delete();
+            // Cancel tasks this schedule has already generated for future dates.
+            // The previous filter was whereDate('created_at', '>=', tomorrow),
+            // which can never match - tasks are created now, not in the future -
+            // so deleting a schedule left its future tasks behind. Scoping by
+            // scheduled_task_id also stops us deleting tasks that belong to a
+            // different schedule sharing the same route.
+            Task::whereIn('scheduled_task_id', $familyIds)
+                ->where('status', 'NEW')
+                ->whereDate('pickup_time', '>=', Carbon::tomorrow())
+                ->delete();
+
+            // Deleting the family root cascades to the children via the
+            // 'deleting' event on the model.
+            ScheduledTask::whereKey($scheduledTask->familyRootId())->first()?->delete();
+        });
 
         return response()->json(['message' => 'Scheduled task deleted successfully.']);
     }
