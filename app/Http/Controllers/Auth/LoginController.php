@@ -47,4 +47,16 @@ class LoginController extends Controller
     {
         return \Inertia\Inertia::render('Auth/Login');
     }
+
+    /**
+     * The user has been authenticated.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return mixed
+     */
+    protected function authenticated(\Illuminate\Http\Request $request, $user)
+    {
+        return \Inertia\Inertia::location($this->redirectPath());
+    }
 }

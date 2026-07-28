@@ -52,65 +52,64 @@
 <p class="font-body-md text-body-md text-on-surface-variant mb-base">Welcome back</p>
 <h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface">Sign in to continue</h2>
 </div>
-<form method="POST" action="/login" class="space-y-md">
-<input type="hidden" name="_token" :value="csrfToken" />
-<!-- Mobile Number Field -->
-<div>
-<label class="block font-label-md text-label-md text-on-surface mb-2 uppercase tracking-wider" for="email">Email Address</label>
-<div class="relative">
-<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
-<i class="ri-mail-line text-[20px]"></i>
-</div>
-<input v-model="email"
-  class="block w-full rounded-lg py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
-  :class="errors.email ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
-  id="email" name="email" placeholder="admin@example.com" type="email" required autofocus/>
-</div>
-<p v-if="errors.email" class="flex items-center gap-1.5 text-error text-sm mt-2">
-  <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ errors.email }}
-</p>
-</div>
-<!-- Password Field -->
-<div>
-<div class="flex justify-between items-center mb-xs">
-<label class="block font-label-md text-label-md text-on-surface uppercase" for="password">Password</label>
-</div>
-<div class="relative">
-<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
-<i class="ri-lock-password-line text-[20px]"></i>
-</div>
-<input v-model="password" :type="showPassword ? 'text' : 'password'"
-  class="block w-full rounded-lg py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
-  :class="errors.password ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
-  id="password" name="password" placeholder="••••••••" required />
-<button @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-sm flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
-<i :class="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'" class="text-[20px]"></i>
-</button>
-</div>
-<p v-if="errors.password" class="flex items-center gap-1.5 text-error text-sm mt-2">
-  <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ errors.password }}
-</p>
-</div>
-<!-- Remember & Forgot -->
-<div class="flex items-center justify-between pt-xs">
-<div class="flex items-center">
-<input v-model="remember" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" id="remember-me" name="remember" type="checkbox"/>
-<label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant" for="remember-me">
-                                Remember me
-                            </label>
-</div>
-<div class="text-sm">
-<a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
-</div>
-</div>
-<!-- Submit Button -->
-<div class="pt-sm">
-<button class="w-full flex justify-center items-center gap-xs py-3 px-4 border border-transparent rounded-lg shadow-sm font-headline-sm text-headline-sm text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
-                            Sign In
-                            <i class="ri-arrow-right-line text-[20px]"></i>
-</button>
-</div>
-</form>
+          <form @submit.prevent="submit" class="space-y-md">
+            <!-- Mobile Number Field -->
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface mb-2 uppercase tracking-wider" for="email">Email Address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
+                  <i class="ri-mail-line text-[20px]"></i>
+                </div>
+                <input v-model="form.email"
+                  class="block w-full rounded-lg py-3 pl-10 pr-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
+                  :class="form.errors.email ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
+                  id="email" name="email" placeholder="admin@example.com" type="email" required autofocus/>
+              </div>
+              <p v-if="form.errors.email" class="flex items-center gap-1.5 text-error text-sm mt-2">
+                <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ form.errors.email }}
+              </p>
+            </div>
+            <!-- Password Field -->
+            <div>
+              <div class="flex justify-between items-center mb-xs">
+                <label class="block font-label-md text-label-md text-on-surface uppercase" for="password">Password</label>
+              </div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-on-surface-variant">
+                  <i class="ri-lock-password-line text-[20px]"></i>
+                </div>
+                <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
+                  class="block w-full rounded-lg py-3 pl-10 pr-10 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-opacity-20 transition-shadow font-body-md"
+                  :class="form.errors.password ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'"
+                  id="password" name="password" placeholder="••••••••" required />
+                <button @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-sm flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+                  <i :class="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'" class="text-[20px]"></i>
+                </button>
+              </div>
+              <p v-if="form.errors.password" class="flex items-center gap-1.5 text-error text-sm mt-2">
+                <i class="ri-error-warning-line text-[15px] shrink-0"></i>{{ form.errors.password }}
+              </p>
+            </div>
+            <!-- Remember & Forgot -->
+            <div class="flex items-center justify-between pt-xs">
+              <div class="flex items-center">
+                <input v-model="form.remember" class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" id="remember-me" name="remember" type="checkbox"/>
+                <label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant" for="remember-me">
+                                                Remember me
+                                            </label>
+              </div>
+              <div class="text-sm">
+                <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+              </div>
+            </div>
+            <!-- Submit Button -->
+            <div class="pt-sm">
+              <button :disabled="form.processing" class="w-full flex justify-center items-center gap-xs py-3 px-4 border border-transparent rounded-lg shadow-sm font-headline-sm text-headline-sm text-on-primary bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                                            Sign In
+                                            <i class="ri-arrow-right-line text-[20px]"></i>
+              </button>
+            </div>
+          </form>
 <!-- Footer Access -->
 <div class="mt-lg text-center">
 <p class="font-body-sm text-body-sm text-on-surface-variant">
@@ -134,30 +133,26 @@ export default {
 </script>
 
 <script setup>
-import { Head, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
-// Native browser POST (not an Inertia visit): a successful login redirects to the
-// Velzon Blade dashboard (/dashboard), which is NOT an Inertia response — an Inertia
-// XHR can't render it and would leave a blank screen. A real form submit lets the
-// browser follow the redirect as a normal full-page navigation.
-// Same brand logos the sidebar uses (public-path strings so Vite doesn't bundle them).
 // Light logo on the dark teal panel; dark logo on the white mobile header.
 const logoLight = '/assets/images/logo-light.png';
 const logoDark = '/assets/images/logo-dark.png';
 
-// Validation errors are flashed to the session on a failed login and shared back by
-// HandleInertiaRequests when /login re-renders; old input repopulates the email.
-const page = usePage();
-const errors = computed(() => page.props.errors ?? {});
-
 const showPassword = ref(false);
-const email = ref(page.props.old?.email ?? '');
-const password = ref('');
-const remember = ref(false);
 
-// CSRF token from the <meta> tag in app.blade.php (root Inertia view).
-const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+});
+
+const submit = () => {
+    form.post('/login', {
+        onFinish: () => form.reset('password'),
+    });
+};
 </script>
 
 <style scoped>
