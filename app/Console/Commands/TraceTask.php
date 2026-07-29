@@ -89,7 +89,14 @@ class TraceTask extends Command
         $this->line('    updated_at ..................... ' . ($row->updated_at ?? '-'));
 
         if (Schema::hasColumn('tasks', 'scheduled_task_id')) {
-            $this->line('    scheduled_task_id .............. ' . ($row->scheduled_task_id ?? 'null (manual task)'));
+            // Not evidence of a manual task on its own: nothing wrote this
+            // column before the duplicate-guard release, so every task created
+            // before then is null regardless of where it came from.
+            $this->line('    scheduled_task_id .............. ' . ($row->scheduled_task_id ?? 'null'));
+
+            if (is_null($row->scheduled_task_id)) {
+                $this->line('      (null means manual OR created before this column was populated)');
+            }
         }
     }
 
