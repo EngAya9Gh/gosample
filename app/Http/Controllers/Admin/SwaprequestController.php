@@ -142,7 +142,7 @@ class SwaprequestController extends Controller
     public function update(UpdateSwaprequestRequest $request, Swap $swaprequest)
     {
         $swaprequest->update($request->all());
-            return redirect()->route('app.admin.swaprequests.index');
+            return redirect()->route('admin.swaprequests.index');
         return redirect()->route('admin.swaprequests.index');
     }
 
