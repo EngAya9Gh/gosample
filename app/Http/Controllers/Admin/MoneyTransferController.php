@@ -172,7 +172,7 @@ class MoneyTransferController extends Controller
         $moneyTransfer->to_location_otp = $moneyTransfer->generateOtp();
         $moneyTransfer->save();
 
-        return redirect()->route('app.admin.money-transfers.index')->with('success', 'Money transfer created successfully');
+        return redirect()->route('admin.money-transfers.index')->with('success', 'Money transfer created successfully');
     }
 
     public function edit(MoneyTransfer $moneyTransfer)

@@ -90,7 +90,7 @@ class UsersController extends Controller
         $user = User::create($data);
         $user->roles()->sync($request->input('roles', []));
         $user->clients()->sync($clients);
-            return redirect()->route('app.admin.users.index');
+            return redirect()->route('admin.users.index');
     }
 
     public function edit(User $user)
@@ -121,7 +121,7 @@ class UsersController extends Controller
         $user->update($data);
         $user->roles()->sync($request->input('roles', []));
         $user->clients()->sync($clients);
-            return redirect()->route('app.admin.users.index');
+            return redirect()->route('admin.users.index');
     }
 
     public function show(User $user)
