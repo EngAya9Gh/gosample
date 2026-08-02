@@ -62,7 +62,7 @@ const columns = [
   { key: 'sequence',          label: '#',                 sticky: 'start', width: '52px' },
   { key: 'id',                label: 'ID',                sticky: 'start', width: '80px' },
   { key: 'barcode_id',        label: 'Barcode',           ltr: true },
-  { key: 'location_name',     label: 'Location',          wrap: true, width: '200px' },
+  { key: 'location_name',     label: 'Location',          wrap: true, width: '300px' },
   { key: 'task_id',           label: 'Task ID',           width: '100px' },
   { key: 'container_imei',    label: 'Container',         width: '140px' },
   { key: 'sample_type',       label: 'Sample Type',       width: '140px' },
