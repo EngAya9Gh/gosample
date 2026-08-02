@@ -200,17 +200,17 @@ async function confirmDelete() {
       </template>
 
       <template #cell-location_name="{ value }">
-        <span v-if="value" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[12.5px] font-bold truncate max-w-[170px] border border-emerald-100 dark:border-emerald-500/20" :title="value">
-          <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
-          <span class="truncate">{{ value }}</span>
+        <span v-if="value" class="inline-flex items-start gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[12.5px] font-bold w-full whitespace-normal break-words border border-emerald-100 dark:border-emerald-500/20">
+          <i class="ri-map-pin-fill text-red-500 text-[13px] shrink-0 mt-[2px]"></i>
+          <span>{{ value }}</span>
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>
 
       <template #cell-to_location_name="{ value }">
-        <span v-if="value" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 text-[12.5px] font-bold truncate max-w-[170px] border border-sky-100 dark:border-sky-500/20" :title="value">
-          <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
-          <span class="truncate">{{ value }}</span>
+        <span v-if="value" class="inline-flex items-start gap-1 px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 text-[12.5px] font-bold w-full whitespace-normal break-words border border-sky-100 dark:border-sky-500/20">
+          <i class="ri-map-pin-fill text-green-500 text-[13px] shrink-0 mt-[2px]"></i>
+          <span>{{ value }}</span>
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>
