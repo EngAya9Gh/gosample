@@ -146,13 +146,13 @@ function doReset() {
   dateRange.value = '';
   fetch();
 }
-function doPage(p) {
-  filters.page = p;
-  fetch();
-}
-function doSort(col, order) {
-  filters.sort_by = col;
-  filters.sort_order = order;
+function onQuery(q) {
+  filters.page = q.page;
+  filters.pageSize = q.pageSize;
+  if (q.sortKey) {
+    filters.sort_by = q.sortKey;
+    filters.sort_order = q.sortDir;
+  }
   fetch();
 }
 
@@ -249,10 +249,11 @@ function onExport(format) {
       :page-size="drivers.pageSize"
       :sort-by="filters.sort_by"
       :sort-order="filters.sort_order"
+      :server-side="true"
+      :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @bulk-delete="bulkDelete"
-      @page="doPage"
-      @sort="doSort"
+      @query="onQuery"
     >
       <!-- Custom rendering for ID column -->
       <template #cell-id="{ row }">
