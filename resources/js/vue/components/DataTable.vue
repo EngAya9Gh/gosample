@@ -16,7 +16,7 @@
  *
  * Slots: cell-<key> ({ row, value }) for custom cell rendering; row-actions ({ row }).
  */
-import { ref, computed, watch, getCurrentInstance } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
 import { useToast } from '../composables/useToast';
 
 const props = defineProps({
@@ -79,6 +79,75 @@ const paged = computed(() => {
 });
 const rangeFrom = computed(() => totalRows.value === 0 ? 0 : (page.value - 1) * pageSize.value + 1);
 const rangeTo = computed(() => Math.min(page.value * pageSize.value, totalRows.value));
+
+/* ---------- rows-per-page menu ----------
+ * Custom dropdown instead of a native <select>: the OS popup can't be themed and
+ * its label sits off-centre in the control. Panel is teleported to <body> with
+ * fixed coords (the table card is overflow-hidden, which would clip it) and
+ * flips above the trigger when there's no room below. Mirrors FormSelect. */
+const sizeOpen = ref(false);
+const sizeActive = ref(0);
+const sizeWrap = ref(null);
+const sizeTrigger = ref(null);
+const sizePanel = ref(null);
+const sizeStyle = ref({});
+
+function positionSizePanel() {
+  const t = sizeTrigger.value;
+  if (!t) return;
+  const r = t.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const panelH = sizePanel.value?.offsetHeight || 220;
+  const spaceBelow = vh - r.bottom - 12;
+  const openUp = spaceBelow < panelH && r.top > spaceBelow;
+  sizeStyle.value = {
+    left: `${r.left}px`,
+    minWidth: `${Math.max(r.width, 96)}px`,
+    ...(openUp ? { bottom: `${vh - r.top + 6}px` } : { top: `${r.bottom + 6}px` }),
+  };
+}
+function onSizeReflow() { if (sizeOpen.value) positionSizePanel(); }
+
+watch(sizeOpen, (v) => {
+  if (!v) return;
+  sizeActive.value = Math.max(0, SIZES.indexOf(pageSize.value));
+  nextTick(positionSizePanel);
+});
+
+function pickSize(s) {
+  pageSize.value = s;
+  sizeOpen.value = false;
+  sizeTrigger.value?.focus();
+}
+function onSizeKeydown(e) {
+  if (!sizeOpen.value) {
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sizeOpen.value = true; }
+    return;
+  }
+  switch (e.key) {
+    case 'ArrowDown': e.preventDefault(); sizeActive.value = Math.min(sizeActive.value + 1, SIZES.length - 1); break;
+    case 'ArrowUp':   e.preventDefault(); sizeActive.value = Math.max(sizeActive.value - 1, 0); break;
+    case 'Home':      e.preventDefault(); sizeActive.value = 0; break;
+    case 'End':       e.preventDefault(); sizeActive.value = SIZES.length - 1; break;
+    case 'Enter':     e.preventDefault(); pickSize(SIZES[sizeActive.value]); break;
+    case 'Escape':    e.preventDefault(); sizeOpen.value = false; sizeTrigger.value?.focus(); break;
+  }
+}
+function onSizeDocClick(e) {
+  const inWrap  = sizeWrap.value && sizeWrap.value.contains(e.target);
+  const inPanel = sizePanel.value && sizePanel.value.contains(e.target);
+  if (!inWrap && !inPanel) sizeOpen.value = false;
+}
+onMounted(() => {
+  document.addEventListener('click', onSizeDocClick);
+  window.addEventListener('resize', onSizeReflow);
+  window.addEventListener('scroll', onSizeReflow, true);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onSizeDocClick);
+  window.removeEventListener('resize', onSizeReflow);
+  window.removeEventListener('scroll', onSizeReflow, true);
+});
 
 /* ---------- sorting ---------- */
 function toggleSort(c) {
@@ -229,6 +298,54 @@ function stickyCls(c, bg = STICKY_BODY) {
       </div>
     </Transition>
 
+    <!-- pagination — sits ABOVE the table so rows-per-page / paging is reachable
+         without scrolling to the bottom of long lists -->
+    <div v-if="!loading && totalRows" class="flex flex-wrap items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-white/5 print:hidden">
+      <div class="flex items-center gap-2 text-[13px] text-slate-500">
+        <span>Rows</span>
+        <div ref="sizeWrap" class="relative">
+          <button ref="sizeTrigger" type="button" @click="sizeOpen = !sizeOpen" @keydown="onSizeKeydown"
+            class="inline-flex items-center gap-1.5 h-8 ps-3 pe-2 rounded-lg bg-surface-muted dark:bg-white/5 border text-[13px] font-semibold leading-none text-ink dark:text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+            :class="sizeOpen ? 'border-primary-500/50' : 'border-transparent hover:border-slate-200 dark:hover:border-white/10'">
+            <span class="tabular-nums">{{ pageSize }}</span>
+            <i class="ri-arrow-down-s-line text-[15px] text-slate-400 transition-transform duration-200" :class="sizeOpen ? 'rotate-180' : ''"></i>
+          </button>
+
+          <Teleport to="body">
+            <div v-if="sizeOpen" ref="sizePanel" :style="sizeStyle"
+              class="fixed z-[200] p-1.5 bg-surface dark:bg-surface-dark-solid rounded-xl shadow-card-hover border border-slate-100 dark:border-white/10 animate-fade-in-up">
+              <button v-for="(s, i) in SIZES" :key="s" type="button"
+                @click="pickSize(s)" @mouseenter="sizeActive = i"
+                class="w-full flex items-center gap-2 px-2.5 h-9 rounded-lg text-[13px] font-semibold transition"
+                :class="[
+                  s === pageSize ? 'text-primary-700 dark:text-primary-300' : 'text-ink dark:text-slate-200',
+                  i === sizeActive ? 'bg-primary-50 dark:bg-white/10' : ''
+                ]">
+                <i class="ri-check-line text-[15px] text-primary-600 dark:text-primary-300" :class="s === pageSize ? '' : 'invisible'"></i>
+                <span class="tabular-nums">{{ s }}</span>
+              </button>
+            </div>
+          </Teleport>
+        </div>
+      </div>
+      <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString('en-US') }}</p>
+
+      <div class="flex items-center gap-1 ms-auto">
+        <!-- animated: arrow slides in its travel direction on hover; button presses on click -->
+        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1"
+          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Previous">
+          <i class="ri-arrow-left-s-line rtl:hidden transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
+          <i class="ri-arrow-right-s-line hidden rtl:block transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
+        </button>
+        <span class="px-2 text-[13px] font-medium text-ink dark:text-slate-200">{{ page }} / {{ pageCount }}</span>
+        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount"
+          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Next">
+          <i class="ri-arrow-right-s-line rtl:hidden transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
+          <i class="ri-arrow-left-s-line hidden rtl:block transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
+        </button>
+      </div>
+    </div>
+
     <!-- table -->
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
@@ -271,16 +388,18 @@ function stickyCls(c, bg = STICKY_BODY) {
             <tr v-for="row in paged" :key="row[rowKey]"
               class="group border-t border-slate-100 dark:border-white/5 transition-colors hover:bg-surface-muted/50 dark:hover:bg-white/5"
               :class="sel.has(row[rowKey]) ? 'bg-primary-50/60 dark:bg-primary-500/10' : ''">
-              <td v-if="selectable" class="ps-4 pe-2 py-2.5 sticky inset-inline-start-0 z-[1] print:hidden" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
-                <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
+              <td v-if="selectable" class="ps-4 pe-2 py-2.5 align-top sticky inset-inline-start-0 z-[1] print:hidden" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
+                <button @click="toggleRow(row[rowKey])" class="grid place-items-center w-4 h-4 mt-0.5 rounded border transition" :class="sel.has(row[rowKey]) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
                   <i v-if="sel.has(row[rowKey])" class="ri-check-line text-xs"></i>
                 </button>
               </td>
+              <!-- every cell is align-top so the FIRST line of each value lines up
+                   across the row, however tall the wrapped cells get -->
               <td v-for="c in columns" :key="c.key"
-                class="px-3 py-2.5 text-ink dark:text-slate-200 text-[13px]"
+                class="px-3 py-2.5 align-top leading-snug text-ink dark:text-slate-200 text-[13px]"
                 :class="[
                   c.align === 'end' ? 'text-end' : c.align === 'center' ? 'text-center' : 'text-start',
-                  c.wrap ? 'align-top' : 'whitespace-nowrap',
+                  c.wrap ? '' : 'whitespace-nowrap',
                   c.mono ? 'font-mono' : '',
                   stickyCls(c, sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY)
                 ]"
@@ -292,7 +411,9 @@ function stickyCls(c, bg = STICKY_BODY) {
                 </div>
                 <slot v-else :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
               </td>
-              <td v-if="$slots['row-actions']" class="px-3 py-2.5 text-end sticky inset-inline-end-0 z-[1]" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
+              <!-- action buttons are 32px tall — a smaller vertical pad keeps them
+                   optically on the row's first line instead of hanging below it -->
+              <td v-if="$slots['row-actions']" class="px-3 py-1.5 align-top text-end sticky inset-inline-end-0 z-[1]" :class="sel.has(row[rowKey]) ? STICKY_SEL : STICKY_BODY">
                 <slot name="row-actions" :row="row"></slot>
               </td>
             </tr>
@@ -304,31 +425,6 @@ function stickyCls(c, bg = STICKY_BODY) {
       <EmptyState v-if="!loading && paged.length === 0" icon="ri-search-eye-line" title="No records found" message="Try adjusting your filters or search term." />
     </div>
 
-    <!-- pagination -->
-    <div v-if="!loading && totalRows" class="flex flex-wrap items-center gap-2 px-4 py-2.5 border-t border-slate-100 dark:border-white/5 print:hidden">
-      <div class="flex items-center gap-2 text-[13px] text-slate-500">
-        <span>Rows</span>
-        <select v-model.number="pageSize" class="h-8 ps-2 pe-6 rounded-lg bg-surface-muted dark:bg-white/5 text-[13px] border-0 focus:ring-2 focus:ring-primary-500/30">
-          <option v-for="s in SIZES" :key="s" :value="s">{{ s }}</option>
-        </select>
-      </div>
-      <p class="text-[13px] text-slate-500 ms-2">{{ rangeFrom }}–{{ rangeTo }} of {{ totalRows.toLocaleString('en-US') }}</p>
-
-      <div class="flex items-center gap-1 ms-auto">
-        <!-- animated: arrow slides in its travel direction on hover; button presses on click -->
-        <button @click="page = Math.max(1, page - 1)" :disabled="page === 1"
-          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Previous">
-          <i class="ri-arrow-left-s-line rtl:hidden transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
-          <i class="ri-arrow-right-s-line hidden rtl:block transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
-        </button>
-        <span class="px-2 text-[13px] font-medium text-ink dark:text-slate-200">{{ page }} / {{ pageCount }}</span>
-        <button @click="page = Math.min(pageCount, page + 1)" :disabled="page === pageCount"
-          class="group grid place-items-center w-8 h-8 rounded-lg text-slate-500 transition-all duration-200 hover:bg-surface-muted dark:hover:bg-white/10 hover:text-primary-600 dark:hover:text-primary-300 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100" title="Next">
-          <i class="ri-arrow-right-s-line rtl:hidden transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0"></i>
-          <i class="ri-arrow-left-s-line hidden rtl:block transition-transform duration-200 group-hover:-translate-x-0.5 group-disabled:translate-x-0"></i>
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 

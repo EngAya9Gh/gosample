@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { usePage, router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import RouteCell from '../../components/RouteCell.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
@@ -358,27 +359,25 @@ function submitContainer() {
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                 <tr v-for="task in props.car.car_tasks" :key="task.id" class="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
-                  <td class="px-5 py-3 whitespace-nowrap text-sm font-black text-info dark:text-info">
+                  <td class="px-5 py-3 align-top whitespace-nowrap text-sm font-black text-info dark:text-info">
                     <a :href="`/admin/tasks/${task.id}`" class="hover:underline" target="_blank">#{{ task.id }}</a>
                   </td>
-                  <td class="px-5 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                    <span class="inline-flex items-center gap-1"><i class="ri-map-pin-fill text-red-500 text-[11px]"></i> {{ task.from?.name || '—' }}</span>
-                    <i class="ri-arrow-right-line text-slate-400 text-[11px] mx-1"></i>
-                    <span class="inline-flex items-center gap-1"><i class="ri-map-pin-fill text-green-500 text-[11px]"></i> {{ task.to?.name || '—' }}</span>
+                  <td class="px-5 py-3 align-top text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <RouteCell :from="task.from?.name" :to="task.to?.name" />
                   </td>
-                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200 font-medium">
+                  <td class="px-5 py-3 align-top whitespace-nowrap text-sm text-slate-800 dark:text-slate-200 font-medium">
                     {{ task.client?.name || '—' }}
                   </td>
-                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
+                  <td class="px-5 py-3 align-top whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
                     <div class="flex items-center gap-2">
                       <BaseAvatar v-if="task.driver" :name="task.driver.name" :size="20" />
                       {{ task.driver?.name || '—' }}
                     </div>
                   </td>
-                  <td class="px-5 py-3 whitespace-nowrap text-sm">
+                  <td class="px-5 py-3 align-top whitespace-nowrap text-sm">
                     <StatusBadge :status="String(task.status || '')" />
                   </td>
-                  <td class="px-5 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-medium">{{ formatDate(task.created_at) }}</td>
+                  <td class="px-5 py-3 align-top whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 font-medium">{{ formatDate(task.created_at) }}</td>
                 </tr>
                 <tr v-if="!props.car.car_tasks?.length">
                   <td colspan="6" class="px-5 py-8 text-center text-sm text-slate-500">No tasks assigned to this car.</td>

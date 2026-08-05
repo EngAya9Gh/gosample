@@ -184,7 +184,7 @@ const formatDate = (dateString) => {
       >
         <template #cell-driver="{ row }">
           <div class="flex items-center gap-2">
-            <BaseAvatar :name="row.driver?.name || 'Unknown'" :size="28" />
+            <BaseAvatar :name="row.driver?.name || 'Unknown'" :size="28" class="-mt-[4px]" />
             <span class="font-medium text-slate-900 dark:text-slate-100">{{ row.driver?.name || 'Unknown' }}</span>
           </div>
         </template>

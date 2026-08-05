@@ -174,6 +174,41 @@ class TasksController extends Controller
     }
 
     /**
+     * Render the SPA Edit-Task PAGE (replaces the list's edit modal). Same raw
+     * field values editData() returns, plus a little read-only context for the
+     * header, and the same options() lists the create page uses. Submits to the
+     * existing update endpoint (admin.tasks.popup.update).
+     */
+    public function edit(Task $task)
+    {
+        abort_if(Gate::denies('task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $task->load('from', 'to', 'client', 'driver');
+
+        return Inertia::render('Tasks/TaskEdit', [
+            'task' => [
+                'id'             => $task->id,
+                'from_location'  => $task->from_location,
+                'to_location'    => $task->to_location,
+                'billing_client' => $task->billing_client,
+                'driver_id'      => $task->driver_id,
+                'task_type'      => $task->task_type,
+                'status'         => $task->status,
+                'takasi'         => $task->takasi,
+                // read-only context for the page header
+                'created_at'         => $this->fmt($task->created_at),
+                'collection_date'    => $this->fmt($task->collection_date),
+                'close_date'         => $this->fmt($task->close_date),
+                'driver_name'        => $task->driver->name ?? null,
+                'client_name'        => $task->client->english_name ?? null,
+                'from_location_name' => $task->from->name ?? null,
+                'to_location_name'   => $task->to->name ?? null,
+            ],
+            'options' => $this->options(auth()->user()),
+        ]);
+    }
+
+    /**
      * Editable field values for the SPA Edit-Task modal (raw FK columns/enums),
      * fetched when the modal opens since the list rows only carry display names.
      */

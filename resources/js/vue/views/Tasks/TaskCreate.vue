@@ -54,7 +54,7 @@ function cancel() {
     <Breadcrumb title="Create Task" :trail="[{ label: 'Tasks', route: '/admin/tasks' }, { label: 'Create' }]" />
 
     <form @submit.prevent="submit" class="space-y-6">
-      <BaseCard>
+      <BaseCard :padded="false">
         <div class="p-5 border-b border-slate-100 dark:border-white/5">
           <h2 class="text-base font-bold text-ink dark:text-white flex items-center gap-2">
             <i class="ri-add-circle-line text-primary-500"></i>

@@ -8,7 +8,6 @@
  */
 import { ref, reactive, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -18,6 +17,7 @@ import FormDate from '../../components/FormDate.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import RouteCell from '../../components/RouteCell.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
@@ -131,46 +131,10 @@ function submitCreate() {
   });
 }
 
-/* ---------- Edit Task modal (mirrors /admin/tasks/{id}/edit fields) ---------- */
-// Status options from App\Models\Task::STATUS_SELECT.
-const STATUS_OPTS = ['NEW', 'COLLECTED', 'CLOSED', 'IN_FREEZER', 'NO_SAMPLES', 'OUT_FREEZER']
-  .map((s) => ({ value: s, label: s }));
-
-const showEdit = ref(false);
-const editLoading = ref(false);
-const editId = ref(null);       // kept out of the form so it isn't sent in the payload
-const editForm = useForm({
-  from_location: '', to_location: '', billing_client: '', driver_id: '',
-  task_type: '', status: '', takasi: '',
-});
-
-async function openEdit(row) {
+/* ---------- Edit Task: full page (Tasks/TaskEdit), not a modal ---------- */
+function openEdit(row) {
   if (!can('task_edit')) return;
-  editLoading.value = true;
-  showEdit.value = true;
-  try {
-    const { data } = await axios.get(`/admin/tasks/${row.id}/popup-data`);
-    editForm.clearErrors();
-    editId.value            = data.id;
-    editForm.from_location  = data.from_location ?? '';
-    editForm.to_location    = data.to_location ?? '';
-    editForm.billing_client = data.billing_client ?? '';
-    editForm.driver_id      = data.driver_id ?? '';
-    editForm.task_type      = data.task_type ?? '';
-    editForm.status         = data.status ?? '';
-    editForm.takasi         = data.takasi ?? '';
-  } catch (e) {
-    showEdit.value = false;
-    push({ type: 'error', title: 'Could not load', message: 'Failed to load task for editing.' });
-  } finally {
-    editLoading.value = false;
-  }
-}
-function submitEdit() {
-  editForm.put(`/admin/tasks/${editId.value}/popup`, {
-    preserveScroll: true,
-    onSuccess: () => { showEdit.value = false; },
-  });
+  router.visit(`/admin/tasks/${row.id}/edit`);
 }
 
 const rows = computed(() => props.rows || []);
@@ -351,21 +315,11 @@ async function bulkDelete(ids) {
         <span class="font-extrabold text-slate-800 dark:text-white whitespace-normal leading-snug">{{ value || '—' }}</span>
       </template>
       <template #cell-route="{ row }">
-        <div dir="ltr" class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal leading-snug">
-          <span class="inline-flex items-center gap-1">
-            <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
-            <span class="font-medium">{{ row.from_location_name || '—' }}</span>
-          </span>
-          <i class="ri-arrow-right-line text-slate-400 shrink-0 text-[11px]"></i>
-          <span class="inline-flex items-center gap-1">
-            <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
-            <span class="font-medium">{{ row.to_location_name || '—' }}</span>
-          </span>
-        </div>
+        <RouteCell :from="row.from_location_name" :to="row.to_location_name" />
       </template>
       <template #cell-driver_name="{ value }">
         <div v-if="value" class="flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" />
+          <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
         </div>
         <span v-else class="text-slate-400">—</span>
@@ -435,32 +389,5 @@ async function bulkDelete(ids) {
       </template>
     </BaseModal>
 
-    <!-- edit task -->
-    <BaseModal v-model="showEdit" title="Edit Task" icon="ri-pencil-line" size="xl">
-      <div v-if="editLoading" class="grid place-items-center py-16 text-slate-400">
-        <i class="ri-loader-4-line text-3xl animate-spin"></i>
-        <p class="text-sm mt-2">Loading task…</p>
-      </div>
-      <form v-else @submit.prevent="submitEdit" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormSelect floating v-model="editForm.from_location" label="From Location" :options="locationOpts"
-          placeholder="Select Location" required :error="editForm.errors.from_location" />
-        <FormSelect floating v-model="editForm.to_location" label="To Location" :options="locationOpts"
-          placeholder="Select Location" required :error="editForm.errors.to_location" />
-        <FormSelect floating v-model="editForm.billing_client" label="Client" :options="clientOpts"
-          placeholder="Select Client" required :error="editForm.errors.billing_client" />
-        <FormSelect floating v-model="editForm.driver_id" label="Driver" :options="driverOpts"
-          placeholder="Select Driver" required :error="editForm.errors.driver_id" />
-        <FormSelect floating v-model="editForm.task_type" label="Task Type" :options="TASK_TYPE_OPTS" :searchable="false"
-          required :error="editForm.errors.task_type" />
-        <FormSelect floating v-model="editForm.status" label="Status" :options="STATUS_OPTS" :searchable="false"
-          :error="editForm.errors.status" />
-        <FormSelect floating v-model="editForm.takasi" label="Takasi" :options="TAKASI_OPTS" :searchable="false"
-          :error="editForm.errors.takasi" />
-      </form>
-      <template #footer>
-        <BaseButton variant="light" @click="showEdit = false" :disabled="editForm.processing">Cancel</BaseButton>
-        <BaseButton variant="primary" icon="ri-save-line" :loading="editForm.processing" @click="submitEdit">Save</BaseButton>
-      </template>
-    </BaseModal>
   </div>
 </template>

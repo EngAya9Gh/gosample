@@ -257,7 +257,7 @@ async function bulkDelete(ids) {
       </template>
       <template #cell-driver_name="{ row, value }">
         <div v-if="value" class="flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" />
+          <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <div class="min-w-0">
             <div class="text-[12.5px] font-bold text-ink dark:text-slate-200 truncate">{{ value }}</div>
             <div class="text-[11px] text-slate-500 truncate" dir="ltr">{{ row.driver_mobile || '' }}</div>

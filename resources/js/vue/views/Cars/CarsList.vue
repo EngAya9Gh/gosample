@@ -309,7 +309,7 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
       <template #cell-driver_name="{ row, value }">
         <div v-if="value" class="flex flex-col gap-0.5">
           <div class="flex items-center gap-2">
-            <BaseAvatar :name="value" :size="26" />
+            <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
             <span class="text-[12.5px] font-bold text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
           </div>
           <span class="text-[11px] text-slate-500">{{ row.driver_mobile }}</span>
