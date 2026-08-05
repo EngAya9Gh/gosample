@@ -331,6 +331,9 @@ Route::middleware(['auth'])->group(function () {
     // collide with page-style create/edit routes or the {task} wildcard below.
     Route::post('admin/tasks/popup', [\App\Http\Controllers\App\TasksController::class, 'store'])->name('admin.tasks.popup.store');
     Route::get('admin/tasks/{task}/popup-data', [\App\Http\Controllers\App\TasksController::class, 'editData'])->name('admin.tasks.popup.editData');
+    // Full-page task editor (replaces the list's edit modal). Registered after the
+    // classic admin resource route, so it takes over admin.tasks.edit.
+    Route::get('admin/tasks/{task}/edit', [\App\Http\Controllers\App\TasksController::class, 'edit'])->name('admin.tasks.edit');
     Route::put('admin/tasks/{task}/popup', [\App\Http\Controllers\App\TasksController::class, 'update'])->name('admin.tasks.popup.update');
     Route::get('admin/tasks/{task}', [\App\Http\Controllers\App\TasksController::class, 'show'])->name('admin.tasks.show');
     Route::put('admin/tasks/{task}/update-times', [\App\Http\Controllers\App\TasksController::class, 'updateTimes'])->name('admin.tasks.updateTimes');

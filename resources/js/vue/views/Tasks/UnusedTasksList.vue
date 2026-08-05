@@ -7,6 +7,7 @@ import DataTable from '../../components/DataTable.vue';
 import FormSelect from '../../components/FormSelect.vue';
 import FormDate from '../../components/FormDate.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import RouteCell from '../../components/RouteCell.vue';
 import { useToast } from '../../composables/useToast';
 
 const { push } = useToast();
@@ -140,24 +141,14 @@ function onExport(kind) {
     >
       <template #cell-driver_name="{ value }">
         <div v-if="value" class="flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" />
+          <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
         </div>
         <span v-else class="text-slate-400">—</span>
       </template>
 
       <template #cell-route="{ row }">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-[12.5px] font-bold truncate max-w-[130px] border border-emerald-100 dark:border-emerald-500/20" :title="row.from_location_name">
-            <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
-            <span class="truncate">{{ row.from_location_name || '—' }}</span>
-          </span>
-          <i class="ri-arrow-right-line text-slate-400 shrink-0"></i>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 text-[12.5px] font-bold truncate max-w-[130px] border border-sky-100 dark:border-sky-500/20" :title="row.to_location_name">
-            <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
-            <span class="truncate">{{ row.to_location_name || '—' }}</span>
-          </span>
-        </div>
+        <RouteCell :from="row.from_location_name" :to="row.to_location_name" />
       </template>
 
       <template #cell-id="{ value }">

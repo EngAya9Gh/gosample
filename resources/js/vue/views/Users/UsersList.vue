@@ -233,7 +233,7 @@ const submitForm = () => {
       <!-- Bold Name -->
       <template #cell-name="{ row }">
         <div class="flex items-center gap-3">
-          <BaseAvatar :name="row.name" :size="32" rounded />
+          <BaseAvatar :name="row.name" :size="32" rounded class="-mt-[6px]" />
           <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap">{{ row.name }}</span>
         </div>
       </template>

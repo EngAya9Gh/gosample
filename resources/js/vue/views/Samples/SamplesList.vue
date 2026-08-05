@@ -225,7 +225,7 @@ async function confirmDelete() {
 
       <template #cell-driver_name="{ value }">
         <div v-if="value" class="flex items-center gap-2">
-          <BaseAvatar :name="value" :size="26" />
+          <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
         </div>
         <span v-else class="text-slate-400">—</span>

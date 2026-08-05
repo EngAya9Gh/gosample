@@ -15,6 +15,7 @@ import FormDate from '../../components/FormDate.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
+import RouteCell from '../../components/RouteCell.vue';
 import { useToast } from '../../composables/useToast';
 import axios from 'axios';
 
@@ -94,7 +95,7 @@ const loading = ref(false);
 const columns = [
   { key: 'id',                         label: 'ID',        sortable: false, width: '80px' },
   { key: 'client',                     label: 'Client',    sortable: false, width: '160px' },
-  { key: 'route',                      label: 'Route (From → To)', sortable: false, width: '220px' },
+  { key: 'route',                      label: 'Route (From → To)', sortable: false, wrap: true, width: '220px' },
   { key: 'driver_name',                label: 'Driver',    sortable: false, width: '150px' },
   { key: 'car_plate',                  label: 'Car Plate', sortable: false, width: '120px' },
   { key: 'status',                     label: 'Status',    sortable: false, width: '130px' },
@@ -257,21 +258,11 @@ function onExport(type) {
           <span class="font-semibold text-ink dark:text-slate-100 whitespace-normal leading-snug">{{ value || '—' }}</span>
         </template>
         <template #cell-route="{ row }">
-          <div dir="ltr" class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-normal leading-snug">
-            <span class="inline-flex items-center gap-1">
-              <i class="ri-map-pin-fill text-red-500 text-[11px] shrink-0"></i>
-              <span class="font-medium">{{ row.from_location_name || '—' }}</span>
-            </span>
-            <i class="ri-arrow-right-line text-slate-400 shrink-0 text-[11px]"></i>
-            <span class="inline-flex items-center gap-1">
-              <i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i>
-              <span class="font-medium">{{ row.to_location_name || '—' }}</span>
-            </span>
-          </div>
+          <RouteCell :from="row.from_location_name" :to="row.to_location_name" />
         </template>
         <template #cell-driver_name="{ value }">
           <span v-if="value" class="inline-flex items-center gap-1.5">
-            <BaseAvatar :name="value" :size="22" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
+            <BaseAvatar :name="value" :size="22" class="-mt-px" /><span class="font-medium whitespace-normal leading-snug">{{ value }}</span>
           </span>
           <span v-else class="text-slate-400">—</span>
         </template>
