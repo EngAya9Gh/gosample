@@ -32,13 +32,13 @@ watch(() => props.modelValue, (open) => {
 
 <template>
   <Transition name="modal">
-    <div v-if="modelValue" class="fixed inset-0 z-[100] grid place-items-center p-4" @keydown.esc="close">
+    <div v-if="modelValue" class="fixed inset-x-0 top-0 h-[100dvh] z-[100] flex items-center justify-center p-4 sm:p-6" @keydown.esc="close">
       <!-- backdrop -->
       <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-sm" @click="close"></div>
 
       <!-- panel -->
       <div
-        class="relative w-full bg-surface dark:bg-surface-dark-solid rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 flex flex-col max-h-[88vh] modal-panel"
+        class="relative w-full bg-surface dark:bg-surface-dark-solid rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 flex flex-col max-h-[85dvh] modal-panel"
         :class="SIZES[size]"
         role="dialog" aria-modal="true"
       >
