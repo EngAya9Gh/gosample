@@ -52,7 +52,7 @@ watch(() => props.modelValue, (open) => {
           </button>
         </header>
 
-        <div class="p-5 overflow-y-auto"><slot></slot></div>
+        <div class="p-5 overflow-y-auto flex-1 min-h-0"><slot></slot></div>
 
         <footer v-if="$slots.footer" class="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-white/5">
           <slot name="footer"></slot>
