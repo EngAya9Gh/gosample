@@ -142,7 +142,7 @@ class DriversController extends Controller
         $driver = Driver::create($request->all());
         $this->syncDriverShifts($driver, $request);
 
-        return redirect()->route('app.admin.drivers.index')->with('success', 'Driver created successfully.');
+        return redirect()->route('admin.drivers.index')->with('success', 'Driver created successfully.');
     }
 
     public function edit($id)
@@ -172,7 +172,7 @@ class DriversController extends Controller
         
         $this->syncDriverShifts($driver, $request);
 
-        return redirect()->route('app.admin.drivers.index')->with('success', 'Driver updated successfully.');
+        return redirect()->route('admin.drivers.index')->with('success', 'Driver updated successfully.');
     }
 
     public function show($id)
