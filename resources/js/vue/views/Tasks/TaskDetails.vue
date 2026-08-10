@@ -445,12 +445,26 @@ function getDuration(start, end) {
               <i class="ri-car-line text-xl"></i>
             </div>
             <div class="pt-1">
-              <p class="text-sm font-bold text-ink dark:text-white">Sample Placement</p>
+              <p class="text-sm font-bold text-ink dark:text-white">Sample In</p>
               <p class="text-xs text-slate-500 mt-1 font-medium">Sample Receiving: {{ fmtDate(task.collection_date) }}</p>
               <p class="text-xs text-slate-500 mt-0.5 font-medium">Sample In: {{ fmtDate(task.freezer_date) }}</p>
               <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
                 <i class="ri-time-line text-[11px] text-primary-500"></i> Duration — Sample In: 
                 <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.collection_date, task.freezer_date) }}</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 mb-6 relative">
+            <div class="w-10 h-10 rounded-full border-[3px] border-primary-500 flex items-center justify-center text-primary-500 bg-surface dark:bg-surface-dark shadow-sm z-10 shrink-0">
+              <i class="ri-logout-box-r-line text-xl"></i>
+            </div>
+            <div class="pt-1">
+              <p class="text-sm font-bold text-ink dark:text-white">Sample Out</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium">Sample Out: {{ fmtDate(task.freezer_out_date) }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
+                <i class="ri-time-line text-[11px] text-primary-500"></i> Duration in Freezer: 
+                <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.freezer_date, task.freezer_out_date) }}</span>
               </p>
             </div>
           </div>
@@ -461,8 +475,7 @@ function getDuration(start, end) {
             </div>
             <div class="pt-1">
               <p class="text-sm font-bold text-primary-600 dark:text-primary-400">Sample Delivery</p>
-              <p class="text-xs text-slate-500 mt-1 font-medium">Sample Out: {{ fmtDate(task.freezer_out_date) }}</p>
-              <p class="text-xs text-slate-500 mt-0.5 font-medium">Delivery: {{ fmtDate(task.close_date) }}</p>
+              <p class="text-xs text-slate-500 mt-1 font-medium">Delivery: {{ fmtDate(task.close_date) }}</p>
               <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1">
                 <i class="ri-time-line text-[11px] text-primary-500"></i> Duration — Sample Delivery: 
                 <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded font-bold text-primary-700 dark:text-primary-400">{{ getDuration(task.freezer_out_date, task.close_date) }}</span>
