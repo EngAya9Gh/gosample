@@ -110,7 +110,7 @@
 
 
                 <div class="ms-1 header-item d-none d-sm-flex">
-                    <a href="{{ route('admin.samples.lost') }}"
+                    <a href="{{ route('admin.lost') }}"
                         class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode">
                         <i class="ri-flask-line fs-22"></i>
                         <span id="lost-samples-badge"

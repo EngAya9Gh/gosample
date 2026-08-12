@@ -114,14 +114,15 @@ function onExport(kind) {
     a.click();
     URL.revokeObjectURL(a.href);
   } else if (kind === 'excel') {
-    const th = header.map((h) => `<th>${h}</th>`).join('');
-    const tr = body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('');
-    const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['﻿' + html], { type: 'application/vnd.ms-excel' }));
-    a.download = 'samples.xls';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    import('xlsx').then((XLSX) => {
+      const ws = XLSX.utils.aoa_to_sheet([header, ...body]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, 'samples.xlsx');
+    }).catch(err => {
+      push({ type: 'error', title: 'Export Failed', message: 'Failed to load Excel export library.' });
+      console.error(err);
+    });
   } else if (kind === 'print') {
     const w = window.open('', '_blank');
     const th = header.map((h) => `<th>${h}</th>`).join('');

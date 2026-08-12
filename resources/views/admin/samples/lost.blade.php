@@ -162,7 +162,7 @@
                 retrieve: true,
                 aaSorting: [],
                 ajax: {
-                    url: "{{ route('admin.samples.lost') }}",
+                    url: "{{ route('admin.lost') }}",
                     data: function(d) {
                         d.confirmed_by_client = $("#confirmed_by_client option:selected").val();
                         d.barcode_id = $("#barcode_id").val();

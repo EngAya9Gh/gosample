@@ -1625,6 +1625,7 @@ class TasksController extends Controller
             'from_location'  => $request->input('from_location'),
             'to_location'    => $request->input('to_location'),
             'driver_id'      => $request->input('driver_id'),
+            'search_date'    => $request->input('search_date', 'tasks.created_at'),
         ];
 
         // SECURITY (fail-closed): scope the export to the user's own client OR refuse it
@@ -1743,7 +1744,7 @@ class TasksController extends Controller
         }
 
         // Default — render the polling page
-        return view('admin.tasks.export-pending', ['token' => $token]);
+        return \Inertia\Inertia::render('Tasks/ExportPending', ['token' => $token]);
     }
 
 

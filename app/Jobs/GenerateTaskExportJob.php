@@ -68,12 +68,14 @@ class GenerateTaskExportJob implements ShouldQueue
                 'to:id,name',
             ]);
 
+            $searchDateColumn = $f['search_date'] ?? 'tasks.created_at';
+            
             if (!empty($f['date_from']) && !empty($f['date_to'])) {
-                $query->whereBetween('collection_date', [$f['date_from'], $f['date_to']]);
+                $query->whereBetween($searchDateColumn, [$f['date_from'], $f['date_to']]);
             } elseif (!empty($f['date_from'])) {
-                $query->where('collection_date', '>=', $f['date_from']);
+                $query->where($searchDateColumn, '>=', $f['date_from']);
             } elseif (!empty($f['date_to'])) {
-                $query->where('collection_date', '<=', $f['date_to']);
+                $query->where($searchDateColumn, '<=', $f['date_to']);
             }
             if (!empty($f['status']))         { $query->where('status', $f['status']); }
             if (!empty($f['billing_client'])) { $query->where('billing_client', $f['billing_client']); }
