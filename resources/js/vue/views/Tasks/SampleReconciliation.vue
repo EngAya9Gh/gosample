@@ -375,7 +375,7 @@ focusScan();
                   style="direction:ltr" />
                 <button @click="submitScan"
                   class="group absolute top-1/2 -translate-y-1/2 right-2 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors duration-200">
-                  <i class="ri-add-line transition-transform duration-300 group-hover:rotate-90"></i>Add
+                  <i class="ri-add-line transition-transform duration-300 group-hover:rotate-90"></i>Get
                 </button>
               </div>
               <p class="flex items-center gap-1.5 text-[12px] mt-2 min-h-[20px]" :class="HINT_COLOR[scanHint.kind]">
