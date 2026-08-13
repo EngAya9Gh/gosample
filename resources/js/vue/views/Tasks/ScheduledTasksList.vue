@@ -123,7 +123,7 @@ function onExport(kind) {
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/admin/scheduled-tasks', { ...filters, ...extra }, {
+  router.get('/admin/scheduled-tasks', { pageSize: props.pageSize, ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters', 'clients', 'locations', 'drivers'],

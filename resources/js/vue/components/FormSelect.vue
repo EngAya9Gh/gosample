@@ -18,6 +18,7 @@ const props = defineProps({
   error:   { type: String, default: '' },
   required:{ type: Boolean, default: false },
   loading: { type: Boolean, default: false },
+  clearable:{ type: Boolean, default: true },
   // Teleport the dropdown panel to <body> so it isn't clipped by an overflow
   // ancestor (e.g. a modal body). Use inside modals.
   floating:{ type: Boolean, default: false },
@@ -112,6 +113,11 @@ function pick(v) {
     open.value = false;
   }
 }
+function clearSingle(e) {
+  e.stopPropagation();
+  emit('update:modelValue', '');
+  open.value = false;
+}
 function allOn() { emit('update:modelValue', props.options.map((o) => o.value)); }
 function allOff() { emit('update:modelValue', []); }
 
@@ -149,14 +155,17 @@ onBeforeUnmount(() => {
       <template v-if="multiple && selectedArr.length">
         <span v-for="v in selectedArr" :key="v" class="inline-flex items-center gap-1 ps-2 pe-1 h-6 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 text-xs font-medium">
           {{ options.find((o) => o.value === v)?.label }}
-          <i class="ri-close-line hover:text-danger" @click.stop="pick(v)"></i>
+          <i class="ri-close-line hover:text-danger cursor-pointer" @click.stop="pick(v)"></i>
         </span>
       </template>
       <span v-else-if="!multiple && singleLabel" class="text-ink dark:text-slate-100">{{ singleLabel }}</span>
       <span v-else class="text-slate-400">{{ placeholder }}</span>
       
-      <i v-if="loading" class="ri-loader-4-line animate-spin ms-auto text-primary-500"></i>
-      <i v-else class="ri-arrow-down-s-line ms-auto text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
+      <div class="ms-auto flex items-center gap-1">
+        <i v-if="loading" class="ri-loader-4-line animate-spin text-primary-500"></i>
+        <i v-if="clearable && !multiple && modelValue !== '' && modelValue !== null" class="ri-close-line text-slate-400 hover:text-danger cursor-pointer px-1 text-lg" @click.stop="clearSingle"></i>
+        <i v-if="!loading" class="ri-arrow-down-s-line text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
+      </div>
     </button>
 
     <!-- panel — teleported to <body> when floating so a modal's overflow can't clip it -->

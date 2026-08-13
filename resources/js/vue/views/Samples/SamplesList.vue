@@ -75,7 +75,7 @@ const columns = [
 
 function reload(extra = {}) {
   loading.value = true;
-  router.get('/admin/samples', { ...filters, ...extra }, {
+  router.get('/admin/samples', { pageSize: props.pageSize, ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
     only: ['rows', 'total', 'page', 'pageSize', 'filters'],
