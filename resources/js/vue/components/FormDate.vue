@@ -23,6 +23,7 @@ const props = defineProps({
   error:    { type: String, default: '' },
   required: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  clearable:{ type: Boolean, default: true },
   // Render the calendar into <body> (floating) instead of attached to the field.
   // Use inside modals / overflow-hidden containers so the calendar isn't clipped.
   floating: { type: Boolean, default: false },
@@ -151,6 +152,12 @@ function buildConfig() {
   return { ...base, dateFormat: 'Y-m-d' };
 }
 
+function clearDate() {
+  if (fp) fp.clear();
+  emit('update:modelValue', '');
+  if (props.mode === 'range') emit('range', { from: '', to: '' });
+}
+
 onMounted(() => {
   fp = flatpickr(el.value, buildConfig());
   if (props.modelValue) fp.setDate(props.modelValue, false);
@@ -170,8 +177,17 @@ onBeforeUnmount(() => { fp?.destroy(); fp = null; });
       <i :class="[icon, 'absolute top-1/2 -translate-y-1/2 inset-inline-start-3 text-primary-600 pointer-events-none z-[1]']" style="inset-inline-start:.75rem"></i>
       <input
         ref="el" type="text" readonly :placeholder="ph" :disabled="disabled"
-        :class="[field, borderCls]"
+        :class="[field, borderCls, clearable && modelValue ? 'pe-10' : '']"
       />
+      <!-- clear button -->
+      <button
+        v-if="clearable && modelValue"
+        type="button" @click.stop="clearDate"
+        class="absolute top-1/2 -translate-y-1/2 inset-inline-end-2 grid place-items-center w-8 h-8 rounded-lg text-slate-400 hover:text-danger hover:bg-surface-muted dark:hover:bg-white/10 z-[2]"
+        style="inset-inline-end:.5rem"
+      >
+        <i class="ri-close-line text-lg"></i>
+      </button>
     </div>
     <p v-if="error" class="flex items-center gap-1 text-xs text-danger mt-1.5"><i class="ri-error-warning-line"></i>{{ error }}</p>
     <p v-else-if="helper" class="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{{ helper }}</p>

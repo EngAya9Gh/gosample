@@ -20,6 +20,7 @@ const props = defineProps({
   required:{ type: Boolean, default: false },
   disabled:{ type: Boolean, default: false },
   rows:    { type: Number, default: 3 },
+  clearable:{ type: Boolean, default: true },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -39,6 +40,7 @@ const borderCls = computed(() =>
     : 'border-slate-200 dark:border-white/10'
 );
 function onInput(e) { emit('update:modelValue', e.target.value); }
+function clearInput() { emit('update:modelValue', ''); }
 </script>
 
 <template>
@@ -57,14 +59,25 @@ function onInput(e) { emit('update:modelValue', e.target.value); }
         :class="[field, borderCls, 'px-3.5 py-2.5 resize-y leading-relaxed']"
       ></textarea>
 
-      <input
-        v-else
-        :type="realType" :value="modelValue" :placeholder="placeholder" :disabled="disabled"
-        @input="onInput"
-        :class="[field, borderCls, 'h-11',
-          icon ? 'ps-10' : 'ps-3.5',
-          (type === 'password' || unit) ? 'pe-11' : 'pe-3.5']"
-      />
+      <template v-else>
+        <input
+          :type="realType" :value="modelValue" :placeholder="placeholder" :disabled="disabled"
+          @input="onInput"
+          :class="[field, borderCls, 'h-11',
+            icon ? 'ps-10' : 'ps-3.5',
+            (type === 'password' || unit || (clearable && modelValue)) ? 'pe-10' : 'pe-3.5']"
+        />
+        
+        <!-- clear button -->
+        <button
+          v-if="clearable && modelValue !== '' && modelValue !== null && type !== 'password' && !unit"
+          type="button" @click="clearInput"
+          class="absolute top-1/2 -translate-y-1/2 inset-inline-end-2 grid place-items-center w-8 h-8 rounded-lg text-slate-400 hover:text-danger hover:bg-surface-muted dark:hover:bg-white/10"
+          style="inset-inline-end:.5rem"
+        >
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </template>
 
       <!-- password toggle -->
       <button
