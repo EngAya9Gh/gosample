@@ -153,6 +153,7 @@ function onQuery(q) {
     filters.sort_by = q.sortKey;
     filters.sort_order = q.sortDir;
   }
+  if (q.q !== undefined) filters.keyword = q.q;
   fetch();
 }
 

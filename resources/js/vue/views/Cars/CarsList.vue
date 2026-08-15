@@ -49,9 +49,10 @@ const statusTabs = [
   { key: '2', label: 'Disabled',     dot: 'bg-status-lost',    active: 'bg-status-lost/10 border-status-lost/40 text-status-lost' },
 ];
 
-const onQuery = ({ page, pageSize, sortBy, sortOrder }) => {
+const onQuery = ({ page, pageSize, sortBy, sortOrder, q }) => {
   searchForm.value.sort_by = sortBy || '';
   searchForm.value.sort_order = sortOrder || '';
+  if (q !== undefined) searchForm.value.keyword = q;
   doSearch(page, pageSize);
 };
 

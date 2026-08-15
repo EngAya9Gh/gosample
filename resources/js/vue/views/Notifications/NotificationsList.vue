@@ -48,7 +48,10 @@ function reload(extra = {}) {
 
 function doSearch() { reload({ page: 1 }); }
 function doReset() { Object.assign(filters, DEFAULT_FILTERS); reload({ page: 1 }); }
-function onQuery(q) { reload({ page: q.page, pageSize: q.pageSize }); }
+function onQuery(q) { 
+  if (q.q !== undefined) filters.keyword = q.q;
+  reload({ page: q.page, pageSize: q.pageSize }); 
+}
 
 /* --- Show Details Modal --- */
 const showDetails = ref(false);

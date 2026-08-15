@@ -52,10 +52,11 @@ const statusTabs = [
   { key: 'cancelled',       label: 'Cancelled',       activeClass: 'bg-danger text-white dark:bg-danger/90' },
 ];
 
-const onQuery = ({ page, pageSize, sortBy, sortOrder }) => {
+const onQuery = ({ page, pageSize, sortBy, sortOrder , q}) => {
   searchForm.value.sort_by = sortBy || '';
   searchForm.value.sort_order = sortOrder || '';
-  doSearch(page, pageSize);
+    if (q !== undefined) searchForm.value.keyword = q;
+doSearch(page, pageSize);
 };
 
 const doSearch = debounce(async (page = 1, pageSize = 25) => {
