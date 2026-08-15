@@ -83,9 +83,10 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
   }
 }, 300);
 
-function onQuery({ page, pageSize, sortKey, sortDir }) {
+function onQuery({ page, pageSize, sortKey, sortDir, q }) {
   searchForm.value.sort_by = sortKey || '';
   searchForm.value.sort_order = sortDir || '';
+  if (q !== undefined) searchForm.value.keyword = q;
   doSearch(page, pageSize);
 }
 function doApply() { doSearch(1); }

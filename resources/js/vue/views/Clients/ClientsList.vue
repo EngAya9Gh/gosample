@@ -284,6 +284,7 @@ const submitForm = () => {
       :loading="loading"
       :sort-by="searchForm.sortBy"
       :sort-order="searchForm.sortOrder"
+      :server-side="true"
       @query="onQuery"
     >
       <!-- Logo -->

@@ -125,7 +125,10 @@ function doReset() {
   dateRange.value = '';
   reload({ page: 1, sort_by: '', sort_order: '' });
 }
-function onQuery({ page, pageSize }) { reload({ page, pageSize }); }
+function onQuery({ page, pageSize, q }) { 
+  if (q !== undefined) filters.keyword = q;
+  reload({ page, pageSize }); 
+}
 
 const isExporting = ref(false);
 

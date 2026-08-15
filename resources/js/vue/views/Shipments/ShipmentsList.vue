@@ -106,11 +106,12 @@ function doReset() {
   reload();
 }
 
-function onQuery({ page, pageSize, sortBy, sortOrder }) {
+function onQuery({ page, pageSize, sortBy, sortOrder, q }) {
   filters.page = page;
   filters.pageSize = pageSize;
-  filters.sort_by = sortBy;
-  filters.sort_order = sortOrder;
+  filters.sort_by = sortBy || '';
+  filters.sort_order = sortOrder || '';
+  if (q !== undefined) filters.keyword = q;
   reload();
 }
 

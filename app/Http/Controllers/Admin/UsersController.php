@@ -36,8 +36,11 @@ class UsersController extends Controller
         }
 
         if ($request->filled('client')) {
-            $query->whereHas('clients', function($q) use ($request) {
-                $q->where('id', $request->client);
+            $query->where(function ($q) use ($request) {
+                $q->where('client_id', $request->client)
+                  ->orWhereHas('clients', function($subQ) use ($request) {
+                      $subQ->where('clients.id', $request->client);
+                  });
             });
         }
 
