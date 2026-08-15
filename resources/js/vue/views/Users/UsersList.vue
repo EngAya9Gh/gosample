@@ -96,21 +96,43 @@ const clientOptions = computed(() => {
 // Delete Modal
 const deleteModalOpen = ref(false);
 const itemToDelete = ref(null);
+const itemsToDelete = ref([]);
 
 const confirmDelete = (item) => {
   itemToDelete.value = item;
+  itemsToDelete.value = [];
+  deleteModalOpen.value = true;
+};
+
+const confirmBulkDelete = (ids) => {
+  if (!can('user_delete') && !can('can-delete')) {
+    push({ type: 'error', title: 'Unauthorized', message: 'You do not have permission to delete users.' });
+    return;
+  }
+  itemToDelete.value = null;
+  itemsToDelete.value = ids;
   deleteModalOpen.value = true;
 };
 
 const executeDelete = () => {
-  if (!itemToDelete.value) return;
-  router.delete(`/admin/users/${itemToDelete.value.id}`, {
-    onSuccess: () => {
-      deleteModalOpen.value = false;
-      itemToDelete.value = null;
-      doSearch();
-    }
-  });
+  if (itemsToDelete.value.length > 0) {
+    router.delete('/admin/users/destroy', {
+      data: { ids: itemsToDelete.value },
+      onSuccess: () => {
+        deleteModalOpen.value = false;
+        itemsToDelete.value = [];
+        doSearch();
+      }
+    });
+  } else if (itemToDelete.value) {
+    router.delete(`/admin/users/${itemToDelete.value.id}`, {
+      onSuccess: () => {
+        deleteModalOpen.value = false;
+        itemToDelete.value = null;
+        doSearch();
+      }
+    });
+  }
 };
 
 // View Modal
@@ -230,6 +252,8 @@ const submitForm = () => {
       :sort-order="searchForm.sortOrder"
       :server-side="true"
       @query="onQuery"
+      @bulk-delete="confirmBulkDelete"
+      :selectable="can('user_delete') || can('can-delete')"
     >
       <!-- Bold Name -->
       <template #cell-name="{ row }">
@@ -282,7 +306,7 @@ const submitForm = () => {
             <i class="ri-pencil-line text-lg"></i>
           </button>
           <button
-            v-if="can('can-delete')"
+            v-if="can('user_delete')"
             @click="confirmDelete(row)"
             class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-danger hover:bg-danger/10 transition-colors"
             title="Delete"
@@ -299,13 +323,15 @@ const submitForm = () => {
         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-danger/10 mb-4">
           <i class="ri-alert-line text-2xl text-danger"></i>
         </div>
-        <h3 class="text-xl font-semibold text-ink dark:text-white">Delete User</h3>
-        <p class="text-sm text-slate-500 leading-relaxed">
-          Are you sure you want to delete user <span class="font-semibold text-slate-800 dark:text-slate-200">"{{ itemToDelete?.name }}"</span>? This action cannot be undone.
+        <h3 class="text-lg font-bold text-ink dark:text-slate-100">Confirm Deletion</h3>
+        <p class="text-slate-500">
+          Are you sure you want to delete
+          <strong class="text-ink dark:text-slate-200">{{ itemsToDelete.length > 0 ? itemsToDelete.length + ' users' : itemToDelete?.name }}</strong>?
+          This action cannot be undone.
         </p>
-        <div class="flex items-center gap-3 justify-center pt-2">
-          <BaseButton variant="white" @click="deleteModalOpen = false">Cancel</BaseButton>
-          <BaseButton variant="danger" @click="executeDelete">Yes, Delete</BaseButton>
+        <div class="flex gap-3 justify-center pt-2">
+          <BaseButton @click="deleteModalOpen = false" variant="secondary" class="w-full">Cancel</BaseButton>
+          <BaseButton @click="executeDelete" variant="danger" class="w-full">Yes, Delete</BaseButton>
         </div>
       </div>
     </BaseModal>
