@@ -36,6 +36,7 @@ const columns = [
   { key: 'email',             label: 'Email',          sortable: true },
   { key: 'email_verified_at', label: 'Verified At',    sortable: true },
   { key: 'roles',             label: 'Roles' },
+  { key: 'clients',           label: 'Client' },
 ];
 
 const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
@@ -283,6 +284,26 @@ const submitForm = () => {
           >
             {{ role.name }}
           </span>
+        </div>
+      </template>
+
+      <!-- Client Badges -->
+      <template #cell-clients="{ row }">
+        <div class="flex flex-wrap gap-1">
+          <span 
+            v-for="client in row.clients" 
+            :key="client.id" 
+            class="px-2 py-0.5 rounded-full text-xs font-semibold bg-info/10 text-info whitespace-nowrap"
+          >
+            {{ client.english_name || client.arabic_name }}
+          </span>
+          <span
+            v-if="!row.clients?.length && row.client_id && clientOptions.find(c => c.value == row.client_id)"
+            class="px-2 py-0.5 rounded-full text-xs font-semibold bg-info/10 text-info whitespace-nowrap"
+          >
+            {{ clientOptions.find(c => c.value == row.client_id).label }}
+          </span>
+          <span v-if="!row.clients?.length && !row.client_id" class="text-slate-400 text-xs">—</span>
         </div>
       </template>
 
