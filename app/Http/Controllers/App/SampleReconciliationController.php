@@ -166,13 +166,27 @@ class SampleReconciliationController extends Controller
         return $samples->confirmSamples($request);
     }
 
-    /** Single-sample details lookup. */
     public function details(Request $request, SampleController $samples)
     {
         abort_if(Gate::denies('check_receiving_details'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $request->merge(['username' => auth()->user()->email]);
 
-        return $samples->getSampleDetails($request);
+        $response = $samples->getSampleDetails($request);
+        $content = json_decode($response->getContent(), true);
+
+        if (!empty($content['status']) && !empty($content['data']['confirmed_by'])) {
+            $name = $content['data']['confirmed_by'];
+            $user = \App\Models\User::where('name', $name)->first();
+            if (!$user) {
+                $user = \App\Models\Driver::where('name', $name)->first();
+            }
+            if ($user && $user->email) {
+                $content['data']['confirmed_by_email'] = $user->email;
+            }
+            return response()->json($content);
+        }
+
+        return $response;
     }
 
     /** Single-sample "Mark as lost" (method = MARK_LOST). */

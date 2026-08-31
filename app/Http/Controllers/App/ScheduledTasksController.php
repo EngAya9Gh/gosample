@@ -271,6 +271,16 @@ class ScheduledTasksController extends Controller
         ]);
     }
 
+    public function edit(ScheduledTask $scheduledTask)
+    {
+        abort_if(Gate::denies('scheduled_task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        return Inertia::render('Tasks/ScheduledTaskEdit', [
+            'task' => $scheduledTask,
+            'options' => $this->formOptions()
+        ]);
+    }
+
     /**
      * Update scheduled task(s).
      */
@@ -304,7 +314,7 @@ class ScheduledTasksController extends Controller
             $scheduledTask->refresh()->update($request->only(ScheduledTask::OCCURRENCE_FIELDS));
         });
 
-        return response()->json(['message' => 'Scheduled task(s) updated successfully.']);
+        return redirect()->route('admin.scheduled-tasks.index')->with('success', 'Scheduled task(s) updated successfully.');
     }
 
     /**
@@ -333,7 +343,7 @@ class ScheduledTasksController extends Controller
             ScheduledTask::whereKey($scheduledTask->familyRootId())->first()?->delete();
         });
 
-        return response()->json(['message' => 'Scheduled task deleted successfully.']);
+        return redirect()->route('admin.scheduled-tasks.index')->with('success', 'Scheduled task deleted successfully.');
     }
 
 }

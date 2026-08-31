@@ -237,6 +237,46 @@
             </table>
         </div>
     </div>
+
+    {{-- Custom right-click context menu for action buttons --}}
+    <div id="action-context-menu" style="
+        display: none;
+        position: fixed;
+        z-index: 99999;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        min-width: 180px;
+        overflow: hidden;
+    ">
+        <div id="ctx-open-new-tab" style="
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #212529;
+            transition: background 0.15s;
+        " onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
+            <i class="ri-external-link-line" style="color:#0ea5e9"></i> فتح في تاب جديد
+        </div>
+        <div id="ctx-open-here" style="
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #212529;
+            border-top: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        " onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <i class="ri-arrow-right-line" style="color:#64748b"></i> فتح هنا
+        </div>
+    </div>
+
 @endsection
 @section('scripts')
     @parent
@@ -305,17 +345,17 @@
                 ajax: {
                     url: "{{ route('admin.tasks.index') }}",
                     data: function(d) {
-                        d.search_date = $("#search_date option:selected").val();
-                        d.status = $("#statuss option:selected").val();
-                        d.driver_id = $("#driver_id option:selected").val();
-                        d.billing_client = $("#billing_client option:selected").val();
-                        d.to_location = $("#to_location option:selected").val();
-                        d.from_location = $("#from_location option:selected").val();
+                        d.search_date = $("#search_date").val();
+                        d.status = $("#statuss").val();
+                        d.driver_id = $("#driver_id").val();
+                        d.billing_client = $("#billing_client").val();
+                        d.to_location = $("#to_location").val();
+                        d.from_location = $("#from_location").val();
                         d.date_from = $("#date_from").val();
                         d.date_to = $("#date_to").val();
                         d.keyword = $('#keyword').val();
-                        d.sort_by = $('#sort_by option:selected').val();
-                        d.sort_order = $('#sort_order option:selected').val();
+                        d.sort_by = $('#sort_by').val();
+                        d.sort_order = $('#sort_order').val();
                         // d.delayed_reason = $('#delayed_reason').val();
                     }
                 },
@@ -401,20 +441,18 @@
                         data: 'hours',
                         name: 'hours'
                     },
-                    // {
-                    //     data: 'freezer_out_date',
-                    //     name: 'freezer_out_date'
-                    // },
                     {
                         data: 'actions',
                         name: '{{ trans('translation.actions') }}'
                     }
                 ],
-                // orderCellsTop: true,
-                // order: [
-                //     [3, 'desc']
-                // ],
                 pageLength: 10,
+                drawCallback: function(settings) {
+                    // Use DataTables API correctly to get the table DOM node
+                    var api = this.api();
+                    var tableNode = api.table().node();
+                    $(tableNode).find('tbody a.btn-soft-info, tbody a.btn-soft-primary').attr('target', '_blank').attr('rel', 'noopener noreferrer');
+                }
             };
             let table = $('.datatable-Task').DataTable(dtOverrideGlobals);
             $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e) {
@@ -422,8 +460,45 @@
                     .columns.adjust();
             });
 
+            // Custom Popup Menu Logic for Action Buttons (Left Click)
+            let activeUrl = null;
+            const $ctxMenu = $('#action-context-menu');
+            
+            // Listen for LEFT click on the action buttons
+            $('.datatable-Task tbody').on('click', '.action-btn-menu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                activeUrl = $(this).attr('data-url');
+                
+                if (activeUrl) {
+                    // Position the menu near the mouse cursor
+                    $ctxMenu.css({
+                        display: 'block',
+                        left: e.pageX + 'px',
+                        top: e.pageY + 'px'
+                    });
+                }
+            });
 
+            // Hide menu on outside click
+            $(document).on('click', function() {
+                $ctxMenu.hide();
+            });
 
+            // Handle "Open in new tab" click
+            $('#ctx-open-new-tab').on('click', function(e) {
+                if (activeUrl) {
+                    var win = window.open(activeUrl, '_blank');
+                    if (win) win.focus();
+                }
+            });
+
+            // Handle "Open here" click
+            $('#ctx-open-here').on('click', function(e) {
+                if (activeUrl) {
+                    window.location.href = activeUrl;
+                }
+            });
 
             $("#search").click(function() {
                 // alert("button");

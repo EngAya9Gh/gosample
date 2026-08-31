@@ -102,7 +102,7 @@ class TasksController extends Controller
             $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
 
             // إذا لم يتم تحديد تاريخ، نضع فلتراً افتراضياً لآخر 30 يوماً لتحسين الأداء
-            if (!$dateFrom && !$dateTo && !$request->keyword) {
+            if (!$dateFrom && !$dateTo && !$request->keyword && !$request->driver_id && !$request->billing_client && !$request->from_location && !$request->to_location && !$request->status) {
                 $dateFrom = Carbon::now()->subDays(30)->startOfDay();
                 $dateTo = Carbon::now()->endOfDay();
                 // \Log::info('Applying default 30-day filter for performance');
@@ -178,13 +178,7 @@ class TasksController extends Controller
                     return ++$index;
                 })
                 ->editColumn('actions', function ($row) {
-                    return view('partials.datatablesActions', [
-                        'viewGate' => 'task_show',
-                        'editGate' => 'task_edit',
-                        'deleteGate' => 'task_delete',
-                        'crudRoutePart' => 'tasks',
-                        'row' => $row
-                    ]);
+                    return view('admin.tasks.datatables.actions', ['id' => $row->id])->render();
                 })
                 ->addColumn('from_location_name', fn($row) => optional($row->from)->name)
                 ->addColumn('to_location_name', fn($row) => optional($row->to)->name)
@@ -213,31 +207,17 @@ class TasksController extends Controller
                         return '';
                     }
                 })
-                ->editColumn('confirmed_received_by_driver', fn($row) => $row->confirmed_received_by_driver === 1
-                    ? '<span class="confirmed">Confirmed</span>'
-                    : ($row->confirmed_received_by_driver === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-                )
-                ->editColumn('driver_confirm_from_location', fn($row) => $row->driver_confirm_from_location === 1
-                    ? '<span class="confirmed">Confirmed</span>'
-                    : ($row->driver_confirm_from_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-                )
-                ->editColumn('driver_confirm_to_location', fn($row) => $row->driver_confirm_to_location === 1
-                    ? '<span class="confirmed">Confirmed</span>'
-                    : ($row->driver_confirm_to_location === 0 ? '<span class="not-confirmed">Not Confirmed</span>' : '')
-                )
+                ->editColumn('confirmed_received_by_driver', function($row) {
+                    return view('admin.tasks.datatables.confirmation', ['value' => $row->confirmed_received_by_driver])->render();
+                })
+                ->editColumn('driver_confirm_from_location', function($row) {
+                    return view('admin.tasks.datatables.confirmation', ['value' => $row->driver_confirm_from_location])->render();
+                })
+                ->editColumn('driver_confirm_to_location', function($row) {
+                    return view('admin.tasks.datatables.confirmation', ['value' => $row->driver_confirm_to_location])->render();
+                })
                 ->editColumn('status', function ($row) {
-                    $map = [
-                        'NEW'         => ['bg-primary',   'NEW'],
-                        'COLLECTED'   => ['bg-info',      'COLLECTED'],
-                        'IN_FREEZER'  => ['bg-warning',   'IN_FREEZER'],
-                        'OUT_FREEZER' => ['bg-warning',   'OUT_FREEZER'],
-                        'CLOSED'      => ['bg-success',   'CLOSED'],
-                        'NO_SAMPLES'  => ['bg-secondary', 'NO_SAMPLES'],
-                    ];
-                    if (isset($map[$row->status])) {
-                        return '<span class="badge ' . $map[$row->status][0] . '">' . $map[$row->status][1] . '</span>';
-                    }
-                    return $row->status ?? '';
+                    return view('admin.tasks.datatables.status', ['status' => $row->status])->render();
                 })
                 ->rawColumns([
                     'actions', 'placeholder', 'from_location', 'to_location', 'billing_client',

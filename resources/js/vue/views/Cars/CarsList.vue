@@ -347,7 +347,7 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
 
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('car_show')" @click="router.visit(`/admin/cars/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
+          <a v-if="can('car_show')" :href="`/admin/cars/${row.id}`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></a>
           <button v-if="can('car_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
           <button v-if="can('car_delete')" @click="confirmDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
