@@ -80,6 +80,7 @@ const columns = [
   { key: 'status',            label: 'Status',            width: '100px' },
   { key: 'start_date',        label: 'Start Date',        width: '110px' },
   { key: 'end_date',          label: 'End Date',          width: '110px' },
+  { key: 'from_location_name',label: 'From Location',     width: '160px', wrap: true },
   { key: 'to_location_name',  label: 'To Location',       width: '160px', wrap: true },
   { key: 'client_name',       label: 'Client',            width: '160px', wrap: true },
   { key: 'selected_hour',     label: 'Selected Hour',     width: '110px' },
@@ -166,66 +167,6 @@ function formatDays(daysStr) {
 }
 
 
-// Edit Modal Logic
-const showEdit = ref(false);
-const editForm = reactive({
-  id: null,
-  name: '',
-  status: '',
-  start_date: '',
-  end_date: '',
-  task_type: '',
-  driver_id: '',
-  client_id: '',
-  from_location_id: '',
-  to_location_id: '',
-  update_related: false,
-});
-const editLoading = ref(false);
-
-function openEdit(row) {
-  Object.assign(editForm, {
-    id: row.id,
-    name: row.name,
-    status: row.status,
-    start_date: row.start_date || '',
-    end_date: row.end_date || '',
-    task_type: row.task_type || '',
-    driver_id: row.driver_id || '',
-    client_id: row.client_id || '',
-    from_location_id: row.from_location_id || '',
-    to_location_id: row.to_location_id || '',
-    update_related: false,
-  });
-  showEdit.value = true;
-}
-
-async function submitEdit() {
-  editLoading.value = true;
-  try {
-    const res = await fetch('/admin/scheduled-tasks/' + editForm.id, {
-      method: 'PUT',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-      },
-      body: JSON.stringify(editForm)
-    });
-    
-    if (res.ok) {
-      push({ type: 'success', title: 'Saved', message: 'Scheduled Task updated successfully.' });
-      showEdit.value = false;
-      reload();
-    } else {
-      push({ type: 'error', title: 'Error', message: 'Failed to update.' });
-    }
-  } catch (err) {
-    push({ type: 'error', title: 'Error', message: 'Network error.' });
-  } finally {
-    editLoading.value = false;
-  }
-}
 
 // Bulk delete logic
 const showBulkDel = ref(false);
@@ -382,6 +323,10 @@ async function confirmBulkDelete() {
         <span class="text-slate-600 dark:text-slate-400">{{ value || '—' }}</span>
       </template>
 
+      <template #cell-from_location_name="{ value }">
+        <span class="font-medium inline-flex items-center gap-1.5"><i class="ri-map-pin-user-fill text-blue-500 text-[11px] shrink-0"></i> {{ value || '—' }}</span>
+      </template>
+
       <template #cell-to_location_name="{ value }">
         <span class="font-medium inline-flex items-center gap-1.5"><i class="ri-map-pin-fill text-green-500 text-[11px] shrink-0"></i> {{ value || '—' }}</span>
       </template>
@@ -418,8 +363,8 @@ async function confirmBulkDelete() {
 
       <template #cell-actions="{ row }">
         <div class="flex items-center justify-center gap-1">
-          <a v-if="can('scheduled_task_show')" :href="`/admin/scheduled-tasks/${row.id}`" class="grid place-items-center w-8 h-8 rounded-lg text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-500/10 transition" title="View"><i class="ri-eye-line"></i></a>
-          <button v-if="can('scheduled_task_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <a v-if="can('scheduled_task_show')" :href="`/admin/scheduled-tasks/${row.id}`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-500/10 transition" title="View"><i class="ri-eye-line"></i></a>
+          <a v-if="can('scheduled_task_edit')" :href="`/admin/scheduled-tasks/${row.id}/edit`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
           <button v-if="can('scheduled_task_delete')" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>
@@ -459,61 +404,6 @@ async function confirmBulkDelete() {
       </template>
     </BaseModal>
 
-    <!-- Edit Modal -->
-    <BaseModal v-model="showEdit" title="Edit Scheduled Task" icon="ri-pencil-line" size="md">
-      <form @submit.prevent="submitEdit" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-1.5 md:col-span-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Name</label>
-            <FormInput v-model="editForm.name" required class="w-full" />
-          </div>
 
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Status</label>
-            <FormSelect v-model="editForm.status" :options="[{value:'enabled',label:'Enabled'},{value:'disabled',label:'Disabled'}]" class="w-full" required />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Task Type</label>
-            <FormSelect v-model="editForm.task_type" :options="[{value:'SAMPLE',label:'Sample'},{value:'BOX',label:'Box'}]" class="w-full" required />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Start Date</label>
-            <FormDate v-model="editForm.start_date" mode="single" class="w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">End Date</label>
-            <FormDate v-model="editForm.end_date" mode="single" class="w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Driver</label>
-            <FormSelect v-model="editForm.driver_id" :options="driverOpts.filter(o=>o.value!=='')" class="w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Client</label>
-            <FormSelect v-model="editForm.client_id" :options="clientOpts.filter(o=>o.value!=='')" class="w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">From Location</label>
-            <FormSelect v-model="editForm.from_location_id" :options="locOpts.filter(o=>o.value!=='')" class="w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">To Location</label>
-            <FormSelect v-model="editForm.to_location_id" :options="locOpts.filter(o=>o.value!=='')" class="w-full" />
-          </div>
-        </div>
-        
-        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="editForm.update_related" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
-            <span class="text-sm text-slate-700 dark:text-slate-300 font-medium">Update all related occurrences</span>
-          </label>
-        </div>
-        
-        <div class="flex justify-end gap-3 pt-2">
-          <BaseButton type="button" variant="light" @click="showEdit = false">Cancel</BaseButton>
-          <BaseButton type="submit" variant="primary" :loading="editLoading">Save Changes</BaseButton>
-        </div>
-      </form>
-    </BaseModal>
   </div>
 </template>

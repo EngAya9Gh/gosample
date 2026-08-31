@@ -12,12 +12,12 @@
 @if (! $needsDropdown)
     <div class="d-flex gap-1 justify-content-center">
         @can($viewGate)
-            <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="btn btn-soft-info btn-sm" title="{{ trans('global.view') }}">
+            <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="btn btn-soft-info btn-sm" title="{{ trans('global.view') }}" target="_blank">
                 <i class="ri-eye-fill"></i>
             </a>
         @endcan
         @can($editGate)
-            <a href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}" class="btn btn-soft-primary btn-sm" title="{{ trans('global.edit') }}">
+            <a href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}" class="btn btn-soft-primary btn-sm" title="{{ trans('global.edit') }}" target="_blank">
                 <i class="ri-edit-2-fill"></i>
             </a>
         @endcan
@@ -41,13 +41,13 @@
 
             @can($viewGate)
                 <li>
-                    <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="dropdown-item">
+                    <a href="{{ route('admin.' . $crudRoutePart . '.show', $row->id) }}" class="dropdown-item" target="_blank">
                         {{ trans('global.view') }}</a>
                 </li>
             @endcan
             @can($editGate)
                 <li>
-                    <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}">
+                    <a class="dropdown-item" href="{{ route('admin.' . $crudRoutePart . '.edit', $row->id) }}" target="_blank">
                         {{ trans('global.edit') }}</a>
                 </li>
             @endcan

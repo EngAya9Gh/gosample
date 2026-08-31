@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumb.vue';
@@ -114,8 +114,19 @@ const statusPills = [
 
 function toggleStatus(v) {
   filters.status = filters.status === String(v) ? '' : String(v);
-  doSearch();
 }
+
+let searchTimeout;
+watch(
+  () => [filters.keyword, filters.mobile, filters.status, filters.date_from, filters.date_to],
+  () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      filters.page = 1;
+      fetch();
+    }, 300);
+  }
+);
 
 const columns = [
   { key: 'id',       label: 'ID',       sortable: true, sticky: 'start', width: '84px' },
@@ -133,6 +144,7 @@ function fetch() {
   router.get('/admin/drivers', { ...filters }, {
     preserveState: true,
     preserveScroll: true,
+    replace: true,
     onFinish: () => loading.value = false,
   });
 }
@@ -153,7 +165,6 @@ function onQuery(q) {
     filters.sort_by = q.sortKey;
     filters.sort_order = q.sortDir;
   }
-  if (q.q !== undefined) filters.keyword = q.q;
   fetch();
 }
 
@@ -289,8 +300,8 @@ function onExport(format) {
       <!-- Custom Actions column -->
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('driver_show')" @click="router.visit(`/admin/drivers/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
-          <button v-if="can('driver_edit')" @click="openEditDriver(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <a v-if="can('driver_show')" :href="`/admin/drivers/${row.id}`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></a>
+          <a v-if="can('driver_edit')" :href="`/admin/drivers/${row.id}/edit`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
           <button v-if="can('driver_delete')" @click="singleDelete(row.id)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>

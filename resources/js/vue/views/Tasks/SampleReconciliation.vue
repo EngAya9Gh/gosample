@@ -225,6 +225,7 @@ async function openLookup(barcode, fromScan = false) {
         temp: s.temperature_type || null,
         status: CBC[s.confirmed_by_client] || 'pending',
         by: s.confirmed_by || null,
+        by_email: s.confirmed_by_email || null,
         at: s.updated_at || null,
         method: s.confirmation_method || null,
         details: false,
@@ -400,7 +401,11 @@ focusScan();
                 <div v-if="lookup.details" class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[12px] rounded-xl bg-white/70 dark:bg-white/5 border border-slate-100 dark:border-white/10 p-3 mb-3">
                   <div><div class="text-slate-400 dark:text-slate-500">Temperature Type</div><div class="font-medium text-ink dark:text-slate-200">{{ lookup.temp || '—' }}</div></div>
                   <div><div class="text-slate-400 dark:text-slate-500">Sample Type</div><div class="font-medium text-ink dark:text-slate-200">{{ lookup.type || '—' }}</div></div>
-                  <div><div class="text-slate-400 dark:text-slate-500">Confirmed By</div><div class="font-medium text-ink dark:text-slate-200">{{ lookup.by || '—' }}</div></div>
+                  <div>
+                    <div class="text-slate-400 dark:text-slate-500">Confirmed By</div>
+                    <div class="font-medium text-ink dark:text-slate-200">{{ lookup.by || '—' }}</div>
+                    <div v-if="lookup.by_email" class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">{{ lookup.by_email }}</div>
+                  </div>
                   <div><div class="text-slate-400 dark:text-slate-500">Confirmed By Client</div><div class="font-medium text-ink dark:text-slate-200">{{ CBC_RAW[lookup.status] }}</div></div>
                   <div><div class="text-slate-400 dark:text-slate-500">Action Date</div><div class="font-medium text-ink dark:text-slate-200" style="direction:ltr">{{ lookup.at ? new Date(lookup.at).toLocaleString('en-GB') : '—' }}</div></div>
                   <div v-if="can.check_receiving_details_advanced" class="col-span-2"><div class="text-slate-400 dark:text-slate-500">Action Method</div><div class="font-medium text-ink dark:text-slate-200">{{ lookup.method ? (METHOD_LABEL[lookup.method] || 'Unknown') : 'Legacy (Unknown)' }}</div></div>

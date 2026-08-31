@@ -40,9 +40,11 @@ class DriversController extends Controller
             ->when($request->mobile, fn ($q, $v) => $q->where('mobile', 'like', "%{$v}%"))
             ->when($request->keyword, function ($q, $v) {
                 $q->where(function ($sub) use ($v) {
-                    $sub->where('name', 'like', "%{$v}%")
-                        ->orWhere('username', 'like', "%{$v}%")
-                        ->orWhere('email', 'like', "%{$v}%")
+                    $sub->where('name', 'like', "{$v}%")
+                        ->orWhere('name', 'like', "% {$v}%")
+                        ->orWhere('username', 'like', "{$v}%")
+                        ->orWhere('username', 'like', "% {$v}%")
+                        ->orWhere('email', 'like', "{$v}%")
                         ->orWhere('id', $v);
                 });
             });

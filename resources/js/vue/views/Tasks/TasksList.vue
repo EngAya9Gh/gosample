@@ -337,8 +337,8 @@ async function bulkDelete(ids) {
 
       <template #row-actions="{ row }">
         <div class="inline-flex items-center gap-1">
-          <button v-if="can('task_show')" @click="router.visit(`/admin/tasks/${row.id}`)" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></button>
-          <button v-if="can('task_edit')" @click="openEdit(row)" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></button>
+          <a v-if="can('task_show')" :href="`/admin/tasks/${row.id}`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-info hover:bg-info/10 transition" title="View"><i class="ri-eye-line"></i></a>
+          <a v-if="can('task_edit')" :href="`/admin/tasks/${row.id}/edit`" target="_blank" class="grid place-items-center w-8 h-8 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition" title="Edit"><i class="ri-pencil-line"></i></a>
           <button v-if="can('task_delete') && row.status === 'NEW'" @click="askDelete(row)" class="grid place-items-center w-8 h-8 rounded-lg text-danger hover:bg-danger/10 transition" title="Delete"><i class="ri-delete-bin-line"></i></button>
         </div>
       </template>

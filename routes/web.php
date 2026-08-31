@@ -214,8 +214,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
     Route::get('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'show'])->name('scheduled-tasks.show');
     Route::put('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'update'])->name('scheduled-tasks.update');
     Route::delete('scheduled-tasks/{scheduledTask}', [\App\Http\Controllers\App\ScheduledTasksController::class, 'destroy'])->name('scheduled-tasks.destroy');
-    // Legacy resource — only 'edit' still needed (blade redirect guard)
-    Route::resource('scheduled-tasks', 'ScheduledTaskController', ['only' => ['edit']]);
+    // SPA Edit Route
+    Route::get('scheduled-tasks/{scheduledTask}/edit', [\App\Http\Controllers\App\ScheduledTasksController::class, 'edit'])->name('scheduled-tasks.edit');
 
     // Legacy SPA routes commented out due to naming conflicts with SPA rebuild
     // Route::get('schedule/quick', 'ScheduledTaskController@quick')->name('scheduled-tasks.quick');
