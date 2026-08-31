@@ -81,6 +81,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "platform": {
+            "php": "8.2.14"
         }
     },
     "minimum-stability": "dev",
