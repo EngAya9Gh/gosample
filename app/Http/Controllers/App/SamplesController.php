@@ -36,7 +36,12 @@ class SamplesController extends Controller
             $sortOrder = 'desc';
         }
 
-        $query = Sample::with(['location', 'task.driver', 'task.to', 'container'])->select('samples.*');
+        $query = Sample::with([
+            'location:id,name',
+            'task:id,driver_id,to_location,collection_date,close_date',
+            'task.driver:id,name',
+            'task.to:id,name'
+        ])->select('samples.id', 'samples.barcode_id', 'samples.location_id', 'samples.task_id', 'samples.confirmed_by_client', 'samples.created_at', 'samples.updated_at');
 
         if ($user && !empty($user->assigned_client_ids)) {
             $query->join('tasks', 'samples.task_id', '=', 'tasks.id');
@@ -66,7 +71,8 @@ class SamplesController extends Controller
 
         $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
-        $total = (clone $query)->count();
+        $cacheKey = 'samples_count_' . md5(serialize($request->all()) . ($user->id ?? 'all'));
+        $total = cache()->remember($cacheKey, 30, fn() => (clone $query)->count());
         $offset = ($page - 1) * $pageSize;
 
         $seq = $offset;
@@ -112,7 +118,11 @@ class SamplesController extends Controller
             $sortOrder = 'desc';
         }
 
-        $query = Sample::with(['location', 'task', 'container'])->select('samples.*');
+        $query = Sample::with([
+            'location:id,name',
+            'task:id',
+            'container:id,imei'
+        ])->select('samples.id', 'samples.barcode_id', 'samples.location_id', 'samples.task_id', 'samples.container_id', 'samples.sample_type', 'samples.temperature_type', 'samples.bag_code', 'samples.confirmed_by_client', 'samples.confirmed_by', 'samples.created_at', 'samples.updated_at');
 
         if ($user && !empty($user->assigned_client_ids)) {
             $query->join('tasks', 'samples.task_id', '=', 'tasks.id');
@@ -144,7 +154,8 @@ class SamplesController extends Controller
 
         $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
-        $total = (clone $query)->count();
+        $cacheKey = 'samples_count_lost_' . md5(serialize($request->all()) . ($user->id ?? 'all'));
+        $total = cache()->remember($cacheKey, 30, fn() => (clone $query)->count());
         $offset = ($page - 1) * $pageSize;
 
         $seq = $offset;
