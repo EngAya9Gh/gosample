@@ -30,7 +30,9 @@ function submit() {
 const generatedBarcodes = computed(() => {
   if (!props.show) return [];
   const list = [];
-  for (let i = props.start; i < props.start + props.sequence; i++) {
+  const startNum = Number(props.start);
+  const sequenceNum = Number(props.sequence);
+  for (let i = startNum; i < startNum + sequenceNum; i++) {
     if (props.type === 'bag') {
       list.push({
         value: `${i}-bag`,
@@ -61,14 +63,16 @@ const vBarcode = {
     });
   },
   updated(el, binding) {
-    JsBarcode(el, binding.value.value, {
-      format: "CODE128",
-      width: binding.value.width,
-      height: binding.value.height,
-      displayValue: true,
-      fontSize: 15,
-      margin: 10,
-    });
+    if (binding.value.value !== binding.oldValue?.value) {
+      JsBarcode(el, binding.value.value, {
+        format: "CODE128",
+        width: binding.value.width,
+        height: binding.value.height,
+        displayValue: true,
+        fontSize: 15,
+        margin: 10,
+      });
+    }
   }
 };
 
@@ -104,6 +108,7 @@ function printReport() {
             display: block;
             margin-left: auto;
             margin-right: auto;
+            page-break-after: always;
           }
         </style>
       </head>
@@ -121,7 +126,7 @@ function printReport() {
   setTimeout(() => {
     WinPrint.print();
     WinPrint.close();
-  }, 250);
+  }, 1000);
 }
 </script>
 

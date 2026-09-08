@@ -55,11 +55,11 @@ class BarcodesController extends Controller
         $show = true;
         $type = $request->type;
         $start = DB::table('barcodes')->where('type',$type)->max('last_number') + 1;
-        $sequence = $request->range? $request->range :10;
+        $sequence = $request->range ? (int) $request->range : 10;
 
         // update last number 
         $record = Barcode::where('type',$request->type)->first();
-        $record->last_number =  $record->last_number +  $request->range;
+        $record->last_number =  $record->last_number + $sequence;
         $record->save();
 
         return inertia('Barcodes/BarcodesGenerate', [

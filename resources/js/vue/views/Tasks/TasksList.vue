@@ -19,6 +19,7 @@ import BaseButton from '../../components/BaseButton.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import RouteCell from '../../components/RouteCell.vue';
 import BaseModal from '../../components/BaseModal.vue';
+import TabGroup from '../../components/TabGroup.vue';
 import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
 
@@ -37,7 +38,7 @@ const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('co
 
 // Filter params mirror the classic /admin/tasks filter card 1:1 (same field names).
 const DEFAULT_FILTERS = {
-  keyword: '', status: '', driver_id: '', billing_client: '',
+  keyword: '', status: '', task_type: '', driver_id: '', billing_client: '',
   from_location: '', to_location: '', date_from: '', date_to: '',
   search_date: '', sort_by: '', sort_order: '',
 };
@@ -61,6 +62,12 @@ const statusPills = [
   { value: 'OUT_FREEZER', label: 'Out Container', dot: 'bg-status-container', active: 'bg-status-container/10 border-status-container/40 text-status-container' },
   { value: 'CLOSED',      label: 'Closed',        dot: 'bg-status-closed',    active: 'bg-status-closed/10 border-status-closed/40 text-status-closed' },
   { value: 'NO_SAMPLES',  label: 'No Samples',    dot: 'bg-status-none',      active: 'bg-status-none/15 border-status-none/40 text-status-none' },
+];
+
+const taskTypeTabs = [
+  { key: '',       label: 'All Types' },
+  { key: 'SAMPLE', label: 'Sample', activeClass: 'bg-primary-600 text-white dark:bg-primary-500' },
+  { key: 'BOX',    label: 'Box', activeClass: 'bg-amber-500 text-white dark:bg-amber-600' },
 ];
 // Clicking a status pill filters immediately (auto-search), no Search click needed.
 function toggleStatus(v) {
@@ -286,17 +293,25 @@ async function bulkDelete(ids) {
 
       <!-- Status as colored pills (replaces the dropdown; same filter value) -->
       <template #actions-extra>
-        <button
-          v-for="s in statusPills" :key="s.value" type="button"
-          @click="toggleStatus(s.value)"
-          class="inline-flex items-center gap-1.5 ps-2 pe-2.5 h-7 rounded-full border text-[11px] font-bold transition"
-          :class="filters.status === s.value
-            ? s.active
-            : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300'"
-        >
-          <span class="w-1.5 h-1.5 rounded-full" :class="s.dot"></span>
-          {{ s.label }}
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button
+              v-for="s in statusPills" :key="s.value" type="button"
+              @click="toggleStatus(s.value)"
+              class="inline-flex items-center gap-1.5 ps-2 pe-2.5 h-7 rounded-full border text-[11px] font-bold transition"
+              :class="filters.status === s.value
+                ? s.active
+                : 'bg-surface dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-slate-300'"
+            >
+              <span class="w-1.5 h-1.5 rounded-full" :class="s.dot"></span>
+              {{ s.label }}
+            </button>
+          </div>
+          
+          <div class="hidden sm:block w-px h-6 bg-slate-200 dark:bg-white/10 shrink-0"></div>
+
+          <TabGroup :tabs="taskTypeTabs" v-model:active="filters.task_type" variant="pills" @update:active="doSearch" />
+        </div>
       </template>
     </FilterBar>
 
