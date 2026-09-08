@@ -55,6 +55,7 @@ class TasksController extends Controller
             ->when($request->billing_client, fn ($q, $v) => $q->where('billing_client', $v))
             ->when($request->from_location, fn ($q, $v) => $q->where('from_location', $v))
             ->when($request->to_location, fn ($q, $v) => $q->where('to_location', $v))
+            ->when($request->task_type, fn ($q, $v) => $q->where('task_type', $v))
             ->when($request->keyword, fn ($q, $v) => $q->where('tasks.id', $v));
 
         $dateColumn = $request->input('search_date') ?: 'tasks.created_at';
@@ -103,7 +104,7 @@ class TasksController extends Controller
 
         // Echo the filters back so the form stays populated across reloads.
         $filters = $request->only([
-            'keyword', 'status', 'driver_id', 'billing_client', 'from_location',
+            'keyword', 'status', 'task_type', 'driver_id', 'billing_client', 'from_location',
             'to_location', 'date_from', 'date_to', 'search_date', 'sort_by', 'sort_order',
         ]);
 
