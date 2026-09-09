@@ -391,8 +391,8 @@ function getDuration(start, end) {
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 font-medium ltr:tracking-wide">
                 <i class="ri-car-line text-primary-500 text-sm"></i>
-                <Link v-if="task.car?.id" :href="`/admin/cars/${task.car.id}`" class="hover:underline text-slate-600 dark:text-slate-300">
-                  {{ task.car.plate_number }}
+                <Link v-if="task.car?.id || task.driver?.car?.id" :href="`/admin/cars/${task.car?.id || task.driver?.car?.id}`" class="hover:underline text-slate-600 dark:text-slate-300">
+                  {{ task.car?.plate_number || task.driver?.car?.plate_number }}
                 </Link>
                 <span v-else>No Car Assigned</span>
               </p>
