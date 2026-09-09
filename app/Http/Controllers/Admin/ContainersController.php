@@ -48,7 +48,7 @@ class ContainersController extends Controller
             $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
             $query->orderBy($sortBy, $sortOrder);
 
-            $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+            $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
             $page = max(1, (int) $request->input('page', 1));
             $total = (clone $query)->count();
             $offset = ($page - 1) * $pageSize;
@@ -72,18 +72,19 @@ class ContainersController extends Controller
                 ];
             });
 
-            if ($request->wantsJson()) {
-                return response()->json(['rows' => $rows, 'total' => $total]);
-            }
+            // We now pass everything via Inertia (like TasksController) instead of raw JSON.
 
             // Same list the classic create/edit forms show (enabled cars only).
             $cars = Car::select('id', 'plate_number')->get()
                 ->map(fn ($car) => ['value' => $car->id, 'label' => $car->plate_number])->values();
 
             return \Inertia\Inertia::render('Containers/ContainersList', [
-                'initialRows'  => $rows,
-                'initialTotal' => $total,
+                'rows'         => $rows,
+                'total'        => $total,
+                'page'         => $page,
+                'pageSize'     => $pageSize,
                 'filters'      => ['cars' => $cars],
+                'queryParams'  => $request->all(),
             ]);
         }
 

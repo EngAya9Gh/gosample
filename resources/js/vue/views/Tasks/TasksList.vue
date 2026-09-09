@@ -155,6 +155,7 @@ const columns = [
   { key: 'created_at',        label: 'Order Date',        ltr: true },
   { key: 'client',            label: 'Client',            wrap: true, width: '150px' },
   { key: 'driver_name',       label: 'Driver',            wrap: true, width: '150px' },
+  { key: 'car_plate',         label: 'Car Plate',         width: '120px' },
   { key: 'route',             label: 'From → To',        wrap: true, width: '250px' },
   { key: 'eta',               label: 'EAT (min)',         align: 'center' },
   { key: 'status',            label: 'Status' },
@@ -337,6 +338,10 @@ async function bulkDelete(ids) {
           <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
         </div>
+        <span v-else class="text-slate-400">—</span>
+      </template>
+      <template #cell-car_plate="{ value }">
+        <span v-if="value" class="text-slate-700 dark:text-slate-300 font-medium">{{ value }}</span>
         <span v-else class="text-slate-400">—</span>
       </template>
       <template #cell-eta="{ value }">

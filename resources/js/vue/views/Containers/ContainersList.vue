@@ -8,10 +8,8 @@
  * container popup endpoints (storePopup / updatePopup); deletes reuse the
  * classic /admin/containers destroy routes (can-delete gate).
  */
-import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
+import { ref, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import FilterBar from '../../components/FilterBar.vue';
@@ -25,9 +23,12 @@ import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows:  { type: Array,  default: () => [] },
-  initialTotal: { type: Number, default: 0 },
+  rows:         { type: Array,  default: () => [] },
+  total:        { type: Number, default: 0 },
+  page:         { type: Number, default: 1 },
+  pageSize:     { type: Number, default: 25 },
   filters:      { type: Object, default: () => ({}) }, // { cars: [{value,label}] }
+  queryParams:  { type: Object, default: () => ({}) },
 });
 
 const { push } = useToast();
@@ -36,7 +37,7 @@ const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('co
 
 /* ---------- filters (classic page has none — keyword + the row's own fields) ---------- */
 const DEFAULT_FILTERS = { keyword: '', car_id: '', type: '', status: '', sort_by: '', sort_order: '' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
 const TYPE_OPTS = ['ROOM', 'REFRIGERATE', 'FROZEN'].map((v) => ({ value: v, label: v }));
 const carOpts = computed(() => [{ value: '', label: 'Any Car' }, ...(props.filters?.cars || [])]);
@@ -51,45 +52,32 @@ function toggleStatus(v) {
   doSearch(1);
 }
 
-/* ---------- data (server-side JSON reloads) ---------- */
-const rows = ref([]);
-const total = ref(0);
+/* ---------- data (Inertia partial reloads) ---------- */
 const loading = ref(false);
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+function reload(extra = {}) {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    Object.entries(searchForm.value).forEach(([k, v]) => {
-      if (v !== '' && v !== null && v !== undefined) params.append(k, v);
-    });
-    params.append('page', page);
-    params.append('pageSize', pageSize);
-    const { data } = await axios.get(`/admin/containers?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (e) {
-    push({ type: 'error', title: 'Error', message: 'Failed to load containers.' });
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  const params = {};
+  Object.entries(searchForm.value).forEach(([k, v]) => {
+    if (v !== '' && v !== null && v !== undefined) params[k] = v;
+  });
+  
+  router.get('/admin/containers', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; },
+  });
+}
 
 function onQuery({ page, pageSize, sortKey, sortDir, q }) {
   searchForm.value.sort_by = sortKey || '';
   searchForm.value.sort_order = sortDir || '';
   if (q !== undefined) searchForm.value.keyword = q;
-  doSearch(page, pageSize);
+  reload({ page, pageSize });
 }
-function doApply() { doSearch(1); }
-function doReset() { searchForm.value = { ...DEFAULT_FILTERS }; doSearch(1); }
-
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-});
+function doApply() { reload({ page: 1 }); }
+function doReset() { searchForm.value = { ...DEFAULT_FILTERS }; reload({ page: 1 }); }
 
 /* ---------- columns: classic index set 1:1 ---------- */
 const columns = [
@@ -141,7 +129,7 @@ function submitForm() {
       push({ type: 'success', title: editingId.value ? 'Updated' : 'Created',
              message: editingId.value ? `Container #${editingId.value} updated.` : 'Container created successfully.' });
       form.reset();
-      doSearch();
+      reload();
     },
   };
   if (editingId.value) form.put(`/admin/containers/${editingId.value}/popup`, opts);
@@ -173,7 +161,7 @@ async function confirmDelete() {
   try {
     const res = await webDelete('/admin/containers/' + delTarget.value.id);
     if (res.status === 403) push({ type: 'error', title: 'Forbidden', message: 'You are not allowed to delete.' });
-    else { push({ type: 'success', title: 'Deleted', message: `Container #${delTarget.value.id} removed` }); doSearch(); }
+    else { push({ type: 'success', title: 'Deleted', message: `Container #${delTarget.value.id} removed` }); reload(); }
   } catch (e) { push({ type: 'error', title: 'Error', message: 'Delete failed.' }); }
   showDel.value = false;
 }
@@ -181,7 +169,7 @@ async function bulkDelete(ids) {
   try {
     const res = await webDelete('/admin/containers/destroy', ids);
     if (res.status === 403) push({ type: 'error', title: 'Forbidden', message: 'You are not allowed to delete.' });
-    else { push({ type: 'success', title: 'Bulk delete', message: `${ids.length} containers removed` }); doSearch(); }
+    else { push({ type: 'success', title: 'Bulk delete', message: `${ids.length} containers removed` }); reload(); }
   } catch (e) { push({ type: 'error', title: 'Error', message: 'Bulk delete failed.' }); }
 }
 </script>
@@ -219,8 +207,8 @@ async function bulkDelete(ids) {
     <!-- data table (server-side) -->
     <DataTable
       title="Containers"
-      :columns="columns" :rows="rows" row-key="id"
-      :loading="loading" :server-side="true" :total="total" :searchable="false"
+      :columns="columns" :rows="props.rows" row-key="id"
+      :loading="loading" :server-side="true" :total="props.total" :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
     >
