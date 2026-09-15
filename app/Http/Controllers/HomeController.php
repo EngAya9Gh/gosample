@@ -307,36 +307,45 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         ]);
 
         // =========================
-        // Statistics (Live, no cache)
+        // Statistics
         // =========================
+        $cacheKeyStats = !empty($loggedUser->assigned_client_ids)
+            ? "dashboard_stats_clients_" . md5(implode(',', $loggedUser->assigned_client_ids))
+            : 'dashboard_stats_admin';
+
         $t3 = microtime(true);
         if (!empty($loggedUser->assigned_client_ids)) {
-            $stats = (object) [
-                'cars'      => Car::whereHas('driver.clientDrivers', function ($q) use ($loggedUser) {
-                                  $q->whereIn('client_id', $loggedUser->assigned_client_ids);
-                              })->where('status', 1)->count(),
-                'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
-                'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')
-                                  ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
-                                  ->count(),
-                'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
-                                  ->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)
-                                  ->count(),
-                'clients'   => count($loggedUser->assigned_client_ids),
-            ];
+            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () use ($loggedUser) {
+                return (object) [
+                    'cars'      => Car::whereHas('driver.clientDrivers', function ($q) use ($loggedUser) {
+                                      $q->whereIn('client_id', $loggedUser->assigned_client_ids);
+                                  })->count(),
+                    'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
+                    'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')
+                                      ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
+                                      ->count(),
+                    'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')
+                                      ->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)
+                                      ->count(),
+                    'clients'   => count($loggedUser->assigned_client_ids),
+                ];
+            });
         } else {
-            $stats = (object) [
-                'cars'      => Car::count(),
-                'tasks'     => Task::count(),
-                'samples'   => Sample::count(),
-                'drivers'   => Driver::count(),
-                'users'     => User::count(),
-                'locations' => Location::count(),
-                'clients'   => Client::count(),
-            ];
+            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () {
+                return (object) [
+                    'cars'      => DB::table('cars')->count(),
+                    'tasks'     => DB::table('tasks')->count(),
+                    'samples'   => DB::table('samples')->count(),
+                    'drivers'   => DB::table('drivers')->count(),
+                    'users'     => DB::table('users')->count(),
+                    'locations' => DB::table('locations')->count(),
+                    'clients'   => DB::table('clients')->count(),
+                ];
+            });
         }
         $t4 = microtime(true);
-        \Log::info('[Dashboard] stats (live)', [
+        \Log::info('[Dashboard] stats', [
+            'cache_key' => $cacheKeyStats,
             'ms'        => round(($t4 - $t3) * 1000, 2),
         ]);
 
