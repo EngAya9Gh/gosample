@@ -184,7 +184,7 @@ class TasksController extends Controller
                 ->addColumn('to_location_name', fn($row) => optional($row->to)->name)
                 ->addColumn('client', fn($row) => optional($row->client)->english_name)
                 ->addColumn('driver_name', fn($row) => optional($row->driver)->name)
-                ->addColumn('car_imei', fn($row) => optional($row->car)->imei)
+                ->addColumn('car_plate', fn($row) => optional($row->historical_car)->plate_number)
                 // ->addColumn('hours', function ($row) {
                 //     if (!$row->collection_date || !$row->close_date) {
                 //         return '';
@@ -1589,10 +1589,10 @@ class TasksController extends Controller
         // in TasksController@export). Filters below read from $request, so
         // we merge BEFORE building $filters to ensure they pick up the
         // defaulted values.
-        if (empty($request->date_from) && empty($request->date_to)) {
+        if (!$request->filled('date_from') && !$request->filled('date_to') && !$request->filled('keyword') && !$request->filled('driver_id') && !$request->filled('billing_client') && !$request->filled('from_location') && !$request->filled('to_location') && !$request->filled('status')) {
             $request->merge([
-                'date_from' => Carbon::now()->subDays(30)->startOfDay()->toDateTimeString(),
-                'date_to'   => Carbon::now()->endOfDay()->toDateTimeString(),
+                'date_from' => \Carbon\Carbon::now()->subDays(30)->startOfDay()->format('Y-m-d'),
+                'date_to'   => \Carbon\Carbon::now()->endOfDay()->format('Y-m-d'),
             ]);
         }
 
@@ -1606,6 +1606,10 @@ class TasksController extends Controller
             'to_location'    => $request->input('to_location'),
             'driver_id'      => $request->input('driver_id'),
             'search_date'    => $request->input('search_date', 'tasks.created_at'),
+            'keyword'        => $request->input('keyword'),
+            'task_type'      => $request->input('task_type'),
+            'sort_by'        => $request->input('sort_by'),
+            'sort_order'     => $request->input('sort_order'),
         ];
 
         // SECURITY (fail-closed): scope the export to the user's own client OR refuse it
@@ -2493,10 +2497,10 @@ $temp3 = $temperatureReadings->pluck('temp7');
 
         // PERFORMANCE: force a date range to avoid scanning the entire tasks table on prod.
         // Defaults to last 30 days when none is provided.
-        if (empty($request->date_from) && empty($request->date_to)) {
+        if (!$request->filled('date_from') && !$request->filled('date_to') && !$request->filled('keyword') && !$request->filled('driver_id') && !$request->filled('billing_client') && !$request->filled('from_location') && !$request->filled('to_location') && !$request->filled('status')) {
             $request->merge([
-                'date_from' => Carbon::now()->subDays(30)->startOfDay()->toDateTimeString(),
-                'date_to'   => Carbon::now()->endOfDay()->toDateTimeString(),
+                'date_from' => \Carbon\Carbon::now()->subDays(30)->startOfDay()->format('Y-m-d'),
+                'date_to'   => \Carbon\Carbon::now()->endOfDay()->format('Y-m-d'),
             ]);
         }
 
@@ -2516,6 +2520,10 @@ $temp3 = $temperatureReadings->pluck('temp7');
             'to_location'    => $request->input('to_location'),
             'driver_id'      => $request->input('driver_id'),
             'search_date'    => $request->input('search_date', 'tasks.created_at'),
+            'keyword'        => $request->input('keyword'),
+            'task_type'      => $request->input('task_type'),
+            'sort_by'        => $request->input('sort_by'),
+            'sort_order'     => $request->input('sort_order'),
         ];
 
         // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.

@@ -192,6 +192,9 @@
                             DRIVER
                         </th>
                         <th>
+                            CAR PLATE
+                        </th>
+                        <th>
                             FROM LOCATION
                         </th>
                         <th>
@@ -382,6 +385,12 @@
                     {
                         data: 'driver_name',
                         name: 'driver.name'
+                    },
+                    {
+                        data: 'car_plate',
+                        name: 'car_plate',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'from_location_name',

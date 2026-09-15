@@ -191,7 +191,7 @@ function exportPdf() {
   const add = (k, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v ?? ''; form.appendChild(i); };
   add('_token', csrf);
   add('report_type', 'pdf');
-  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date']
+  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date', 'keyword', 'task_type', 'sort_by', 'sort_order']
     .forEach((k) => add(k, filters[k]));
   document.body.appendChild(form);
   form.submit();
@@ -199,7 +199,7 @@ function exportPdf() {
 }
 function exportExcel() {
   const p = new URLSearchParams();
-  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id']
+  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date', 'keyword', 'task_type', 'sort_by', 'sort_order']
     .forEach((k) => { if (filters[k]) p.set(k, filters[k]); });
   window.open('/admin/export-excel?' + p.toString(), '_blank');
 }
@@ -317,7 +317,7 @@ async function bulkDelete(ids) {
     </FilterBar>
 
     <!-- data table (server-side) -->
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       title="Tasks"
       :columns="columns" :rows="rows" row-key="id"
       :loading="loading" :server-side="true" :total="total" :searchable="false"
@@ -411,3 +411,4 @@ async function bulkDelete(ids) {
 
   </div>
 </template>
+

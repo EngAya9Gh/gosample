@@ -219,10 +219,13 @@
                                                 <p>{{ $task->created_at }}</p>
                                             </div>
                                             <div class="col-4 textContent">
-                                                <h5>Driver Name</h5>
+                                                <h5>Driver Name & Car Plate</h5>
                                                 <p>
                                                     @if (!empty($task->driver))
                                                         {{ $task->driver->name }}
+                                                        @if($task->historical_car)
+                                                            <br>Car Plate: {{ $task->historical_car->plate_number }}
+                                                        @endif
                                                     @endif
                                                 </p>
                                             </div>

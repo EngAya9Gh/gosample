@@ -285,7 +285,7 @@ async function confirmBulkDelete() {
     </div>
 
     <!-- Table -->
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       :columns="columns"
       :rows="rows"
       :total="total"
@@ -407,3 +407,4 @@ async function confirmBulkDelete() {
 
   </div>
 </template>
+

@@ -1,8 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -16,8 +14,11 @@ import FilterBar from '../../components/FilterBar.vue';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   roles: Object,
   clients: Array,
 });
@@ -25,10 +26,8 @@ const props = defineProps({
 const { can } = usePermissions();
 
 const DEFAULT_FILTERS = { keyword: '', sortBy: 'id', sortOrder: 'desc', role: '', client: '' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
-const rows = ref([]);
-const total = ref(0);
 const loading = ref(false);
 
 const columns = [
@@ -43,41 +42,35 @@ const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   if (sortKey) searchForm.value.sortBy = sortKey;
   if (sortDir) searchForm.value.sortOrder = sortDir;
   if (q !== undefined) searchForm.value.keyword = q;
-  doSearch(page, pageSize);
+  reload({ page, pageSize });
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (searchForm.value.keyword) params.append('keyword', searchForm.value.keyword);
-    if (searchForm.value.role) params.append('role', searchForm.value.role);
-    if (searchForm.value.client) params.append('client', searchForm.value.client);
-    
-    params.append('sortBy', searchForm.value.sortBy);
-    params.append('sortOrder', searchForm.value.sortOrder);
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+  const params = {};
+  if (searchForm.value.keyword) params.keyword = searchForm.value.keyword;
+  if (searchForm.value.role) params.role = searchForm.value.role;
+  if (searchForm.value.client) params.client = searchForm.value.client;
+  
+  params.sortBy = searchForm.value.sortBy;
+  params.sortOrder = searchForm.value.sortOrder;
 
-    const { data } = await axios.get('/admin/users', { params });
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (err) {
-    console.error('Error fetching users:', err);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/users', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = () => reload({ page: 1 });
 
 const doReset = () => {
   searchForm.value = { ...DEFAULT_FILTERS };
   doSearch();
 };
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-});
+
 
 // Options Map
 const roleOptions = computed(() => {
@@ -122,7 +115,7 @@ const executeDelete = () => {
       onSuccess: () => {
         deleteModalOpen.value = false;
         itemsToDelete.value = [];
-        doSearch();
+        reload();
       }
     });
   } else if (itemToDelete.value) {
@@ -130,7 +123,7 @@ const executeDelete = () => {
       onSuccess: () => {
         deleteModalOpen.value = false;
         itemToDelete.value = null;
-        doSearch();
+        reload();
       }
     });
   }
@@ -202,14 +195,14 @@ const submitForm = () => {
     form.put(url, {
       onSuccess: () => {
         formModalOpen.value = false;
-        doSearch();
+        reload();
       }
     });
   } else {
     form.post(url, {
       onSuccess: () => {
         formModalOpen.value = false;
-        doSearch();
+        reload();
       }
     });
   }
@@ -225,7 +218,7 @@ const submitForm = () => {
     </Breadcrumb>
 
     <!-- Filter Bar -->
-    <FilterBar :loading="loading" @search="doSearch(1, 25)" @reset="doReset">
+    <FilterBar :loading="loading" @search="doSearch" @reset="doReset">
       <FormInput v-model="searchForm.keyword" label="Keyword" placeholder="Name or email..." icon="ri-search-line" />
       
       <FormSelect
@@ -243,11 +236,11 @@ const submitForm = () => {
     </FilterBar>
 
     <!-- Data Table -->
-    <DataTable
-      :rows="rows"
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
+      :rows="props.rows"
       :columns="columns"
       row-key="id"
-      :total="total"
+      :total="props.total"
       :loading="loading"
       :sort-by="searchForm.sortBy"
       :sort-order="searchForm.sortOrder"
@@ -485,3 +478,4 @@ const submitForm = () => {
     </BaseModal>
   </div>
 </template>
+

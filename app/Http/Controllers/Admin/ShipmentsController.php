@@ -74,7 +74,7 @@ class ShipmentsController extends Controller
         $sortOrder = $request->filled('sort_order') ? $request->sort_order : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
         $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
@@ -113,6 +113,7 @@ class ShipmentsController extends Controller
             'total'     => $total,
             'page'      => $page,
             'pageSize'  => $pageSize,
+            'queryParams' => $request->all(),
             'filters'   => $filters,
             'drivers'   => $drivers,
             'locations' => $locations,

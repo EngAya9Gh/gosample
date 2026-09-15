@@ -2,7 +2,6 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -14,14 +13,17 @@ import StatusBadge from '../../components/StatusBadge.vue';
 import FormSelect from '../../components/FormSelect.vue';
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   drivers: { type: Object, default: () => ({}) },
   tasks: { type: Object, default: () => ({}) },
 });
 
 const DEFAULT_FILTERS = { keyword: '', date_from: '', date_to: '', sortBy: 'id', sortOrder: 'desc' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
 const dateRange = ref('');
 function onDateRange({ from, to }) {
@@ -35,8 +37,6 @@ function resetFilters() {
   doSearch(1, 25);
 }
 
-const rows = ref([]);
-const total = ref(0);
 const loading = ref(false);
 
 const columns = [
@@ -53,34 +53,28 @@ const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   if (sortKey) searchForm.value.sortBy = sortKey;
   if (sortDir) searchForm.value.sortOrder = sortDir;
   if (q !== undefined) searchForm.value.keyword = q;
-  doSearch(page, pageSize);
+  reload({ page, pageSize });
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (searchForm.value.keyword) params.append('keyword', searchForm.value.keyword);
-    if (searchForm.value.date_from) params.append('date_from', searchForm.value.date_from);
-    if (searchForm.value.date_to) params.append('date_to', searchForm.value.date_to);
-    
-    params.append('sortBy', searchForm.value.sortBy);
-    params.append('sortOrder', searchForm.value.sortOrder);
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+  const params = {};
+  if (searchForm.value.keyword) params.keyword = searchForm.value.keyword;
+  if (searchForm.value.date_from) params.date_from = searchForm.value.date_from;
+  if (searchForm.value.date_to) params.date_to = searchForm.value.date_to;
+  
+  params.sortBy = searchForm.value.sortBy;
+  params.sortOrder = searchForm.value.sortOrder;
 
-    const { data } = await axios.get(`/admin/swaprequests?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (error) {
-    console.error('Error fetching swap requests:', error);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/swaprequests', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = (page = 1, pageSize = 25) => reload({ page, pageSize });
 
 watch(
   () => [searchForm.value.keyword, searchForm.value.date_from, searchForm.value.date_to],
@@ -88,13 +82,7 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-  if (!rows.value.length && total.value > 0) {
-    doSearch(1, 25);
-  }
-});
+
 
 const viewModalOpen = ref(false);
 const selectedSwap = ref(null);
@@ -112,7 +100,7 @@ const closeViewModal = () => {
 const deleteSwap = (id) => {
   if (confirm('Are you sure you want to delete this Swap Request?')) {
     router.delete(`/admin/swaprequests/${id}`, {
-      onSuccess: () => doSearch()
+      onSuccess: () => reload()
     });
   }
 };
@@ -233,7 +221,7 @@ const submitForm = () => {
       preserveScroll: true,
       onSuccess: () => {
         closeFormModal();
-        doSearch(1); // refresh list to show changes
+        reload(); // refresh list to show changes
       }
     });
   } else {
@@ -242,7 +230,7 @@ const submitForm = () => {
       preserveScroll: true,
       onSuccess: () => {
         closeFormModal();
-        doSearch(1);
+        reload();
       }
     });
   }
@@ -296,9 +284,9 @@ const submitForm = () => {
       <!-- Table -->
       <DataTable
         :columns="columns"
-        :rows="rows"
+        :rows="props.rows"
         :loading="loading"
-        :total="total"
+        :total="props.total"
         server-side
         @query="onQuery"
       >

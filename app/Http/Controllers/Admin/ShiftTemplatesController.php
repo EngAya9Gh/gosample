@@ -28,7 +28,7 @@ class ShiftTemplatesController extends Controller
         $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
         $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
@@ -49,13 +49,12 @@ class ShiftTemplatesController extends Controller
             ];
         });
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json(['rows' => $rows, 'total' => $total]);
-        }
-
         return \Inertia\Inertia::render('ShiftTemplates/ShiftTemplatesList', [
-            'initialRows'  => $rows,
-            'initialTotal' => $total,
+            'rows'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'pageSize'    => $pageSize,
+            'queryParams' => $request->all(),
         ]);
     }
 

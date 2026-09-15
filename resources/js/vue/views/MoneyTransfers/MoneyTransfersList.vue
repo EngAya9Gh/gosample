@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -20,8 +19,11 @@ import { useToast } from '../../composables/useToast';
 const { push } = useToast();
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   filters: Object,
   can: Object,
 });
@@ -33,7 +35,7 @@ const DEFAULT_FILTERS = {
   keyword: '', status: '', client_id: '', driver_id: '', from_location: '', to_location: '',
   date_from: '', date_to: '', sort_by: '', sort_order: '',
 };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
 // Single range picker (mirrors the Tasks page filter)
 const dateRange = ref('');
@@ -59,28 +61,24 @@ const onQuery = ({ page, pageSize, sortBy, sortOrder , q}) => {
 doSearch(page, pageSize);
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
-  loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    Object.entries(searchForm.value).forEach(([k, v]) => {
-      if (v !== '' && v !== null && v !== undefined) params.append(k, v);
-    });
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+const loading = ref(false);
 
-    const { data } = await axios.get(`/admin/money-transfers?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (error) {
-    console.error('Error fetching money transfers:', error);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+const reload = (extra = {}) => {
+  loading.value = true;
+  const params = {};
+  Object.entries(searchForm.value).forEach(([k, v]) => {
+    if (v !== '' && v !== null && v !== undefined) params[k] = v;
+  });
+
+  router.get('/admin/money-transfers', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = (page = 1, pageSize = 25) => reload({ page, pageSize });
 
 /* ---------- Create modal (mirrors the Tasks page Add-Task popup) ----------
  * Fields = the classic /admin/money-transfers/create form; status + both OTPs
@@ -103,7 +101,7 @@ function submitCreate() {
       showCreate.value = false;
       createForm.reset();
       push({ type: 'success', title: 'Created', message: 'Money transfer added successfully.' });
-      doSearch();
+      reload();
     },
   });
 }
@@ -125,7 +123,7 @@ const executeDelete = async () => {
       headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') }
     });
     deleteModalOpen.value = false;
-    doSearch(); // Refresh the table
+    reload(); // Refresh the table
   } catch (error) {
     console.error('Error deleting money transfer:', error);
     alert('Failed to delete the item.');
@@ -141,29 +139,6 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  let hasFilters = false;
-  for (const [key, value] of urlParams.entries()) {
-    if (searchForm.value[key] !== undefined) {
-      searchForm.value[key] = value;
-      hasFilters = true;
-    }
-  }
-  if (searchForm.value.date_from && searchForm.value.date_to) {
-    dateRange.value = `${searchForm.value.date_from} to ${searchForm.value.date_to}`;
-  }
-  if (hasFilters) {
-    doSearch(1, 25);
-  } else {
-    rows.value = props.initialRows || [];
-    total.value = props.initialTotal || 0;
-  }
-});
-
-const rows = ref([]);
-const total = ref(0);
-const loading = ref(false);
 const showAdvanced = ref(false);
 
 const columns = [
@@ -212,7 +187,7 @@ function cellText(r, c) {
 }
 function matrix() {
   const header = exportColumns.map((c) => c.label);
-  const body = rows.value.map((r) => exportColumns.map((c) => cellText(r, c)));
+  const body = props.rows.map((r) => exportColumns.map((c) => cellText(r, c)));
   return { header, body };
 }
 function onExport(kind) {
@@ -336,11 +311,11 @@ const modalLocationOpts = computed(() => props.filters?.locations || []);
     </div>
 
     <!-- data table (server-side) -->
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       :columns="columns"
-      :rows="rows"
+      :rows="props.rows"
       row-key="id"
-      :total="total"
+      :total="props.total"
       :loading="loading"
       :server-side="true"
       :searchable="false"
@@ -438,3 +413,4 @@ const modalLocationOpts = computed(() => props.filters?.locations || []);
     </BaseModal>
   </div>
 </template>
+

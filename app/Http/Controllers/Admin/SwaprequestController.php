@@ -47,24 +47,22 @@ class SwaprequestController extends Controller
         }
 
         // Pagination
-        $pageSize = $request->get('pageSize', 25);
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'rows' => $paginator->items(),
-                'total' => $paginator->total(),
-            ]);
-        }
+        // We now pass everything via Inertia
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         $tasks = Task::whereNotIn('status', ['NO_SAMPLES', 'CLOSED'])->pluck('id', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
         return \Inertia\Inertia::render('SwapRequests/SwapRequestsList', [
-            'initialRows' => $paginator->items(),
-            'initialTotal' => $paginator->total(),
-            'drivers' => $drivers,
-            'tasks' => $tasks
+            'rows'        => $paginator->items(),
+            'total'       => $paginator->total(),
+            'page'        => $paginator->currentPage(),
+            'pageSize'    => $pageSize,
+            'queryParams' => $request->all(),
+            'drivers'     => $drivers,
+            'tasks'       => $tasks
         ]);
     }
 

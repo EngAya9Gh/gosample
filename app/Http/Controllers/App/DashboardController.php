@@ -10,6 +10,7 @@ use App\Models\Sample;
 use App\Models\Location;
 use App\Models\Driver;
 use App\Models\User;
+use App\Models\Client;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -67,32 +68,25 @@ class DashboardController extends Controller
                 ->orderByDesc('t.total')->limit(5)->get();
         });
 
-        // ---- Stats (cached 30 min, same keys) ----
-        $cacheKeyStats = $scoped
-            ? 'dashboard_stats_clients_' . md5(implode(',', $loggedUser->assigned_client_ids))
-            : 'dashboard_stats_admin';
+        // ---- Stats (Live, no cache) ----
         if ($scoped) {
-            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () use ($loggedUser) {
-                return (object) [
-                    'cars'      => Car::whereHas('driver.clientDrivers', fn ($q) => $q->whereIn('client_id', $loggedUser->assigned_client_ids))->count(),
-                    'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
-                    'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)->count(),
-                    'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)->count(),
-                    'clients'   => count($loggedUser->assigned_client_ids),
-                ];
-            });
+            $stats = (object) [
+                'cars'      => Car::whereHas('driver.clientDrivers', fn ($q) => $q->whereIn('client_id', $loggedUser->assigned_client_ids))->where('status', 1)->count(),
+                'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
+                'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)->count(),
+                'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)->count(),
+                'clients'   => count($loggedUser->assigned_client_ids),
+            ];
         } else {
-            $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () {
-                return (object) [
-                    'cars'      => DB::table('cars')->count(),
-                    'tasks'     => DB::table('tasks')->count(),
-                    'samples'   => DB::table('samples')->count(),
-                    'drivers'   => DB::table('drivers')->count(),
-                    'users'     => DB::table('users')->count(),
-                    'locations' => DB::table('locations')->count(),
-                    'clients'   => DB::table('clients')->count(),
-                ];
-            });
+            $stats = (object) [
+                'cars'      => Car::count(),
+                'tasks'     => Task::count(),
+                'samples'   => Sample::count(),
+                'drivers'   => Driver::count(),
+                'users'     => User::count(),
+                'locations' => Location::count(),
+                'clients'   => Client::count(),
+            ];
         }
 
         // ---- Samples-temperature donut (date-range; partial-reloadable) ----

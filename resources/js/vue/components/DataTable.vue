@@ -31,16 +31,21 @@ const props = defineProps({
   searchable: { type: Boolean, default: true },
   serverSide: { type: Boolean, default: false },
   total:      { type: Number, default: null }, // server-side total
+  initialPage:{ type: Number, default: 1 },
+  initialPageSize: { type: Number, default: 25 },
 });
-const emit = defineEmits(['query', 'bulk-delete', 'export']);
+const emit = defineEmits(['query', 'bulk-delete', 'export', 'update:page', 'update:pageSize']);
 
 const q = ref('');
 const sortKey = ref('');
 const sortDir = ref('asc');
-const page = ref(1);
-const pageSize = ref(25);
+const page = ref(props.initialPage);
+const pageSize = ref(props.initialPageSize);
 const sel = ref(new Set());
 const SIZES = [10, 25, 50, 100, 1000];
+
+watch(() => props.initialPage, (v) => { if (v && v !== page.value) page.value = v; });
+watch(() => props.initialPageSize, (v) => { if (v && v !== pageSize.value) pageSize.value = v; });
 
 // Colored export buttons (soft tints, on-theme) with a per-icon hover animation.
 const exportBtns = [
@@ -174,10 +179,15 @@ function clearSel() { sel.value = new Set(); }
 
 /* ---------- emit query upstream for server-side ---------- */
 watch([q, sortKey, sortDir, page, pageSize], () => {
-  if (props.serverSide)
+  emit('update:page', page.value);
+  emit('update:pageSize', pageSize.value);
+  if (props.serverSide) {
     emit('query', { q: q.value, sortKey: sortKey.value, sortDir: sortDir.value, page: page.value, pageSize: pageSize.value });
+  }
 });
-watch([q, pageSize], () => { page.value = 1; });
+watch([q, pageSize], () => { 
+  if (page.value !== 1) page.value = 1; 
+});
 
 function runBulk(ev) { emit(ev, [...sel.value]); clearSel(); }
 

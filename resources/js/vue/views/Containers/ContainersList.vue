@@ -49,7 +49,7 @@ const statusPills = [
 ];
 function toggleStatus(v) {
   searchForm.value.status = searchForm.value.status === v ? '' : v;
-  doSearch(1);
+  doApply();
 }
 
 /* ---------- data (Inertia partial reloads) ---------- */
@@ -209,6 +209,7 @@ async function bulkDelete(ids) {
       title="Containers"
       :columns="columns" :rows="props.rows" row-key="id"
       :loading="loading" :server-side="true" :total="props.total" :searchable="false"
+      :initial-page="props.page" :initial-page-size="props.pageSize"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
     >

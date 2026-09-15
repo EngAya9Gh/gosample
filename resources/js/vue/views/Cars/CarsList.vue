@@ -18,8 +18,11 @@ import { useToast } from '../../composables/useToast';
 const { push } = useToast();
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   filters: Object,
   can: Object,
 });
@@ -46,7 +49,7 @@ function onDateRange({ from, to }) {
 const statusTabs = [
   { key: '',  label: 'All Statuses', dot: 'bg-primary-500',    active: 'bg-primary-500/10 border-primary-500/40 text-primary-500' },
   { key: '1', label: 'Enabled',      dot: 'bg-status-closed',  active: 'bg-status-closed/10 border-status-closed/40 text-status-closed' },
-  { key: '2', label: 'Disabled',     dot: 'bg-status-lost',    active: 'bg-status-lost/10 border-status-lost/40 text-status-lost' },
+  { key: '0', label: 'Disabled',     dot: 'bg-status-lost',    active: 'bg-status-lost/10 border-status-lost/40 text-status-lost' },
 ];
 
 const onQuery = ({ page, pageSize, sortBy, sortOrder, q }) => {
@@ -85,7 +88,7 @@ const doSearch = debounce(async (page = 1, pageSize = 25) => {
  * list rows already carry every editable value so no extra fetch is needed. */
 const STATUS_OPTS = [
   { value: '1', label: 'Enable' },
-  { value: '2', label: 'Disable' },
+  { value: '0', label: 'Disable' },
 ];
 const AFAQI_OPTS = [
   { value: '0', label: 'No' },
@@ -169,6 +172,54 @@ watch(
   { deep: true }
 );
 
+const selected = ref([]);
+
+const deleteSelected = async (eventOrIds) => {
+  const ids = Array.isArray(eventOrIds) ? eventOrIds : selected.value;
+  if (!ids || !ids.length || !confirm(`Delete ${ids.length} selected cars?`)) return;
+  try {
+    await axios.delete('/admin/cars/destroy', {
+      data: { ids: ids },
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') }
+    });
+    push({ type: 'success', title: 'Deleted', message: 'Cars deleted successfully.' });
+    selected.value = [];
+    doSearch();
+  } catch (error) {
+    push({ type: 'error', title: 'Error', message: 'Error deleting cars.' });
+  }
+};
+
+const enableSelected = async (eventOrIds) => {
+  const ids = Array.isArray(eventOrIds) ? eventOrIds : selected.value;
+  if (!ids || !ids.length || !confirm(`Enable ${ids.length} selected cars?`)) return;
+  try {
+    await axios.post('/admin/cars/mass-enable', { ids: ids }, {
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') }
+    });
+    push({ type: 'success', title: 'Enabled', message: 'Cars enabled successfully.' });
+    selected.value = [];
+    doSearch();
+  } catch (error) {
+    push({ type: 'error', title: 'Error', message: 'Error enabling cars.' });
+  }
+};
+
+const disableSelected = async (eventOrIds) => {
+  const ids = Array.isArray(eventOrIds) ? eventOrIds : selected.value;
+  if (!ids || !ids.length || !confirm(`Disable ${ids.length} selected cars?`)) return;
+  try {
+    await axios.post('/admin/cars/mass-disable', { ids: ids }, {
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') }
+    });
+    push({ type: 'success', title: 'Disabled', message: 'Cars disabled successfully.' });
+    selected.value = [];
+    doSearch();
+  } catch (error) {
+    push({ type: 'error', title: 'Error', message: 'Error disabling cars.' });
+  }
+};
+
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   let hasFilters = false;
@@ -181,14 +232,14 @@ onMounted(() => {
   if (hasFilters) {
     doSearch(1, 25);
   } else {
-    rows.value = props.initialRows || [];
-    total.value = props.initialTotal || 0;
+    rows.value = props.rows || [];
+    total.value = props.total || 0;
   }
 });
 
-const rows = ref([]);
-const total = ref(0);
-const loading = ref(!props.initialRows);
+const rows = ref(props.rows || []);
+const total = ref(props.total || 0);
+const loading = ref(!props.rows);
 const showAdvanced = ref(false);
 
 const columns = [
@@ -301,6 +352,16 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
       :loading="loading"
       :server-side="true"
       :searchable="false"
+      :bulk-actions="[
+        ...(can('car_delete') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []),
+        ...(can('car_edit') ? [
+          { label: 'Disable', icon: 'ri-close-circle-line', tone: 'warning', event: 'bulk-disable' },
+          { label: 'Enable', icon: 'ri-checkbox-circle-line', tone: 'success', event: 'bulk-enable' }
+        ] : [])
+      ]"
+      @bulk-delete="deleteSelected"
+      @bulk-enable="enableSelected"
+      @bulk-disable="disableSelected"
       @query="onQuery"
     >
       <template #cell-id="{ value }">
@@ -338,7 +399,7 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
           </span>
           ENABLED
         </span>
-        <span v-else-if="value == 2" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide bg-danger/5 text-danger border border-danger/20 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-danger/10 hover:-translate-y-0.5 dark:bg-danger/10 dark:border-danger/20 dark:hover:shadow-danger/10 cursor-default">
+        <span v-else-if="value == 0" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide bg-danger/5 text-danger border border-danger/20 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-danger/10 hover:-translate-y-0.5 dark:bg-danger/10 dark:border-danger/20 dark:hover:shadow-danger/10 cursor-default">
           <i class="ri-forbid-2-line text-[13px]"></i>
           DISABLED
         </span>

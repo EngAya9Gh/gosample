@@ -254,6 +254,32 @@ class Task extends Model
         return $this->belongsTo(Car::class, 'car_id');
     }
 
+    public function getHistoricalCarAttribute()
+    {
+        if ($this->car_id && $this->car) {
+            return $this->car;
+        }
+
+        if (!$this->driver_id) {
+            return null;
+        }
+
+        $date = $this->collection_date ?? $this->close_date ?? $this->created_at;
+
+        $link = \App\Models\CarLinkHistory::with('car')
+            ->where('driver_id', $this->driver_id)
+            ->where('created_at', '<=', $date)
+            ->where('action', 'linked')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($link && $link->car) {
+            return $link->car;
+        }
+
+        return $this->driver ? $this->driver->car : null;
+    }
+
     public function samplesSummary()
     {
         return $this->hasMany(Sample::class)->select('id', 'barcode_id', 'bag_code','temperature_type','sample_type','task_id','container_id');

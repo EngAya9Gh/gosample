@@ -44,15 +44,10 @@ class UsersController extends Controller
             });
         }
 
-        $pageSize = $request->get('pageSize', 25);
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'rows' => $paginator->items(),
-                'total' => $paginator->total(),
-            ]);
-        }
+        // We now pass everything via Inertia
 
         $roles = Role::pluck('name', 'id');
         $logged_id_user = auth()->user();
@@ -63,10 +58,13 @@ class UsersController extends Controller
         }
 
         return \Inertia\Inertia::render('Users/UsersList', [
-            'initialRows' => $paginator->items(),
-            'initialTotal' => $paginator->total(),
-            'roles' => $roles,
-            'clients' => $clients,
+            'rows'        => $paginator->items(),
+            'total'       => $paginator->total(),
+            'page'        => $paginator->currentPage(),
+            'pageSize'    => $pageSize,
+            'queryParams' => $request->all(),
+            'roles'       => $roles,
+            'clients'     => $clients,
         ]);
     }
 

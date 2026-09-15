@@ -185,7 +185,7 @@ async function confirmDelete() {
       </template>
     </FilterBar>
 
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       :rows="rows"
       :columns="columns"
       :total="total"
@@ -280,3 +280,4 @@ async function confirmDelete() {
     </BaseModal>
   </div>
 </template>
+

@@ -22,6 +22,7 @@ Route::get('/home', function () {
     return redirect()->route('admin.home');
 });
 
+
 Route::middleware(['auth'])->group(function () {
 //    Route::get('/update-cars',[App\Http\Controllers\HomeController::class, 'updateCar']);
     Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -68,6 +69,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'App\Http\Co
 
     // Cars
     Route::delete('cars/destroy', 'CarsController@massDestroy')->name('cars.massDestroy');
+    Route::post('cars/mass-enable', 'CarsController@massEnable')->name('cars.massEnable');
+    Route::post('cars/mass-disable', 'CarsController@massDisable')->name('cars.massDisable');
     Route::resource('cars', 'CarsController');
 
     // Attendances

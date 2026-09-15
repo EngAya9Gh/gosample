@@ -52,7 +52,7 @@ class AttendancesController extends Controller
         $sortOrder = $request->input('sort_order') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
         $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
@@ -87,8 +87,11 @@ class AttendancesController extends Controller
         }
 
         return \Inertia\Inertia::render('Attendances/AttendancesList', [
-            'initialRows'  => $rows,
-            'initialTotal' => $total,
+            'rows'         => $rows,
+            'total'        => $total,
+            'page'         => $page,
+            'pageSize'     => $pageSize,
+            'queryParams'  => $request->all(),
             'filters'      => [
                 'drivers' => Driver::select('id', 'name')->get()
                     ->map(fn ($d) => ['value' => $d->id, 'label' => $d->name])->values(),

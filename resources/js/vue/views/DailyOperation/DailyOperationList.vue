@@ -247,7 +247,7 @@ function onExport(type) {
     </FilterBar>
 
     <div class="overflow-x-auto">
-      <DataTable
+      <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
         title="Operations Log"
         :columns="columns" :rows="rows" row-key="id"
         :loading="loading" :server-side="true" :total="total" :searchable="false"
@@ -308,3 +308,4 @@ function onExport(type) {
     </div>
   </div>
 </template>
+

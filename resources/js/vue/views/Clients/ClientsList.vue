@@ -2,7 +2,6 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -16,8 +15,11 @@ import FilterBar from '../../components/FilterBar.vue';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   drivers: { type: Object, default: () => ({}) },
   locations: { type: Object, default: () => ({}) },
 });
@@ -25,10 +27,8 @@ const props = defineProps({
 const { can } = usePermissions();
 
 const DEFAULT_FILTERS = { keyword: '', sortBy: 'id', sortOrder: 'desc', status: '', location_id: '', driver_id: '' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
-const rows = ref([]);
-const total = ref(0);
 const loading = ref(false);
 
 const columns = [
@@ -47,32 +47,26 @@ const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   doSearch(page, pageSize);
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (searchForm.value.keyword) params.append('keyword', searchForm.value.keyword);
-    if (searchForm.value.status !== '') params.append('status', searchForm.value.status);
-    if (searchForm.value.location_id) params.append('location_id', searchForm.value.location_id);
-    if (searchForm.value.driver_id) params.append('driver_id', searchForm.value.driver_id);
-    
-    params.append('sortBy', searchForm.value.sortBy);
-    params.append('sortOrder', searchForm.value.sortOrder);
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+  const params = {};
+  if (searchForm.value.keyword) params.keyword = searchForm.value.keyword;
+  if (searchForm.value.status !== '') params.status = searchForm.value.status;
+  if (searchForm.value.location_id) params.location_id = searchForm.value.location_id;
+  if (searchForm.value.driver_id) params.driver_id = searchForm.value.driver_id;
+  
+  params.sortBy = searchForm.value.sortBy;
+  params.sortOrder = searchForm.value.sortOrder;
 
-    const { data } = await axios.get(`/admin/clients?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (error) {
-    console.error('Error fetching clients:', error);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/clients', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = (page = 1, pageSize = 25) => reload({ page, pageSize });
 
 watch(
   () => [searchForm.value.keyword, searchForm.value.status, searchForm.value.location_id, searchForm.value.driver_id],
@@ -80,13 +74,7 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-  if (!rows.value.length && total.value > 0) {
-    doSearch(1, 25);
-  }
-});
+
 
 function doReset() {
   searchForm.value = { ...DEFAULT_FILTERS };
@@ -123,7 +111,7 @@ const executeDelete = () => {
     onSuccess: () => {
       deleteModalOpen.value = false;
       clientToDelete.value = null;
-      doSearch();
+      reload();
     }
   });
 };
@@ -227,7 +215,7 @@ const submitForm = () => {
   form.post(url, {
     onSuccess: () => {
       formModalOpen.value = false;
-      doSearch();
+      reload();
     }
   });
 };
@@ -276,11 +264,11 @@ const submitForm = () => {
     </FilterBar>
 
     <!-- Data Table -->
-    <DataTable
-      :rows="rows"
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
+      :rows="props.rows"
       :columns="columns"
       row-key="id"
-      :total="total"
+      :total="props.total"
       :loading="loading"
       :sort-by="searchForm.sortBy"
       :sort-order="searchForm.sortOrder"
@@ -524,3 +512,4 @@ const submitForm = () => {
     </BaseModal>
   </div>
 </template>
+

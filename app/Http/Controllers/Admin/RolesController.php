@@ -28,17 +28,14 @@ class RolesController extends Controller
 
         $roles = $query->get();
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'rows' => $roles,
-            ]);
-        }
+        // We now pass everything via Inertia
 
         $permissions = Permission::all();
 
         return \Inertia\Inertia::render('Roles/RolesList', [
-            'initialRows' => $roles,
+            'rows' => $roles,
             'permissions' => $permissions,
+            'queryParams' => $request->all(),
         ]);
     }
 

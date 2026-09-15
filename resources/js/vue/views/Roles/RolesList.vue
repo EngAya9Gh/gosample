@@ -1,8 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
@@ -12,44 +10,42 @@ import FormInput from '../../components/FormInput.vue';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows: Array,
+  rows: Array,
   permissions: Array, // [{ id, name }]
+  queryParams: Object,
 });
 
 const { can } = usePermissions();
 
-const keyword = ref('');
-const rows = ref([]);
+const keyword = ref(props.queryParams?.keyword || '');
 const loading = ref(false);
 
-const doSearch = debounce(async () => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (keyword.value) params.append('keyword', keyword.value);
+  const params = {};
+  if (keyword.value) params.keyword = keyword.value;
 
-    const { data } = await axios.get('/admin/roles', { params });
-    rows.value = data.rows;
-  } catch (err) {
-    console.error('Error fetching roles:', err);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/roles', { ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = () => reload();
 
 const doReset = () => {
   keyword.value = '';
   doSearch();
 };
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-});
+
 
 // Stats Calculations
-const totalRoles = computed(() => rows.value.length);
+const totalRoles = computed(() => props.rows?.length || 0);
 const totalPermissionAssignments = computed(() => {
-  return rows.value.reduce((acc, row) => acc + (row.permissions?.length || 0), 0);
+  return (props.rows || []).reduce((acc, row) => acc + (row.permissions?.length || 0), 0);
 });
 
 // Group permissions helper (e.g., client_access, client_create -> Client)
@@ -105,7 +101,7 @@ const executeDelete = () => {
     onSuccess: () => {
       deleteModalOpen.value = false;
       itemToDelete.value = null;
-      doSearch();
+      reload();
     }
   });
 };
@@ -180,14 +176,14 @@ const submitForm = () => {
     form.put(url, {
       onSuccess: () => {
         formModalOpen.value = false;
-        doSearch();
+        reload();
       }
     });
   } else {
     form.post(url, {
       onSuccess: () => {
         formModalOpen.value = false;
-        doSearch();
+        reload();
       }
     });
   }
@@ -282,9 +278,9 @@ const getRoleGradient = (role) => {
       </div>
     </div>
 
-    <div v-else-if="rows.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else-if="props.rows && props.rows.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div 
-        v-for="role in rows" 
+        v-for="role in props.rows" 
         :key="role.id" 
         class="group relative border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl hover:border-primary-500/30 transition-all duration-300 overflow-hidden flex flex-col justify-between"
       >

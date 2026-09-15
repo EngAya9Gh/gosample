@@ -62,7 +62,7 @@ class MoneyTransferController extends Controller
         $sortOrder = $request->filled('sort_order') ? $request->sort_order : 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        $pageSize = max(1, min((int) $request->input('pageSize', 25), 100));
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
         $page = max(1, (int) $request->input('page', 1));
         $total = (clone $query)->count();
         $offset = ($page - 1) * $pageSize;
@@ -85,20 +85,16 @@ class MoneyTransferController extends Controller
             ];
         });
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'rows' => $rows,
-                'total' => $total,
-            ]);
-        }
-
         $drivers = Driver::select('id', 'name')->get()->map(fn($d) => ['value' => $d->id, 'label' => $d->name]);
         $clients = Client::select('id', 'english_name')->get()->map(fn($c) => ['value' => $c->id, 'label' => $c->english_name]);
         $locations = Location::select('id', 'name')->get()->map(fn($l) => ['value' => $l->id, 'label' => $l->name]);
 
         return \Inertia\Inertia::render('MoneyTransfers/MoneyTransfersList', [
-            'initialRows' => $rows,
-            'initialTotal' => $total,
+            'rows' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'queryParams' => $request->all(),
             'filters' => [
                 'drivers' => $drivers,
                 'clients' => $clients,
