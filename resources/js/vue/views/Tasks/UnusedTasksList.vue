@@ -128,7 +128,7 @@ function onExport(kind) {
       <FormSelect v-model="filters.sort_order"     label="Sort Order"     :options="sortOrderOpts"  :searchable="false" placeholder="Default" />
     </FilterBar>
 
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       :rows="rows"
       :columns="columns"
       :total="total"
@@ -171,3 +171,4 @@ function onExport(kind) {
     </DataTable>
   </div>
 </template>
+

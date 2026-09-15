@@ -53,7 +53,7 @@ const formattedResponse = computed(() => {
   <div>
     <Breadcrumb title="API Ayenati Logs" :trail="[{ label: 'API Ayenati' }]" />
 
-    <DataTable
+    <DataTable :initial-page="props.logs.current_page" :initial-page-size="props.logs.per_page"
       title="API Logs"
       :columns="columns"
       :rows="logs.data"
@@ -132,3 +132,4 @@ const formattedResponse = computed(() => {
 
   </div>
 </template>
+

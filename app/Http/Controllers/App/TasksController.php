@@ -88,7 +88,7 @@ class TasksController extends Controller
                 'created_at'         => $this->fmt($t->created_at),
                 'client'             => optional($t->client)->english_name,
                 'driver_name'        => optional($t->driver)->name,
-                'car_plate'          => $t->car ? $t->car->plate_number : ($t->driver && $t->driver->car ? $t->driver->car->plate_number : ''),
+                'car_plate'          => $t->historical_car ? $t->historical_car->plate_number : '',
                 'from_location_name' => optional($t->from)->name,
                 'to_location_name'   => optional($t->to)->name,
                 'eta'                => $t->eta,
@@ -297,6 +297,7 @@ class TasksController extends Controller
         abort_if(Gate::denies('task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $task->load('from', 'to', 'client', 'driver.car', 'car');
+        $task->append('historical_car');
         $bags = Sample::with('container')->where('task_id', $task->id)->get()->groupBy('bag_code');
         $bag_count = Sample::where('task_id', $task->id)->distinct('bag_code')->count('bag_code');
         $sample_count = Sample::where('task_id', $task->id)->count();

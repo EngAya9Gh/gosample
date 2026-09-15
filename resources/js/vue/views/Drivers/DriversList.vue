@@ -251,7 +251,7 @@ function onExport(format) {
     </FilterBar>
 
     <!-- Data Table -->
-    <DataTable
+    <DataTable :initial-page="props.drivers.page" :initial-page-size="props.drivers.pageSize"
       :columns="columns"
       :rows="drivers.data"
       row-key="id"
@@ -345,3 +345,4 @@ function onExport(format) {
     </BaseModal>
   </div>
 </template>
+

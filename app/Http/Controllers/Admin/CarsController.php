@@ -48,7 +48,7 @@ class CarsController extends Controller
 
         $sortBy    = $request->input('sortBy', 'id');
         $sortOrder = $request->input('sortOrder', 'desc');
-        $pageSize  = max(1, min((int) $request->input('pageSize', 25), 100));
+        $pageSize  = max(1, min((int) $request->input('pageSize', 25), 1000));
 
         $query->orderBy($sortBy, $sortOrder);
 
@@ -77,8 +77,11 @@ class CarsController extends Controller
         }
 
         return \Inertia\Inertia::render('Cars/CarsList', [
-            'initialRows'  => $rows,
-            'initialTotal' => $total,
+            'rows'         => $rows,
+            'total'        => $total,
+            'page'         => $page,
+            'pageSize'     => $pageSize,
+            'queryParams'  => $request->all(),
             'can'          => [
                 'car_create' => Gate::allows('car_create'),
                 'car_edit'   => Gate::allows('car_edit'),
@@ -240,7 +243,7 @@ class CarsController extends Controller
 
     public function destroy($id)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('car_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         Car::withoutGlobalScope('enabled')->findOrFail($id)->delete();
 
@@ -249,9 +252,37 @@ class CarsController extends Controller
 
     public function massDestroy(MassDestroyCarRequest $request)
     {
-        $this->authorize('can-delete');
+        abort_if(Gate::denies('car_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        Car::find(request('ids'))->each->delete();
+        Car::withoutGlobalScope('enabled')->find(request('ids'))->each->delete();
+
+        return response(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function massEnable(Request $request)
+    {
+        abort_if(Gate::denies('car_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $ids = $request->input('ids', []);
+        $updated = Car::withoutGlobalScope('enabled')
+            ->whereIn('id', $ids)
+            ->update(['status' => 1]);
+
+        \Log::info('massEnable', ['ids' => $ids, 'updated' => $updated]);
+
+        return response(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function massDisable(Request $request)
+    {
+        abort_if(Gate::denies('car_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $ids = $request->input('ids', []);
+        $updated = Car::withoutGlobalScope('enabled')
+            ->whereIn('id', $ids)
+            ->update(['status' => 0]);
+
+        \Log::info('massDisable', ['ids' => $ids, 'updated' => $updated]);
 
         return response(null, Response::HTTP_NO_CONTENT);
     }

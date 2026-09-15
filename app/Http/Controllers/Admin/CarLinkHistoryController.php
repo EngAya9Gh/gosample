@@ -58,21 +58,17 @@ class CarLinkHistoryController extends Controller
         }
 
         // Pagination
-        $pageSize = $request->get('pageSize', 25);
-        $paginator = $query->paginate($pageSize);
-
-        // If it's an AJAX request (from axios in the Vue component)
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'rows' => $paginator->items(),
-                'total' => $paginator->total(),
-            ]);
-        }
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
+        $page = max(1, (int) $request->input('page', 1));
+        $paginator = $query->paginate($pageSize, ['*'], 'page', $page);
 
         // Initial page load
         return \Inertia\Inertia::render('CarLinkHistories/CarLinkHistoriesList', [
-            'initialRows' => $paginator->items(),
-            'initialTotal' => $paginator->total(),
+            'rows' => $paginator->items(),
+            'total' => $paginator->total(),
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'queryParams' => $request->all(),
         ]);
     }
 

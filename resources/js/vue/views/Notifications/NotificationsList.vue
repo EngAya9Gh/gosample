@@ -71,7 +71,7 @@ function viewDetails(row) {
       <FormInput v-model="filters.keyword" label="Search" placeholder="Search by ID, Task ID, Location, Driver..." icon="ri-search-line" />
     </FilterBar>
 
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       title="Notifications"
       :columns="columns" :rows="rows || []" row-key="id"
       :loading="loading" :server-side="true" :total="total || 0" :searchable="false"
@@ -175,3 +175,4 @@ function viewDetails(row) {
     </BaseModal>
   </div>
 </template>
+

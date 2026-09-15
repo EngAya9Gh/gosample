@@ -70,18 +70,27 @@ class GenerateTaskExportJob implements ShouldQueue
 
             $searchDateColumn = $f['search_date'] ?? 'tasks.created_at';
             
-            if (!empty($f['date_from']) && !empty($f['date_to'])) {
-                $query->whereBetween($searchDateColumn, [$f['date_from'], $f['date_to']]);
-            } elseif (!empty($f['date_from'])) {
-                $query->where($searchDateColumn, '>=', $f['date_from']);
-            } elseif (!empty($f['date_to'])) {
-                $query->where($searchDateColumn, '<=', $f['date_to']);
+            $dateFrom = !empty($f['date_from']) ? \Carbon\Carbon::parse($f['date_from'])->startOfDay() : null;
+            $dateTo   = !empty($f['date_to'])   ? \Carbon\Carbon::parse($f['date_to'])->endOfDay() : null;
+
+            if ($dateFrom && $dateTo && $dateFrom->gt($dateTo)) {
+                [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            }
+
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween($searchDateColumn, [$dateFrom->toDateTimeString(), $dateTo->toDateTimeString()]);
+            } elseif ($dateFrom) {
+                $query->where($searchDateColumn, '>=', $dateFrom->toDateTimeString());
+            } elseif ($dateTo) {
+                $query->where($searchDateColumn, '<=', $dateTo->toDateTimeString());
             }
             if (!empty($f['status']))         { $query->where('status', $f['status']); }
             if (!empty($f['billing_client'])) { $query->where('billing_client', $f['billing_client']); }
             if (!empty($f['from_location'])) { $query->where('from_location', $f['from_location']); }
             if (!empty($f['to_location']))   { $query->where('to_location', $f['to_location']); }
             if (!empty($f['driver_id']))     { $query->where('driver_id', $f['driver_id']); }
+            if (!empty($f['task_type']))     { $query->where('task_type', $f['task_type']); }
+            if (!empty($f['keyword']))       { $query->where('tasks.id', $f['keyword']); }
 
             $writer = new \OpenSpout\Writer\XLSX\Writer();
             $writer->openToFile($path);

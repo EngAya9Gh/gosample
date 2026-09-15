@@ -1,8 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -12,12 +11,15 @@ import BaseButton from '../../components/BaseButton.vue';
 import FormDate from '../../components/FormDate.vue';
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
 });
 
 const DEFAULT_FILTERS = { keyword: '', action: '', date_from: '', date_to: '', sortBy: 'id', sortOrder: 'desc' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
 const datePart = (s) => (s ? String(s).slice(0, 10) : '');
 const dateRange = ref('');
@@ -33,8 +35,6 @@ function resetFilters() {
   doSearch(1, 25);
 }
 
-const rows = ref([]);
-const total = ref(0);
 const loading = ref(false);
 
 const columns = [
@@ -53,32 +53,26 @@ const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   doSearch(page, pageSize);
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (searchForm.value.keyword) params.append('keyword', searchForm.value.keyword);
-    if (searchForm.value.action) params.append('action', searchForm.value.action);
-    if (searchForm.value.date_from) params.append('date_from', searchForm.value.date_from);
-    if (searchForm.value.date_to) params.append('date_to', searchForm.value.date_to);
-    
-    params.append('sortBy', searchForm.value.sortBy);
-    params.append('sortOrder', searchForm.value.sortOrder);
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+  const params = {};
+  if (searchForm.value.keyword) params.keyword = searchForm.value.keyword;
+  if (searchForm.value.action) params.action = searchForm.value.action;
+  if (searchForm.value.date_from) params.date_from = searchForm.value.date_from;
+  if (searchForm.value.date_to) params.date_to = searchForm.value.date_to;
+  
+  params.sortBy = searchForm.value.sortBy;
+  params.sortOrder = searchForm.value.sortOrder;
 
-    const { data } = await axios.get(`/admin/car-link-histories?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (error) {
-    console.error('Error fetching car link histories:', error);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/car-link-histories', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = (page = 1, pageSize = 25) => reload({ page, pageSize });
 
 watch(
   () => [searchForm.value.keyword, searchForm.value.action, searchForm.value.date_from, searchForm.value.date_to],
@@ -86,13 +80,7 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-  if (!rows.value.length && total.value > 0) {
-    doSearch(1, 25);
-  }
-});
+
 
 const viewModalOpen = ref(false);
 const selectedHistory = ref(null);
@@ -176,9 +164,9 @@ const formatDate = (dateString) => {
       <!-- Table -->
       <DataTable
         :columns="columns"
-        :rows="rows"
+        :rows="props.rows"
         :loading="loading"
-        :total="total"
+        :total="props.total"
         server-side
         @query="onQuery"
       >

@@ -20,6 +20,7 @@ const props = defineProps({
   total: Number,
   page: Number,
   pageSize: Number,
+  queryParams: Object,
   filters: Object,
   drivers: Array,
   locations: Array,
@@ -31,7 +32,7 @@ const DEFAULT_FILTERS = {
   date_from: '', date_to: '', sort_by: '', sort_order: '',
 };
 
-const filters = reactive({ ...DEFAULT_FILTERS, ...props.filters });
+const filters = reactive({ ...DEFAULT_FILTERS, ...(props.queryParams || {}), ...props.filters });
 
 const statusTabs = [
   { key: '',           label: 'All Statuses' },
@@ -90,7 +91,7 @@ function reload(extra = {}) {
   router.get('/admin/shipments', { pageSize: props.pageSize, ...filters, ...extra }, {
     preserveState: true,
     preserveScroll: true,
-    only: ['rows', 'total', 'page', 'pageSize', 'filters'],
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams', 'filters'],
     onFinish: () => { loading.value = false; },
   });
 }
@@ -249,7 +250,7 @@ function onExport(kind) {
     </div>
 
     <!-- Table -->
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       :columns="columns"
       :rows="rows"
       row-key="id"
@@ -308,3 +309,4 @@ function onExport(kind) {
     </DataTable>
   </div>
 </template>
+

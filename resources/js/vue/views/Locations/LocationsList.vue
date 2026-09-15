@@ -2,7 +2,6 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
 import DataTable from '../../components/DataTable.vue';
@@ -16,18 +15,19 @@ import LeafletMapPicker from '../../components/LeafletMapPicker.vue';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows: Array,
-  initialTotal: Number,
+  rows: Array,
+  total: Number,
+  page: Number,
+  pageSize: Number,
+  queryParams: Object,
   saudiCities: { type: Object, default: () => ({}) },
 });
 
 const { can } = usePermissions();
 
 const DEFAULT_FILTERS = { keyword: '', sortBy: 'id', sortOrder: 'desc', status: '', city: '' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
-const rows = ref([]);
-const total = ref(0);
 const loading = ref(false);
 
 const columns = [
@@ -49,31 +49,25 @@ const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   doSearch(page, pageSize);
 };
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+const reload = (extra = {}) => {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    if (searchForm.value.keyword) params.append('keyword', searchForm.value.keyword);
-    if (searchForm.value.status !== '') params.append('status', searchForm.value.status);
-    if (searchForm.value.city) params.append('city', searchForm.value.city);
-    
-    params.append('sortBy', searchForm.value.sortBy);
-    params.append('sortOrder', searchForm.value.sortOrder);
-    params.append('page', page);
-    params.append('pageSize', pageSize);
+  const params = {};
+  if (searchForm.value.keyword) params.keyword = searchForm.value.keyword;
+  if (searchForm.value.status !== '') params.status = searchForm.value.status;
+  if (searchForm.value.city) params.city = searchForm.value.city;
+  
+  params.sortBy = searchForm.value.sortBy;
+  params.sortOrder = searchForm.value.sortOrder;
 
-    const { data } = await axios.get(`/admin/locations?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (error) {
-    console.error('Error fetching locations:', error);
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  router.get('/admin/locations', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; }
+  });
+};
+
+const doSearch = (page = 1, pageSize = 25) => reload({ page, pageSize });
 
 watch(
   () => [searchForm.value.keyword, searchForm.value.status, searchForm.value.city],
@@ -81,13 +75,7 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-  if (!rows.value.length && total.value > 0) {
-    doSearch(1, 25);
-  }
-});
+
 
 function doReset() {
   searchForm.value = { ...DEFAULT_FILTERS };
@@ -118,7 +106,7 @@ const executeDelete = () => {
     onSuccess: () => {
       deleteModalOpen.value = false;
       itemToDelete.value = null;
-      doSearch();
+      reload();
     }
   });
 };
@@ -205,7 +193,7 @@ const submitForm = () => {
   form.post(url, {
     onSuccess: () => {
       formModalOpen.value = false;
-      doSearch();
+      reload();
     }
   });
 };
@@ -259,10 +247,12 @@ const copyToClipboard = async (text) => {
 
     <!-- Data Table -->
     <DataTable
-      :rows="rows"
+      :rows="props.rows"
       :columns="columns"
       row-key="id"
-      :total="total"
+      :total="props.total"
+      :initial-page="props.page"
+      :initial-page-size="props.pageSize"
       :loading="loading"
       :sort-by="searchForm.sortBy"
       :sort-order="searchForm.sortOrder"

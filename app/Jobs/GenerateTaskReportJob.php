@@ -104,7 +104,7 @@ class GenerateTaskReportJob implements ShouldQueue
             $client_logo = optional(Client::find($billing_client))->logo;
         }
 
-        $keyWord        = '';
+        $keyWord        = $f['keyword']       ?? '';
         $from           = $f['date_from'] ?? null;
         $to             = $f['date_to']   ?? null;
         $date_column    = $f['search_date'] ?? 'tasks.created_at';
@@ -112,6 +112,7 @@ class GenerateTaskReportJob implements ShouldQueue
         $to_location    = $f['to_location']   ?? null;
         $driver_id      = $f['driver_id']     ?? null;
         $status         = $f['status']        ?? null;
+        $task_type      = $f['task_type']     ?? null;
 
         $reportDate = ($from === $to) ? $to : ('From ' . $from . '- To ' . $to);
 
@@ -136,15 +137,30 @@ class GenerateTaskReportJob implements ShouldQueue
                                     left join locations as from_location on from_location.ID = tasks.from_location
                                     left join locations as to_location on to_location.ID = tasks.to_location
                                     left join samples as samples on samples.task_id = tasks.id
-                                    WHERE tasks.id > 1 and drivers.status = 1';
+                                    WHERE tasks.id > 0';
 
         if ($billing_client) { $query .= ' and tasks.billing_client= ' . (int) $billing_client; }
         if ($from_location)  { $query .= ' and tasks.from_location= '  . (int) $from_location; }
         if ($to_location)    { $query .= ' and tasks.to_location= '    . (int) $to_location; }
         if ($driver_id)      { $query .= ' and tasks.driver_id= '      . (int) $driver_id; }
-        if ($from && $to) {
-            $query .= " and " . $date_column . " BETWEEN '" . date('Y-m-d H:i:s', strtotime($from)) . "' and '" . date('Y-m-d H:i:s', strtotime($to)) . " '";
+        if ($keyWord)        { $query .= " and tasks.id= '" . addslashes($keyWord) . "'"; }
+        if ($task_type)      { $query .= " and tasks.task_type= '" . addslashes($task_type) . "'"; }
+        
+        $dateFromObj = !empty($from) ? \Carbon\Carbon::parse($from)->startOfDay() : null;
+        $dateToObj   = !empty($to)   ? \Carbon\Carbon::parse($to)->endOfDay() : null;
+
+        if ($dateFromObj && $dateToObj && $dateFromObj->gt($dateToObj)) {
+            [$dateFromObj, $dateToObj] = [$dateToObj, $dateFromObj];
         }
+
+        if ($dateFromObj && $dateToObj) {
+            $query .= " and " . $date_column . " BETWEEN '" . $dateFromObj->toDateTimeString() . "' and '" . $dateToObj->toDateTimeString() . " '";
+        } elseif ($dateFromObj) {
+            $query .= " and " . $date_column . " >= '" . $dateFromObj->toDateTimeString() . "'";
+        } elseif ($dateToObj) {
+            $query .= " and " . $date_column . " <= '" . $dateToObj->toDateTimeString() . "'";
+        }
+        
         if ($status) {
             $query .= " and tasks.status= '" . $status . "'";
         }
@@ -235,10 +251,22 @@ class GenerateTaskReportJob implements ShouldQueue
             ->when($to_location,    function ($q) use ($to_location)    { $q->where('to_location', $to_location); })
             ->when($billing_client, function ($q) use ($billing_client) { $q->where('billing_client', $billing_client); })
             ->when($driver_id,      function ($q) use ($driver_id)      { $q->where('driver_id', $driver_id); })
-            ->whereBetween($date_column, [date('Y-m-d H:i:s', strtotime($from)), date('Y-m-d H:i:s', strtotime($to))]);
+            ->when($task_type,      function ($q) use ($task_type)      { $q->where('task_type', $task_type); })
+            ->when($keyWord,        function ($q) use ($keyWord)        { $q->where('tasks.id', $keyWord); });
+            
+        if ($dateFromObj && $dateToObj) {
+            $condition->whereBetween($date_column, [$dateFromObj->toDateTimeString(), $dateToObj->toDateTimeString()]);
+        } elseif ($dateFromObj) {
+            $condition->where($date_column, '>=', $dateFromObj->toDateTimeString());
+        } elseif ($dateToObj) {
+            $condition->where($date_column, '<=', $dateToObj->toDateTimeString());
+        }
 
-        $served_orginization  = $condition->whereIn('tasks.status', ['CLOSED', 'NO_SAMPLES'])->distinct('from_location')->count('from_location');
-        $visited_orginization = $condition->where('status', 'NO_SAMPLES')->count();
+        $served_orginization  = clone $condition;
+        $served_orginization  = $served_orginization->whereIn('tasks.status', ['CLOSED', 'NO_SAMPLES'])->distinct('from_location')->count('from_location');
+        
+        $visited_orginization = clone $condition;
+        $visited_orginization = $visited_orginization->where('status', 'NO_SAMPLES')->count();
 
         $summary = Task::with(['client' => function ($q) { $q->select('id', 'english_name'); }])
             ->when($status,         function ($q) use ($status)         { $q->where('status', $status); })
@@ -246,11 +274,18 @@ class GenerateTaskReportJob implements ShouldQueue
             ->when($to_location,    function ($q) use ($to_location)    { $q->where('to_location', $to_location); })
             ->when($billing_client, function ($q) use ($billing_client) { $q->where('billing_client', $billing_client); })
             ->when($driver_id,      function ($q) use ($driver_id)      { $q->where('driver_id', $driver_id); })
-            ->whereBetween('created_at', [
-                \Carbon\Carbon::parse(date('Y-m-d'))->startOfDay(),
-                \Carbon\Carbon::parse(date('Y-m-d'))->endOfDay(),
-            ])
-            ->select('status', 'billing_client', DB::raw('count(*) as total'))
+            ->when($task_type,      function ($q) use ($task_type)      { $q->where('task_type', $task_type); })
+            ->when($keyWord,        function ($q) use ($keyWord)        { $q->where('tasks.id', $keyWord); });
+            
+        if ($dateFromObj && $dateToObj) {
+            $summary->whereBetween('created_at', [$dateFromObj->toDateTimeString(), $dateToObj->toDateTimeString()]);
+        } elseif ($dateFromObj) {
+            $summary->where('created_at', '>=', $dateFromObj->toDateTimeString());
+        } elseif ($dateToObj) {
+            $summary->where('created_at', '<=', $dateToObj->toDateTimeString());
+        }
+        
+        $summary = $summary->select('status', 'billing_client', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();
 

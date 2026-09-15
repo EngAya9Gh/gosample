@@ -9,9 +9,7 @@
  * DataTable + popups + the standard action buttons.
  */
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import axios from 'axios';
-import { useForm } from '@inertiajs/vue3';
-import debounce from 'lodash/debounce';
+import { useForm, router } from '@inertiajs/vue3';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -25,8 +23,11 @@ import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
 
 const props = defineProps({
-  initialRows:  { type: Array,  default: () => [] },
-  initialTotal: { type: Number, default: 0 },
+  rows:         { type: Array,  default: () => [] },
+  total:        { type: Number, default: 0 },
+  page:         { type: Number, default: 1 },
+  pageSize:     { type: Number, default: 25 },
+  queryParams:  { type: Object, default: () => ({}) },
 });
 
 const { push } = useToast();
@@ -41,45 +42,32 @@ const TILES_ATTR = '&copy; OpenStreetMap &copy; CARTO';
 
 /* ---------- filters (classic page has none — keyword over ID/name) ---------- */
 const DEFAULT_FILTERS = { keyword: '', sort_by: '', sort_order: '' };
-const searchForm = ref({ ...DEFAULT_FILTERS });
+const searchForm = ref({ ...DEFAULT_FILTERS, ...(props.queryParams || {}) });
 
-/* ---------- data (server-side JSON reloads) ---------- */
-const rows = ref([]);
-const total = ref(0);
+/* ---------- data (Inertia partial reloads) ---------- */
 const loading = ref(false);
 
-const doSearch = debounce(async (page = 1, pageSize = 25) => {
+function reload(extra = {}) {
   loading.value = true;
-  try {
-    const params = new URLSearchParams();
-    Object.entries(searchForm.value).forEach(([k, v]) => { if (v) params.append(k, v); });
-    params.append('page', page);
-    params.append('pageSize', pageSize);
-    const { data } = await axios.get(`/admin/zones?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    rows.value = data.rows;
-    total.value = data.total;
-  } catch (e) {
-    push({ type: 'error', title: 'Error', message: 'Failed to load zones.' });
-  } finally {
-    loading.value = false;
-  }
-}, 300);
+  const params = {};
+  Object.entries(searchForm.value).forEach(([k, v]) => { if (v) params[k] = v; });
+  
+  router.get('/admin/zones', { pageSize: props.pageSize, ...params, ...extra }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['rows', 'total', 'page', 'pageSize', 'queryParams'],
+    onFinish: () => { loading.value = false; },
+  });
+}
 
 function onQuery({ page, pageSize, sortKey, sortDir, q }) {
   searchForm.value.sort_by = sortKey || '';
   searchForm.value.sort_order = sortDir || '';
   if (q !== undefined) searchForm.value.keyword = q;
-  doSearch(page, pageSize);
+  reload({ page, pageSize });
 }
-function doApply() { doSearch(1); }
-function doReset() { searchForm.value = { ...DEFAULT_FILTERS }; doSearch(1); }
-
-onMounted(() => {
-  rows.value = props.initialRows || [];
-  total.value = props.initialTotal || 0;
-});
+function doApply() { reload({ page: 1 }); }
+function doReset() { searchForm.value = { ...DEFAULT_FILTERS }; reload({ page: 1 }); }
 
 const columns = [
   { key: 'sequence',   label: '#',          sticky: 'start', width: '52px' },
@@ -170,7 +158,7 @@ function submitForm() {
       push({ type: 'success', title: editingId.value ? 'Updated' : 'Created',
              message: editingId.value ? `Zone #${editingId.value} updated.` : 'Zone created successfully.' });
       form.reset();
-      doSearch();
+      reload();
     },
   };
   if (editingId.value) form.put(`/admin/zones/${editingId.value}/popup`, opts);
@@ -223,7 +211,7 @@ async function confirmDelete() {
   try {
     const res = await webDelete('/admin/zones/' + delTarget.value.id);
     if (res.status === 403) push({ type: 'error', title: 'Forbidden', message: 'You are not allowed to delete.' });
-    else { push({ type: 'success', title: 'Deleted', message: `Zone #${delTarget.value.id} removed` }); doSearch(); }
+    else { push({ type: 'success', title: 'Deleted', message: `Zone #${delTarget.value.id} removed` }); reload(); }
   } catch (e) { push({ type: 'error', title: 'Error', message: 'Delete failed.' }); }
   showDel.value = false;
 }
@@ -231,7 +219,7 @@ async function bulkDelete(ids) {
   try {
     const res = await webDelete('/admin/zones/destroy', ids);
     if (res.status === 403) push({ type: 'error', title: 'Forbidden', message: 'You are not allowed to delete.' });
-    else { push({ type: 'success', title: 'Bulk delete', message: `${ids.length} zones removed` }); doSearch(); }
+    else { push({ type: 'success', title: 'Bulk delete', message: `${ids.length} zones removed` }); reload(); }
   } catch (e) { push({ type: 'error', title: 'Error', message: 'Bulk delete failed.' }); }
 }
 </script>
@@ -250,10 +238,10 @@ async function bulkDelete(ids) {
     </FilterBar>
 
     <!-- data table (server-side) -->
-    <DataTable
+    <DataTable :initial-page="props.page" :initial-page-size="props.pageSize"
       title="Zones"
-      :columns="columns" :rows="rows" row-key="id"
-      :loading="loading" :server-side="true" :total="total" :searchable="false"
+      :columns="columns" :rows="props.rows" row-key="id"
+      :loading="loading" :server-side="true" :total="props.total" :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
     >
@@ -354,3 +342,4 @@ async function bulkDelete(ids) {
     </BaseModal>
   </div>
 </template>
+

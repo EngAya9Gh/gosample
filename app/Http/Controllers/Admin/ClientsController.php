@@ -53,22 +53,19 @@ class ClientsController extends Controller
             });
         }
 
-        $pageSize = $request->get('pageSize', 25);
-        $paginator = $query->orderBy('id', 'desc')->paginate($pageSize);
-
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'rows' => $paginator->items(),
-                'total' => $paginator->total(),
-            ]);
-        }
+        $pageSize = max(1, min((int) $request->input('pageSize', 25), 1000));
+        $page = max(1, (int) $request->input('page', 1));
+        $paginator = $query->orderBy('id', 'desc')->paginate($pageSize, ['*'], 'page', $page);
 
         $drivers = Driver::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
         $locations = Location::pluck('name', 'id')->prepend(trans('translation.pleaseSelect'), '');
 
         return \Inertia\Inertia::render('Clients/ClientsList', [
-            'initialRows' => $paginator->items(),
-            'initialTotal' => $paginator->total(),
+            'rows' => $paginator->items(),
+            'total' => $paginator->total(),
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'queryParams' => $request->all(),
             'drivers' => $drivers,
             'locations' => $locations,
         ]);
