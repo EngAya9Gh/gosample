@@ -74,7 +74,7 @@ class DashboardController extends Controller
         if ($scoped) {
             $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () use ($loggedUser) {
                 return (object) [
-                    'cars'      => Car::whereHas('driver.clientDrivers', fn ($q) => $q->whereIn('client_id', $loggedUser->assigned_client_ids))->count(),
+                    'cars'      => Car::whereHas('driver.clientDrivers', fn ($q) => $q->whereIn('client_id', $loggedUser->assigned_client_ids))->where('status', 1)->count(),
                     'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
                     'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)->count(),
                     'locations' => Location::leftJoin('client_location', 'client_location.location_id', '=', 'locations.id')->whereIn('client_location.client_id', $loggedUser->assigned_client_ids)->count(),
@@ -84,7 +84,7 @@ class DashboardController extends Controller
         } else {
             $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () {
                 return (object) [
-                    'cars'      => DB::table('cars')->count(),
+                    'cars'      => DB::table('cars')->where('status', 1)->whereNull('deleted_at')->count(),
                     'tasks'     => DB::table('tasks')->count(),
                     'samples'   => DB::table('samples')->count(),
                     'drivers'   => DB::table('drivers')->count(),
