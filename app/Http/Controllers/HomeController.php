@@ -319,7 +319,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                 return (object) [
                     'cars'      => Car::whereHas('driver.clientDrivers', function ($q) use ($loggedUser) {
                                       $q->whereIn('client_id', $loggedUser->assigned_client_ids);
-                                  })->count(),
+                                  })->where('status', 1)->count(),
                     'tasks'     => Task::whereIn('billing_client', $loggedUser->assigned_client_ids)->count(),
                     'samples'   => Sample::join('tasks', 'tasks.id', '=', 'task_id')
                                       ->whereIn('tasks.billing_client', $loggedUser->assigned_client_ids)
@@ -333,7 +333,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         } else {
             $stats = Cache::remember($cacheKeyStats, now()->addMinutes(30), function () {
                 return (object) [
-                    'cars'      => DB::table('cars')->count(),
+                    'cars'      => DB::table('cars')->where('status', 1)->whereNull('deleted_at')->count(),
                     'tasks'     => DB::table('tasks')->count(),
                     'samples'   => DB::table('samples')->count(),
                     'drivers'   => DB::table('drivers')->count(),
