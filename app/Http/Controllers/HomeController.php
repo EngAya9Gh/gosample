@@ -891,7 +891,7 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
         $start = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
         $end = $request->input('to') ? Carbon::parse($request->input('to'))->endOfDay() : Carbon::now()->endOfMonth();
 
-        $cacheKey = "monthly_samples_data_v3_" . $start->format('Y_m_d') . "_" . $end->format('Y_m_d') . "_" . md5(implode(',', (array)$clientIds));
+        $cacheKey = "monthly_samples_data_v4_" . $start->format('Y_m_d') . "_" . $end->format('Y_m_d') . "_" . md5(implode(',', (array)$clientIds));
         
         $data = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($start, $end, $clientIds) {
             $query = Sample::leftJoin('tasks', 'tasks.id', '=', 'samples.task_id')
@@ -899,7 +899,11 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
                     DB::raw("DATE_FORMAT(samples.created_at, '%Y-%m') as month_year"),
                     DB::raw("COUNT(samples.id) as total")
                 )
-                ->whereBetween('samples.created_at', [$start, $end]);
+                ->whereBetween('samples.created_at', [$start, $end])
+                ->where(function($query) {
+                    $query->where('samples.confirmed_by_client', '!=', 'LOST')
+                          ->orWhereNull('samples.confirmed_by_client');
+                });
             
             if (!empty($clientIds)) {
                 $query->whereIn('tasks.billing_client', $clientIds);

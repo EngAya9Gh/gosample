@@ -100,8 +100,8 @@ function exportMonthlySamples() {
 const monthlySamplesChartOptions = computed(() => ({
   chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Poppins, sans-serif' },
   colors: ['#005D69', '#BD6BA7', '#f7b84b', '#0ab39c', '#0d9488', '#f59e0b'],
-  plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4, distributed: true } },
-  dataLabels: { enabled: false },
+  plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4, distributed: true, dataLabels: { position: 'top' } } },
+  dataLabels: { enabled: true, offsetY: -20, style: { fontSize: '11px', colors: ['#94a3b8'] } },
   legend: { show: false },
   xaxis: {
     categories: monthlySamplesData.labels,
