@@ -29,7 +29,11 @@ class MonthlySamplesExport implements FromCollection, WithHeadings, WithMapping
                 DB::raw("DATE_FORMAT(samples.created_at, '%Y-%m') as month_year"),
                 DB::raw("COUNT(samples.id) as total_samples")
             )
-            ->whereBetween('samples.created_at', [$this->start->startOfDay(), $this->end->endOfDay()]);
+            ->whereBetween('samples.created_at', [$this->start->startOfDay(), $this->end->endOfDay()])
+            ->where(function($query) {
+                $query->where('samples.confirmed_by_client', '!=', 'LOST')
+                      ->orWhereNull('samples.confirmed_by_client');
+            });
 
         if (!empty($this->clientIds)) {
             $query->whereIn('tasks.billing_client', $this->clientIds);
