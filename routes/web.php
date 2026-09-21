@@ -38,6 +38,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/welcome', [App\Http\Controllers\HomeController::class, 'welcome'])->name('welcome');
     Route::get('/driver-locations', [App\Http\Controllers\HomeController::class, 'getDriverLocations']);
     Route::post('/samples/types/report','App\Http\Controllers\SampleController@report');
+    Route::post('/samples/monthly-stats', [App\Http\Controllers\HomeController::class, 'monthlySamplesChart']);
+    Route::get('/samples/monthly-stats/export', [App\Http\Controllers\HomeController::class, 'exportMonthlySamples'])->name('samples.monthly.export');
 });
 
 
