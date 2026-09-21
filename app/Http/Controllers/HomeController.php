@@ -881,6 +881,53 @@ $filePath = storage_path('app/public/data.csv'); // Adjust path if needed
             $locations = $locations->get();
             return view('map',compact('locations','drivers'));
         }
+    }
+
+    public function monthlySamplesChart(Request $request)
+    {
+        $loggedUser = auth()->user();
+        $clientIds = $loggedUser->assigned_client_ids ?? [];
         
+        $start = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
+        $end = $request->input('to') ? Carbon::parse($request->input('to'))->endOfDay() : Carbon::now()->endOfMonth();
+
+        $cacheKey = "monthly_samples_data_v3_" . $start->format('Y_m_d') . "_" . $end->format('Y_m_d') . "_" . md5(implode(',', (array)$clientIds));
+        
+        $data = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($start, $end, $clientIds) {
+            $query = Sample::leftJoin('tasks', 'tasks.id', '=', 'samples.task_id')
+                ->select(
+                    DB::raw("DATE_FORMAT(samples.created_at, '%Y-%m') as month_year"),
+                    DB::raw("COUNT(samples.id) as total")
+                )
+                ->whereBetween('samples.created_at', [$start, $end]);
+            
+            if (!empty($clientIds)) {
+                $query->whereIn('tasks.billing_client', $clientIds);
+            }
+            
+            $results = $query->groupBy('month_year')->orderBy('month_year')->get();
+            
+            return [
+                'labels' => $results->pluck('month_year')->toArray(),
+                'values' => $results->pluck('total')->toArray(),
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
+
+    public function exportMonthlySamples(Request $request)
+    {
+        $loggedUser = auth()->user();
+        $clientIds = $loggedUser->assigned_client_ids ?? [];
+        
+        $start = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
+        $end = $request->input('to') ? Carbon::parse($request->input('to'))->endOfDay() : Carbon::now()->endOfMonth();
+
+        return \Excel::download(new \App\Exports\MonthlySamplesExport($start, $end, (array)$clientIds), 'monthly_samples.xlsx');
     }
 }
+

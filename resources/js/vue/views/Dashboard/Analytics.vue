@@ -19,6 +19,7 @@ import VueApexCharts from 'vue3-apexcharts';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import { usePermissions } from '../../composables/usePermissions';
+import axios from 'axios';
 
 const props = defineProps({
   stats:         { type: Object, default: () => ({}) },
@@ -54,6 +55,59 @@ const areaOptions = computed(() => ({
   yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '11px' }, formatter: (v) => Math.round(v) } },
   markers: { size: 0, strokeColors: ['#0d9488', '#299cdb'], hover: { size: 6 } },
   tooltip: { theme: 'light', y: { formatter: (v, { seriesIndex }) => `${v} ${seriesIndex === 1 ? 'samples' : 'tasks'}` } },
+}));
+
+// ---- Monthly Transferred Samples (Interactive) ----
+const monthlySamplesLoading = ref(false);
+const monthlySamplesData = reactive({ labels: [], values: [] });
+const monthlySamplesRange = reactive({ from: '', to: '' });
+
+function fetchMonthlySamplesChart(from, to) {
+    monthlySamplesLoading.value = true;
+    try {
+        const http = window.axios || axios;
+        http.post('/samples/monthly-stats', { from, to })
+          .then(res => {
+              if (res.data.status) {
+                  monthlySamplesData.labels = res.data.data.labels;
+                  monthlySamplesData.values = res.data.data.values;
+              } else {
+                  console.error("API returned error status:", res.data);
+              }
+          })
+          .catch(err => {
+              console.error("Axios request failed:", err);
+              alert("Failed to fetch data: " + (err.response?.status || err.message));
+          })
+          .finally(() => {
+              monthlySamplesLoading.value = false;
+          });
+    } catch (err) {
+        console.error("Synchronous error:", err);
+        monthlySamplesLoading.value = false;
+        alert("Unexpected error: " + err.message);
+    }
+}
+
+function exportMonthlySamples() {
+    const params = new URLSearchParams({
+        from: monthlySamplesRange.from,
+        to: monthlySamplesRange.to
+    });
+    window.location.href = `/samples/monthly-stats/export?${params.toString()}`;
+}
+
+const monthlySamplesChartOptions = computed(() => ({
+  chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Poppins, sans-serif' },
+  colors: ['#005D69', '#BD6BA7', '#f7b84b', '#0ab39c', '#0d9488', '#f59e0b'],
+  plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4, distributed: true } },
+  dataLabels: { enabled: false },
+  legend: { show: false },
+  xaxis: {
+    categories: monthlySamplesData.labels,
+    labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
+  },
+  yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '11px' } } },
 }));
 
 const { can } = usePermissions();
@@ -116,10 +170,20 @@ function animateRing() {
     prog.value = 1 - Math.pow(1 - p, 3); // easeOutCubic
     if (p < 1) requestAnimationFrame(tick);
     else prog.value = 1;
-  };
-  requestAnimationFrame(tick);
 }
-onMounted(animateRing);
+requestAnimationFrame(tick);
+}
+onMounted(() => {
+  animateRing();
+  
+  // Default to last 6 months for monthly samples
+  const start = new Date();
+  start.setMonth(start.getMonth() - 6);
+  start.setDate(1);
+  monthlySamplesRange.from = start.toISOString().split('T')[0];
+  monthlySamplesRange.to = new Date().toISOString().split('T')[0];
+  fetchMonthlySamplesChart(monthlySamplesRange.from, monthlySamplesRange.to);
+});
 watch(() => props.samplesReport, animateRing, { deep: true });
 
 // ---- Top drivers ----
@@ -278,6 +342,30 @@ onBeforeUnmount(() => { heroFp?.destroy(); heroFp = null; });
           </div>
         </div>
         <EmptyState v-else icon="ri-test-tube-line" title="No samples" message="No samples found for the selected range." />
+      </BaseCard>
+    </div>
+
+    <!-- Monthly Transferred Samples Bar Chart -->
+    <div class="mb-[18px]">
+      <BaseCard title="Monthly Transferred Samples" subtitle="Sample transfer volume per month" icon="ri-bar-chart-2-line">
+        <template #actions>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="date" v-model="monthlySamplesRange.from" class="h-8 px-2 text-xs border border-slate-200 dark:border-white/10 rounded bg-transparent text-ink dark:text-slate-100 outline-none focus:ring-1 focus:ring-primary-500" @change="fetchMonthlySamplesChart(monthlySamplesRange.from, monthlySamplesRange.to)" />
+            <span class="text-slate-400 text-xs">to</span>
+            <input type="date" v-model="monthlySamplesRange.to" class="h-8 px-2 text-xs border border-slate-200 dark:border-white/10 rounded bg-transparent text-ink dark:text-slate-100 outline-none focus:ring-1 focus:ring-primary-500" @change="fetchMonthlySamplesChart(monthlySamplesRange.from, monthlySamplesRange.to)" />
+            <BaseButton variant="primary" size="sm" class="h-8 px-3 text-xs" @click="exportMonthlySamples">
+              <i class="ri-file-excel-2-line me-1"></i> Export Excel
+            </BaseButton>
+          </div>
+        </template>
+        
+        <div v-if="monthlySamplesLoading" class="h-[300px] flex items-center justify-center bg-slate-50/50 dark:bg-surface-dark-solid/50 rounded-xl">
+            <i class="ri-loader-4-line text-3xl animate-spin text-primary"></i>
+        </div>
+        <div v-else-if="monthlySamplesData.labels.length === 0" class="h-[300px] flex items-center justify-center">
+             <EmptyState icon="ri-bar-chart-2-line" title="No data" message="No data available for this range." />
+        </div>
+        <VueApexCharts v-else type="bar" height="300" :options="monthlySamplesChartOptions" :series="[{ name: 'Transferred Samples', data: monthlySamplesData.values }]" />
       </BaseCard>
     </div>
 

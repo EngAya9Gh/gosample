@@ -395,6 +395,30 @@
                         </div> <!-- .card-->
                     </div> <!-- .col-->
                 </div> <!-- end row-->
+                
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header align-items-center d-flex">
+                                <h4 class="card-title mb-0 flex-grow-1">Monthly Transferred Samples</h4>
+                                <div class="flex-shrink-0">
+                                    <div class="d-flex gap-2">
+                                        <input type="text" id="monthly-samples-daterange" class="form-control form-control-sm" placeholder="Select Date Range">
+                                        <button type="button" id="export-monthly-samples" class="btn btn-soft-success btn-sm">
+                                            <i class="ri-file-excel-2-line align-middle me-1"></i> Export Excel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-0 pb-2">
+                                <div class="w-100 p-3">
+                                    <div id="monthly_samples_chart" data-colors='["--vz-success"]' class="apex-charts" dir="ltr"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <?php /* */ ?>
             </div> <!-- end .h-100-->
 
@@ -528,6 +552,63 @@
             });
         }
 
+        var monthlySamplesChartObj = null;
+
+        function fetchMonthlySamplesChart(from, to) {
+            $.ajax({
+                type: "POST",
+                url: "/samples/monthly-stats",
+                data: JSON.stringify({
+                    'from': from,
+                    'to': to
+                }),
+                dataType: 'json',
+                contentType: "application/json; charset=utf-8",
+            }).done(function(data) {
+                if (data.status) {
+                    var chartColors = getChartColorsArray("monthly_samples_chart") || ["#0ab39c"];
+                    if (monthlySamplesChartObj !== null) {
+                        monthlySamplesChartObj.updateOptions({
+                            xaxis: { categories: data.data.labels },
+                            colors: chartColors
+                        });
+                        monthlySamplesChartObj.updateSeries([{
+                            name: "Transferred Samples",
+                            data: data.data.values
+                        }]);
+                    } else {
+                        var options = {
+                            series: [{
+                                name: "Transferred Samples",
+                                data: data.data.values
+                            }],
+                            chart: {
+                                height: 350,
+                                type: 'bar',
+                                toolbar: { show: false }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '45%',
+                                    borderRadius: 4
+                                },
+                            },
+                            dataLabels: { enabled: false },
+                            stroke: { show: true, width: 2, colors: ['transparent'] },
+                            xaxis: { categories: data.data.labels },
+                            colors: chartColors,
+                            fill: { opacity: 1 }
+                        };
+                        monthlySamplesChartObj = new ApexCharts(document.querySelector("#monthly_samples_chart"), options);
+                        monthlySamplesChartObj.render();
+                    }
+                }
+            }).fail(function() {
+                console.log("Error fetching monthly samples");
+            });
+        }
+
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
@@ -551,6 +632,42 @@
 
             // Initial fetch (empty dates to test performance)
             fetchSamplesReport('', '');
+
+            // Monthly Samples Chart Logic
+            var defaultFrom = new Date();
+            defaultFrom.setMonth(defaultFrom.getMonth() - 6);
+            defaultFrom.setDate(1);
+
+            var monthlyPicker = flatpickr("#monthly-samples-daterange", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                defaultDate: [defaultFrom, new Date()],
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        var from = instance.formatDate(selectedDates[0], "Y-m-d");
+                        var to = instance.formatDate(selectedDates[1], "Y-m-d");
+                        fetchMonthlySamplesChart(from, to);
+                    }
+                }
+            });
+
+            var initialDates = monthlyPicker.selectedDates;
+            if(initialDates && initialDates.length === 2) {
+                fetchMonthlySamplesChart(
+                    monthlyPicker.formatDate(initialDates[0], "Y-m-d"),
+                    monthlyPicker.formatDate(initialDates[1], "Y-m-d")
+                );
+            }
+
+            $('#export-monthly-samples').on('click', function() {
+                var dates = monthlyPicker.selectedDates;
+                var from = '', to = '';
+                if(dates.length === 2) {
+                    from = monthlyPicker.formatDate(dates[0], "Y-m-d");
+                    to = monthlyPicker.formatDate(dates[1], "Y-m-d");
+                }
+                window.location.href = "/samples/monthly-stats/export?from=" + from + "&to=" + to;
+            });
         });
     </script>
     <!-- apexcharts -->
