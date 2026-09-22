@@ -65,9 +65,36 @@ watch(open, (v) => {
   });
 });
 
-const filtered = computed(() =>
-  props.options.filter((o) => o.label.toLowerCase().includes(q.value.toLowerCase()))
-);
+// Case-insensitive search: both sides are lowercased with locale rules (so
+// "AHMED" / "ahmed" / "Ahmed" all match) and the label is coerced to a string in
+// case an option carries a numeric label.
+const norm = (s) => String(s ?? '').toLocaleLowerCase();
+const needle = computed(() => norm(q.value).trim());
+const filtered = computed(() => {
+  const n = needle.value;
+  return n ? props.options.filter((o) => norm(o.label).includes(n)) : props.options;
+});
+
+// Split a label into [{ text, hit }] chunks so the template can shade every
+// occurrence of the typed query inside the option. Lowercasing can change the
+// string length for a few exotic characters — in that case skip shading rather
+// than mis-align the highlight.
+function segments(label) {
+  const text = String(label ?? '');
+  const n = needle.value;
+  const lower = text.toLocaleLowerCase();
+  if (!n || lower.length !== text.length) return [{ text, hit: false }];
+  const out = [];
+  let i = 0;
+  while (i < text.length) {
+    const j = lower.indexOf(n, i);
+    if (j === -1) { out.push({ text: text.slice(i), hit: false }); break; }
+    if (j > i) out.push({ text: text.slice(i, j), hit: false });
+    out.push({ text: text.slice(j, j + n.length), hit: true });
+    i = j + n.length;
+  }
+  return out;
+}
 // Typing in the search box re-filters, so reset the highlight to the top.
 watch(q, () => { active.value = 0; });
 
@@ -195,7 +222,7 @@ onBeforeUnmount(() => {
             <span class="grid place-items-center w-4 h-4 shrink-0 rounded border transition" :class="isSel(o.value) ? 'bg-primary-600 border-primary-600 text-white' : 'border-slate-300 dark:border-white/10'">
               <i v-if="isSel(o.value)" class="ri-check-line text-xs"></i>
             </span>
-            <span class="flex-1 leading-tight break-words">{{ o.label }}</span>
+            <span class="flex-1 leading-tight break-words"><template v-for="(s, k) in segments(o.label)" :key="k"><mark v-if="s.hit" class="rounded-[3px] px-0.5 bg-primary-100 text-primary-800 dark:bg-primary-500/30 dark:text-primary-100 font-semibold">{{ s.text }}</mark><template v-else>{{ s.text }}</template></template></span>
           </li>
           <li v-if="loading" class="px-2.5 py-3 text-sm text-slate-400 text-center">
             <i class="ri-loader-4-line animate-spin inline-block me-1"></i> Loading...
