@@ -254,29 +254,51 @@ class Task extends Model
         return $this->belongsTo(Car::class, 'car_id');
     }
 
+    /**
+     * The car the driver was using for this task.
+     *
+     * Priority: the car stamped on the task (swap flow) → the link-history
+     * event in force at collection time → the driver's current car.
+     */
     public function getHistoricalCarAttribute()
     {
-        if ($this->car_id && $this->car) {
-            return $this->car;
+        if ($this->car_id) {
+            // A car that has since been disabled must still resolve for old tasks.
+            $car = Car::withoutGlobalScope('enabled')->find($this->car_id);
+            if ($car) {
+                return $car;
+            }
         }
 
         if (!$this->driver_id) {
             return null;
         }
 
-        $date = $this->collection_date ?? $this->close_date ?? $this->created_at;
-
-        $link = \App\Models\CarLinkHistory::with('car')
-            ->where('driver_id', $this->driver_id)
-            ->where('created_at', '<=', $date)
-            ->where('action', 'linked')
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if ($link && $link->car) {
-            return $link->car;
+        // Not collected yet → nothing "historical" about it; the driver's current
+        // car is the only meaningful answer.
+        $date = $this->collection_date ?? $this->close_date;
+        if (!$date) {
+            return $this->driver ? $this->driver->car : null;
         }
 
+        // Replay the history: the LAST event for this driver on/before the date
+        // decides. Previously only 'linked' rows were considered, so a car the
+        // driver had been unlinked from long ago kept winning over the current one.
+        $event = \App\Models\CarLinkHistory::where('driver_id', $this->driver_id)
+            ->where('created_at', '<=', $date)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($event && $event->action === 'linked') {
+            $car = Car::withoutGlobalScope('enabled')->find($event->car_id);
+            if ($car) {
+                return $car;
+            }
+        }
+
+        // Trailing 'unlinked' (or no history at all): links made without a history
+        // row (e.g. car created with a driver) are only visible on the car itself.
         return $this->driver ? $this->driver->car : null;
     }
 

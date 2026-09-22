@@ -114,7 +114,32 @@ class CarsController extends Controller
             $existing->save();
         }
 
-        Car::create($request->all());
+        $car = Car::create($request->all());
+
+        // Record the link the same way update() does, so the history stays the
+        // source of truth for which car a driver had at any point in time.
+        if ($car->driver_id) {
+            Car::withoutGlobalScope('enabled')
+                ->where('driver_id', $car->driver_id)
+                ->where('id', '!=', $car->id)
+                ->get()
+                ->each(function ($prevCar) use ($car) {
+                    $prevCar->driver_id = null;
+                    $prevCar->save();
+
+                    \App\Models\CarLinkHistory::create([
+                        'car_id'    => $prevCar->id,
+                        'driver_id' => $car->driver_id,
+                        'action'    => 'unlinked',
+                    ]);
+                });
+
+            \App\Models\CarLinkHistory::create([
+                'car_id'    => $car->id,
+                'driver_id' => $car->driver_id,
+                'action'    => 'linked',
+            ]);
+        }
 
         return redirect()->route('admin.cars.index')->with('success', 'Car created successfully.');
     }
