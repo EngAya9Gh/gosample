@@ -12,6 +12,7 @@ import { ref, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -212,18 +213,19 @@ async function bulkDelete(ids) {
       :initial-page="props.page" :initial-page-size="props.pageSize"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
+      :highlight="searchForm.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
-      <template #cell-car_name="{ value }">
+      <template #cell-car_name="{ value, highlight }">
         <span v-if="value" class="inline-flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
-          <i class="ri-car-line text-slate-400"></i>{{ value }}
+          <i class="ri-car-line text-slate-400"></i><HighlightText :text="value" :term="highlight" />
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>
-      <template #cell-imei="{ value }">
-        <span class="font-mono text-xs text-slate-600 dark:text-slate-400">{{ value || '—' }}</span>
+      <template #cell-imei="{ value, highlight }">
+        <span class="font-mono text-xs text-slate-600 dark:text-slate-400"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       <template #cell-type="{ value }">
         <span v-if="value" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] font-bold border"
@@ -236,8 +238,8 @@ async function bulkDelete(ids) {
         </span>
         <span v-else class="text-slate-400">—</span>
       </template>
-      <template #cell-description="{ value }">
-        <span class="text-sm text-slate-500 dark:text-slate-400 whitespace-normal leading-snug">{{ value || '—' }}</span>
+      <template #cell-description="{ value, highlight }">
+        <span class="text-sm text-slate-500 dark:text-slate-400 whitespace-normal leading-snug"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       <template #cell-status="{ value }">
         <StatusBadge v-if="value == 1" status="ENABLED" label="Enabled" />

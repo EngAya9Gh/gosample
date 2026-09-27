@@ -23,7 +23,7 @@ class RolesController extends Controller
 
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
-            $query->where('name', 'like', "%{$keyword}%");
+            $query->whereLike('name', "%{$keyword}%");
         }
 
         $roles = $query->get();

@@ -2,6 +2,7 @@
 import { ref, computed, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import DataTable from '../../components/DataTable.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import RouteCell from '../../components/RouteCell.vue';
@@ -260,17 +261,18 @@ function onExport(kind) {
       :searchable="false"
       @query="onQuery"
       @export="onExport"
+      :highlight="filters.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
       
-      <template #cell-reference_number="{ value }">
-        <span class="font-bold text-slate-800 dark:text-white">{{ value || '—' }}</span>
+      <template #cell-reference_number="{ value, highlight }">
+        <span class="font-bold text-slate-800 dark:text-white"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       
-      <template #cell-carrier="{ value }">
-        <span class="font-extrabold text-slate-800 dark:text-white">{{ value || '—' }}</span>
+      <template #cell-carrier="{ value, highlight }">
+        <span class="font-extrabold text-slate-800 dark:text-white"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
 
       <template #cell-route="{ row }">

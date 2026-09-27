@@ -17,10 +17,10 @@ class AuditLogsController extends Controller
 
         $query = AuditLog::with([])
             ->when($request->search, fn ($q, $s) =>
-                $q->where('description', 'like', "%{$s}%")
-                  ->orWhere('subject_type', 'like', "%{$s}%")
-                  ->orWhere('host', 'like', "%{$s}%")
-                  ->orWhere('user_id', 'like', "%{$s}%")
+                $q->whereLike('description', "%{$s}%")
+                  ->orWhereLike('subject_type', "%{$s}%")
+                  ->orWhereLike('host', "%{$s}%")
+                  ->orWhereLike('user_id', "%{$s}%")
             )
             ->when($request->description, fn ($q, $v) =>
                 $q->where('description', $v)

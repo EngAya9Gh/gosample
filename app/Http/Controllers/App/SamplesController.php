@@ -52,7 +52,7 @@ class SamplesController extends Controller
             $query->where('samples.confirmed_by_client', $request->confirmed_by_client);
         }
 
-        $query->when($request->barcode_id, fn ($q, $v) => $q->where('samples.barcode_id', 'like', "%{$v}%"));
+        $query->when($request->barcode_id, fn ($q, $v) => $q->whereLike('samples.barcode_id', "%{$v}%"));
 
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : null;
@@ -134,7 +134,7 @@ class SamplesController extends Controller
             $query->where('samples.confirmed_by_client', $status);
         }
 
-        $query->when($request->barcode_id, fn ($q, $v) => $q->where('barcode_id', 'like', "%{$v}%"))
+        $query->when($request->barcode_id, fn ($q, $v) => $q->whereLike('barcode_id', "%{$v}%"))
               ->when($request->task_id, fn ($q, $v) => $q->where('task_id', $v));
 
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;

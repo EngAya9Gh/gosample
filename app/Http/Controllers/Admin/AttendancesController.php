@@ -26,9 +26,9 @@ class AttendancesController extends Controller
         if ($request->filled('keyword')) {
             $kw = $request->keyword;
             $query->where(function ($q) use ($kw) {
-                $q->where('id', 'LIKE', "%{$kw}%")
+                $q->whereLike('id', "%{$kw}%")
                   ->orWhereHas('driver', function ($q2) use ($kw) {
-                      $q2->where('name', 'LIKE', "%{$kw}%")->orWhere('mobile', 'LIKE', "%{$kw}%");
+                      $q2->whereLike('name', "%{$kw}%")->orWhereLike('mobile', "%{$kw}%");
                   });
             });
         }

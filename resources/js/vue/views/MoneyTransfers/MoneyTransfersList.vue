@@ -4,6 +4,7 @@ import { router, usePage, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import FormSelect from '../../components/FormSelect.vue';
@@ -321,19 +322,20 @@ const modalLocationOpts = computed(() => props.filters?.locations || []);
       :searchable="false"
       @query="onQuery"
       @export="onExport"
+      :highlight="searchForm.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
       
-      <template #cell-client_name="{ value }">
-        <span class="font-extrabold text-slate-800 dark:text-white">{{ value || '—' }}</span>
+      <template #cell-client_name="{ value, highlight }">
+        <span class="font-extrabold text-slate-800 dark:text-white"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       
-      <template #cell-driver_name="{ value }">
+      <template #cell-driver_name="{ value, highlight }">
         <div v-if="value" class="flex items-center gap-2">
           <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
-          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
+          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap"><HighlightText :text="value" :term="highlight" /></span>
         </div>
         <span v-else class="text-slate-400">—</span>
       </template>

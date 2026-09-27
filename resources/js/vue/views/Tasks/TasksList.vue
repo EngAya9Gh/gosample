@@ -9,6 +9,7 @@
 import { ref, reactive, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -323,9 +324,10 @@ async function bulkDelete(ids) {
       :loading="loading" :server-side="true" :total="total" :searchable="false"
       :bulk-actions="can('task_delete') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete" @export="onExport"
+      :highlight="filters.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
       <template #cell-client="{ value }">
         <span class="font-extrabold text-slate-800 dark:text-white whitespace-normal leading-snug">{{ value || '—' }}</span>

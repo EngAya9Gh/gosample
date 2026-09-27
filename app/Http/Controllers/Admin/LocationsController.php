@@ -26,10 +26,10 @@ class LocationsController extends Controller
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
             $query->where(function($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('arabic_name', 'like', "%{$keyword}%")
-                  ->orWhere('city', 'like', "%{$keyword}%")
-                  ->orWhere('neighborhood', 'like', "%{$keyword}%");
+                $q->whereLike('name', "%{$keyword}%")
+                  ->orWhereLike('arabic_name', "%{$keyword}%")
+                  ->orWhereLike('city', "%{$keyword}%")
+                  ->orWhereLike('neighborhood', "%{$keyword}%");
             });
         }
 

@@ -402,26 +402,26 @@ class DailyOperationController extends Controller
         $pickup_container = $frozenBags+$refBags+$roomBags;
 
         $condition = Task::where(function ($query) use ($keyWord,$sample_barcode) {
-            $query->orWhere('from_location', 'LIKE', $keyWord)
+            $query->orWhereLike('from_location', $keyWord)
                 ->orWhereHas('driver', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
+                    $query->whereLike('name', $keyWord);
                 })
                 ->orWhereHas('from', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
+                    $query->whereLike('name', $keyWord);
                 })
                 ->orWhereHas('to', function ($query) use ($keyWord) {
-                    $query->where('name', 'LIKE', $keyWord);
+                    $query->whereLike('name', $keyWord);
                 })
                 ->orWhereHas('client', function ($query) use ($keyWord) {
-                    $query->where('english_name', 'LIKE', $keyWord);
+                    $query->whereLike('english_name', $keyWord);
                 })
-                ->orWhere('type', 'LIKE', $keyWord);
+                ->orWhereLike('type', $keyWord);
 
         })
 
             ->when($sample_barcode, function  ($query) use ($sample_barcode) {
                 $query->whereHas('samples', function ($query) use ($sample_barcode){
-                    $query->where('barcode_id', 'LIKE',  $sample_barcode);
+                    $query->whereLike('barcode_id', $sample_barcode);
                 });
             })
             ->when($status, function  ($query)  use ($status){
@@ -465,7 +465,7 @@ class DailyOperationController extends Controller
         }])
             ->when($sample_barcode, function  ($query) use ($sample_barcode) {
                 $query->whereHas('samples', function ($query) use ($sample_barcode){
-                    $query->where('barcode_id', 'LIKE',  $sample_barcode);
+                    $query->whereLike('barcode_id', $sample_barcode);
                 });
             })
             ->when($status, function  ($query) use ($status) {

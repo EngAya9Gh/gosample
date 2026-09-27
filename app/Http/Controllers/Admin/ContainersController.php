@@ -25,12 +25,12 @@ class ContainersController extends Controller
             if ($request->filled('keyword')) {
                 $kw = $request->keyword;
                 $query->where(function ($q) use ($kw) {
-                    $q->where('id', 'LIKE', "%{$kw}%")
-                      ->orWhere('imei', 'LIKE', "%{$kw}%")
-                      ->orWhere('model', 'LIKE', "%{$kw}%")
-                      ->orWhere('description', 'LIKE', "%{$kw}%")
+                    $q->whereLike('id', "%{$kw}%")
+                      ->orWhereLike('imei', "%{$kw}%")
+                      ->orWhereLike('model', "%{$kw}%")
+                      ->orWhereLike('description', "%{$kw}%")
                       ->orWhereHas('car', function ($q2) use ($kw) {
-                          $q2->withoutGlobalScope('enabled')->where('plate_number', 'LIKE', "%{$kw}%");
+                          $q2->withoutGlobalScope('enabled')->whereLike('plate_number', "%{$kw}%");
                       });
                 });
             }

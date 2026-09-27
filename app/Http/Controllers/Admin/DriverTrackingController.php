@@ -47,8 +47,8 @@ class DriverTrackingController extends Controller
         
         if ($request->filled('driver_name')) {
             $driversQuery->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->driver_name . '%')
-                  ->orWhere('username', 'like', '%' . $request->driver_name . '%');
+                $q->whereLike('name', '%' . $request->driver_name . '%')
+                  ->orWhereLike('username', '%' . $request->driver_name . '%');
             });
         }
         

@@ -4,6 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import BaseModal from '../../components/BaseModal.vue';
@@ -169,18 +170,19 @@ const formatDate = (dateString) => {
         :total="props.total"
         server-side
         @query="onQuery"
-      >
-        <template #cell-driver="{ row }">
+      :highlight="searchForm.keyword"
+    >
+        <template #cell-driver="{ row, highlight }">
           <div class="flex items-center gap-2">
             <BaseAvatar :name="row.driver?.name || 'Unknown'" :size="28" class="-mt-[4px]" />
-            <span class="font-medium text-slate-900 dark:text-slate-100">{{ row.driver?.name || 'Unknown' }}</span>
+            <span class="font-medium text-slate-900 dark:text-slate-100"><HighlightText v-if="row.driver?.name" :text="row.driver?.name" :term="highlight" /><template v-else>Unknown</template></span>
           </div>
         </template>
         
-        <template #cell-car="{ row }">
+        <template #cell-car="{ row, highlight }">
           <div v-if="row.car" class="flex flex-col">
-            <span class="font-bold text-slate-800 dark:text-slate-200">{{ row.car.imei }}</span>
-            <span class="text-[11px] text-slate-500">{{ row.car.plate_number }}</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200"><HighlightText :text="row.car.imei" :term="highlight" /></span>
+            <span class="text-[11px] text-slate-500"><HighlightText :text="row.car.plate_number" :term="highlight" /></span>
           </div>
           <span v-else class="text-slate-400">—</span>
         </template>

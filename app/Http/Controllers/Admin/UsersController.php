@@ -24,8 +24,8 @@ class UsersController extends Controller
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
             $query->where(function($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('email', 'like', "%{$keyword}%");
+                $q->whereLike('name', "%{$keyword}%")
+                  ->orWhereLike('email', "%{$keyword}%");
             });
         }
 

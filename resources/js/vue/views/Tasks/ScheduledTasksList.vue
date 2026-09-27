@@ -2,6 +2,7 @@
 import { ref, computed, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import DataTable from '../../components/DataTable.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
@@ -298,6 +299,7 @@ async function confirmBulkDelete() {
       @query="onQuery"
       @bulk-delete="handleBulkDelete"
       @export="onExport"
+      :highlight="filters.name"
     >
       <template #cell-sequence="{ index }">
         <span class="font-bold text-slate-500">{{ (page - 1) * pageSize + index + 1 }}</span>
@@ -307,8 +309,8 @@ async function confirmBulkDelete() {
         <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
       </template>
 
-      <template #cell-name="{ value }">
-        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ value }}</span>
+      <template #cell-name="{ value, highlight }">
+        <span class="font-semibold text-slate-800 dark:text-slate-200"><HighlightText :text="value" :term="highlight" /></span>
       </template>
 
       <template #cell-status="{ value }">

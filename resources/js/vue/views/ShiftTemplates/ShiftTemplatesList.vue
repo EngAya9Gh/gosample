@@ -11,6 +11,7 @@ import { ref, onMounted } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -160,12 +161,13 @@ async function bulkDelete(ids) {
       :loading="loading" :server-side="true" :total="props.total" :searchable="false"
       :bulk-actions="can('attendance_access') ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
+      :highlight="searchForm.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
-      <template #cell-name="{ value }">
-        <span class="font-extrabold text-slate-800 dark:text-white">{{ value || '—' }}</span>
+      <template #cell-name="{ value, highlight }">
+        <span class="font-extrabold text-slate-800 dark:text-white"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       <template #cell-start_time="{ value }">
         <!-- classic: green start badge / red end badge -->

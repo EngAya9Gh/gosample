@@ -4,6 +4,7 @@ import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import BaseModal from '../../components/BaseModal.vue';
@@ -289,25 +290,26 @@ const submitForm = () => {
         :total="props.total"
         server-side
         @query="onQuery"
-      >
-        <template #cell-task_id="{ row }">
-          <span class="font-semibold text-slate-800 dark:text-slate-200">#{{ row.task_id }}</span>
+      :highlight="searchForm.keyword"
+    >
+        <template #cell-task_id="{ row, highlight }">
+          <span class="font-semibold text-slate-800 dark:text-slate-200">#<HighlightText :text="row.task_id" :term="highlight" /></span>
           <div v-if="row.task" class="text-xs text-slate-500 mt-0.5">
             <span class="px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">{{ row.task.status }}</span>
           </div>
         </template>
         
-        <template #cell-driverA="{ row }">
+        <template #cell-driverA="{ row, highlight }">
           <div class="flex items-center gap-2">
             <BaseAvatar :name="row.driver_a?.name || 'Unknown'" :size="28" class="-mt-[4px]" />
-            <span class="font-medium text-slate-900 dark:text-slate-100">{{ row.driver_a?.name || 'Unknown' }}</span>
+            <span class="font-medium text-slate-900 dark:text-slate-100"><HighlightText v-if="row.driver_a?.name" :text="row.driver_a?.name" :term="highlight" /><template v-else>Unknown</template></span>
           </div>
         </template>
 
-        <template #cell-driver="{ row }">
+        <template #cell-driver="{ row, highlight }">
           <div class="flex items-center gap-2">
             <BaseAvatar :name="row.driver?.name || 'Unknown'" :size="28" class="-mt-[4px]" />
-            <span class="font-medium text-slate-900 dark:text-slate-100">{{ row.driver?.name || 'Unknown' }}</span>
+            <span class="font-medium text-slate-900 dark:text-slate-100"><HighlightText v-if="row.driver?.name" :text="row.driver?.name" :term="highlight" /><template v-else>Unknown</template></span>
           </div>
         </template>
 

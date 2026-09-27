@@ -30,10 +30,10 @@ class ClientsController extends Controller
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
             $query->where(function($q) use ($keyword) {
-                $q->where('arabic_name', 'like', "%{$keyword}%")
-                  ->orWhere('english_name', 'like', "%{$keyword}%")
-                  ->orWhere('email', 'like', "%{$keyword}%")
-                  ->orWhere('address', 'like', "%{$keyword}%");
+                $q->whereLike('arabic_name', "%{$keyword}%")
+                  ->orWhereLike('english_name', "%{$keyword}%")
+                  ->orWhereLike('email', "%{$keyword}%")
+                  ->orWhereLike('address', "%{$keyword}%");
             });
         }
 

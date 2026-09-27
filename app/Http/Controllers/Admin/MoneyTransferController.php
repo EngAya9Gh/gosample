@@ -26,12 +26,12 @@ class MoneyTransferController extends Controller
         if ($request->filled('keyword')) {
             $kw = $request->keyword;
             $query->where(function($q) use ($kw) {
-                $q->where('id', 'LIKE', "%{$kw}%")
+                $q->whereLike('id', "%{$kw}%")
                   ->orWhereHas('client', function($q2) use ($kw) {
-                      $q2->where('english_name', 'LIKE', "%{$kw}%");
+                      $q2->whereLike('english_name', "%{$kw}%");
                   })
                   ->orWhereHas('driver', function($q2) use ($kw) {
-                      $q2->where('name', 'LIKE', "%{$kw}%");
+                      $q2->whereLike('name', "%{$kw}%");
                   });
             });
         }

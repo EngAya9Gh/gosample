@@ -26,10 +26,10 @@ class CarLinkHistoryController extends Controller
             $keyword = $request->keyword;
             $query->where(function ($q) use ($keyword) {
                 $q->whereHas('driver', function ($q2) use ($keyword) {
-                    $q2->where('name', 'like', "%{$keyword}%");
+                    $q2->whereLike('name', "%{$keyword}%");
                 })->orWhereHas('car', function ($q2) use ($keyword) {
-                    $q2->where('imei', 'like', "%{$keyword}%")
-                      ->orWhere('plate_number', 'like', "%{$keyword}%");
+                    $q2->whereLike('imei', "%{$keyword}%")
+                      ->orWhereLike('plate_number', "%{$keyword}%");
                 });
             });
         }

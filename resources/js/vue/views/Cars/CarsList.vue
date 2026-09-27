@@ -5,6 +5,7 @@ import axios from 'axios';
 import debounce from 'lodash/debounce';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormSelect from '../../components/FormSelect.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -363,32 +364,33 @@ const modalDriverOpts = computed(() => props.filters?.drivers || []);
       @bulk-enable="enableSelected"
       @bulk-disable="disableSelected"
       @query="onQuery"
+      :highlight="[searchForm.keyword, searchForm.imei, searchForm.plate_number]"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
       
-      <template #cell-driver_name="{ row, value }">
+      <template #cell-driver_name="{ row, value, highlight }">
         <div v-if="value" class="flex flex-col gap-0.5">
           <div class="flex items-center gap-2">
             <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
-            <span class="text-[12.5px] font-bold text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
+            <span class="text-[12.5px] font-bold text-ink dark:text-slate-200 whitespace-nowrap"><HighlightText :text="value" :term="highlight" /></span>
           </div>
-          <span class="text-[11px] text-slate-500">{{ row.driver_mobile }}</span>
+          <span class="text-[11px] text-slate-500"><HighlightText :text="row.driver_mobile" :term="highlight" /></span>
         </div>
         <span v-else class="text-slate-400">—</span>
       </template>
 
-      <template #cell-imei="{ value }">
-        <span class="font-mono text-xs text-slate-600 dark:text-slate-400">{{ value || '—' }}</span>
+      <template #cell-imei="{ value, highlight }">
+        <span class="font-mono text-xs text-slate-600 dark:text-slate-400"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       
-      <template #cell-plate_number="{ value }">
-        <span class="font-bold text-slate-700 dark:text-slate-300">{{ value || '—' }}</span>
+      <template #cell-plate_number="{ value, highlight }">
+        <span class="font-bold text-slate-700 dark:text-slate-300"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       
-      <template #cell-model="{ value }">
-        <span class="text-sm text-slate-600 dark:text-slate-400">{{ value || '—' }}</span>
+      <template #cell-model="{ value, highlight }">
+        <span class="text-sm text-slate-600 dark:text-slate-400"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
 
       <template #cell-status="{ value }">

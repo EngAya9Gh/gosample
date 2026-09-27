@@ -4,6 +4,7 @@ import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
@@ -274,6 +275,7 @@ const submitForm = () => {
       :sort-order="searchForm.sortOrder"
       :server-side="true"
       @query="onQuery"
+      :highlight="searchForm.keyword"
     >
       <!-- Logo -->
       <template #cell-logo="{ row }">
@@ -286,11 +288,11 @@ const submitForm = () => {
       </template>
 
       <!-- Bold Names -->
-      <template #cell-arabic_name="{ row }">
-        <span class="font-bold text-ink dark:text-slate-100">{{ row.arabic_name }}</span>
+      <template #cell-arabic_name="{ row, highlight }">
+        <span class="font-bold text-ink dark:text-slate-100"><HighlightText :text="row.arabic_name" :term="highlight" /></span>
       </template>
-      <template #cell-english_name="{ row }">
-        <span class="font-bold text-ink dark:text-slate-100">{{ row.english_name }}</span>
+      <template #cell-english_name="{ row, highlight }">
+        <span class="font-bold text-ink dark:text-slate-100"><HighlightText :text="row.english_name" :term="highlight" /></span>
       </template>
 
       <!-- Status -->

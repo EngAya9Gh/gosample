@@ -12,6 +12,7 @@ import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DriverFormFields from './DriverFormFields.vue';
 import { useToast } from '../../composables/useToast';
 import { usePermissions } from '../../composables/usePermissions';
@@ -263,13 +264,14 @@ function onExport(format) {
       :sort-order="filters.sort_order"
       :server-side="true"
       :searchable="false"
+      :highlight="[filters.keyword, filters.mobile]"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @bulk-delete="bulkDelete"
       @query="onQuery"
     >
       <!-- Custom rendering for ID column -->
       <template #cell-id="{ row }">
-        <span class="font-bold text-primary-500 dark:text-primary-300">#{{ row.id }}</span>
+        <span class="font-bold text-primary-500 dark:text-primary-300">#<HighlightText :text="row.id" :term="filters.keyword" /></span>
       </template>
 
       <!-- Custom rendering for Name and Avatar -->
@@ -277,8 +279,10 @@ function onExport(format) {
         <div class="flex items-center gap-3">
           <BaseAvatar :name="row.name" :size="36" />
           <div class="flex flex-col">
-            <span class="font-bold text-ink dark:text-slate-100 text-sm">{{ row.name }}</span>
-            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{{ row.email || 'No email' }}</span>
+            <span class="font-bold text-ink dark:text-slate-100 text-sm"><HighlightText :text="row.name" :term="filters.keyword" /></span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+              <HighlightText v-if="row.email" :text="row.email" :term="filters.keyword" /><template v-else>No email</template>
+            </span>
           </div>
         </div>
       </template>

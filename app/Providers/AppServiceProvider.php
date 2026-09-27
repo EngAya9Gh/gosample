@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        $this->registerCaseInsensitiveSearchMacros();
+
         // تسجيل أي استعلام يستغرق أكثر من 100ms في ملفات الـ Log لمراقبة أداء السيرفر
         \Illuminate\Support\Facades\DB::listen(function ($query) {
             if ($query->time > 100) {
@@ -44,6 +47,31 @@ class AppServiceProvider extends ServiceProvider
                     'time'   => $query->time . ' ms',
                 ]);
             }
+        });
+    }
+
+    /**
+     * whereLike() / orWhereLike() — a LIKE that never depends on the column's
+     * collation. Plain `LIKE` is case-insensitive on a *_ci column but exact on a
+     * *_bin / *_cs one, so the same filter behaved differently per column and per
+     * environment. Both sides are lowercased here instead.
+     *
+     * $value carries its own wildcards, e.g. whereLike('name', "%{$kw}%").
+     */
+    protected function registerCaseInsensitiveSearchMacros(): void
+    {
+        QueryBuilder::macro('whereLike', function ($column, $value, $boolean = 'and') {
+            /** @var QueryBuilder $this */
+            return $this->whereRaw(
+                'LOWER(' . $this->grammar->wrap($column) . ') LIKE ?',
+                [mb_strtolower((string) $value)],
+                $boolean
+            );
+        });
+
+        QueryBuilder::macro('orWhereLike', function ($column, $value) {
+            /** @var QueryBuilder $this */
+            return $this->whereLike($column, $value, 'or');
         });
     }
 }

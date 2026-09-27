@@ -3,6 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import BaseAvatar from '../../components/BaseAvatar.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
@@ -248,18 +249,19 @@ const submitForm = () => {
       @query="onQuery"
       @bulk-delete="confirmBulkDelete"
       :selectable="can('user_delete') || can('can-delete')"
+      :highlight="searchForm.keyword"
     >
       <!-- Bold Name -->
-      <template #cell-name="{ row }">
+      <template #cell-name="{ row, highlight }">
         <div class="flex items-center gap-3">
           <BaseAvatar :name="row.name" :size="32" rounded class="-mt-[6px]" />
-          <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap">{{ row.name }}</span>
+          <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap"><HighlightText :text="row.name" :term="highlight" /></span>
         </div>
       </template>
 
       <!-- Email -->
-      <template #cell-email="{ row }">
-        <span class="whitespace-nowrap">{{ row.email }}</span>
+      <template #cell-email="{ row, highlight }">
+        <span class="whitespace-nowrap"><HighlightText :text="row.email" :term="highlight" /></span>
       </template>
 
       <!-- Verified At -->

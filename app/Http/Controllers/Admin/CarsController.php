@@ -22,10 +22,10 @@ class CarsController extends Controller
 
         if ($request->filled('keyword')) {
             $query->where(function ($q) use ($request) {
-                $q->where('imei', 'like', '%' . $request->keyword . '%')
-                  ->orWhere('plate_number', 'like', '%' . $request->keyword . '%')
+                $q->whereLike('imei', '%' . $request->keyword . '%')
+                  ->orWhereLike('plate_number', '%' . $request->keyword . '%')
                   ->orWhereHas('driver', function ($dq) use ($request) {
-                      $dq->where('name', 'like', '%' . $request->keyword . '%');
+                      $dq->whereLike('name', '%' . $request->keyword . '%');
                   });
             });
         }

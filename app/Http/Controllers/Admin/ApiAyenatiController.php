@@ -17,9 +17,9 @@ class ApiAyenatiController extends Controller
 
         $query = ApiAyenati::query()
             ->when($request->search, fn ($q, $s) =>
-                $q->where('api_url', 'like', "%{$s}%")
-                  ->orWhere('response', 'like', "%{$s}%")
-                  ->orWhere('response_flag', 'like', "%{$s}%")
+                $q->whereLike('api_url', "%{$s}%")
+                  ->orWhereLike('response', "%{$s}%")
+                  ->orWhereLike('response_flag', "%{$s}%")
             )
             ->orderBy('id', 'desc')
             ->paginate(50)

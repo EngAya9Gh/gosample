@@ -579,9 +579,9 @@ class ScheduledTaskController extends Controller
 
         if (!empty($term)) {
             $query->where(function ($q) use ($term) {
-                $q->where('drivers.name', 'like', '%' . $term . '%')
-                    ->orWhere('drivers.mobile', 'like', '%' . $term . '%')
-                    ->orWhere('drivers.username', 'like', '%' . $term . '%');
+                $q->whereLike('drivers.name', '%' . $term . '%')
+                    ->orWhereLike('drivers.mobile', '%' . $term . '%')
+                    ->orWhereLike('drivers.username', '%' . $term . '%');
             });
         }
 
@@ -613,8 +613,8 @@ class ScheduledTaskController extends Controller
 
         if (!empty($term)) {
             $query->where(function ($q) use ($term) {
-                $q->where('locations.name', 'like', '%' . $term . '%')
-                    ->orWhere('locations.arabic_name', 'like', '%' . $term . '%');
+                $q->whereLike('locations.name', '%' . $term . '%')
+                    ->orWhereLike('locations.arabic_name', '%' . $term . '%');
             });
         }
 

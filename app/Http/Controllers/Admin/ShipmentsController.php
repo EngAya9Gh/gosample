@@ -33,8 +33,8 @@ class ShipmentsController extends Controller
         if ($request->filled('keyword')) {
             $kw = $request->keyword;
             $query->where(function($q) use ($kw) {
-                $q->where('reference_number', 'LIKE', "%{$kw}%")
-                  ->orWhere('carrier', 'LIKE', "%{$kw}%");
+                $q->whereLike('reference_number', "%{$kw}%")
+                  ->orWhereLike('carrier', "%{$kw}%");
             });
         }
 

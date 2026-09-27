@@ -51,7 +51,7 @@ class ScheduledTasksController extends Controller
         if ($request->filled('to_location')) {
             $query->where('scheduled_tasks.to_location_id', $request->to_location);
         }
-        $query->when($request->name, fn($q, $v) => $q->where('scheduled_tasks.name', 'like', "%{$v}%"));
+        $query->when($request->name, fn($q, $v) => $q->whereLike('scheduled_tasks.name', "%{$v}%"));
 
         // 5. Date Filters
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : null;

@@ -27,7 +27,7 @@ class ZonesController extends Controller
             if ($request->filled('keyword')) {
                 $kw = $request->keyword;
                 $query->where(function ($q) use ($kw) {
-                    $q->where('id', 'LIKE', "%{$kw}%")->orWhere('name', 'LIKE', "%{$kw}%");
+                    $q->whereLike('id', "%{$kw}%")->orWhereLike('name', "%{$kw}%");
                 });
             }
 

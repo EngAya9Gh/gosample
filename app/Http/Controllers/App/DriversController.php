@@ -37,14 +37,14 @@ class DriversController extends Controller
         }
         $query = Driver::withoutGlobalScope('enabled')->select('drivers.*')->withCount('tasks');
         $query->when($request->status, fn ($q, $v) => $q->where('status', $v))
-            ->when($request->mobile, fn ($q, $v) => $q->where('mobile', 'like', "%{$v}%"))
+            ->when($request->mobile, fn ($q, $v) => $q->whereLike('mobile', "%{$v}%"))
             ->when($request->keyword, function ($q, $v) {
                 $q->where(function ($sub) use ($v) {
-                    $sub->where('name', 'like', "{$v}%")
-                        ->orWhere('name', 'like', "% {$v}%")
-                        ->orWhere('username', 'like', "{$v}%")
-                        ->orWhere('username', 'like', "% {$v}%")
-                        ->orWhere('email', 'like', "{$v}%")
+                    $sub->whereLike('name', "{$v}%")
+                        ->orWhereLike('name', "% {$v}%")
+                        ->orWhereLike('username', "{$v}%")
+                        ->orWhereLike('username', "% {$v}%")
+                        ->orWhereLike('email', "{$v}%")
                         ->orWhere('id', $v);
                 });
             });

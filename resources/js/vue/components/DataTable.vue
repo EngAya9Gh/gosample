@@ -14,10 +14,13 @@
  *  loading, selectable, bulkActions=[{ label, icon, tone, event }], exportable, searchable
  *  serverSide (if true, emits 'query' on change instead of filtering locally)
  *
- * Slots: cell-<key> ({ row, value }) for custom cell rendering; row-actions ({ row }).
+ * Slots: cell-<key> ({ row, value, highlight }) for custom cell rendering — pass
+ * `highlight` to <HighlightText> to shade the searched keyword; row-actions ({ row }).
  */
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
 import { useToast } from '../composables/useToast';
+import HighlightText from './HighlightText.vue';
+import { norm, terms } from '../utils/highlight';
 
 const props = defineProps({
   title:      { type: String, default: '' },   // optional table heading (with record count)
@@ -30,6 +33,9 @@ const props = defineProps({
   exportable: { type: Boolean, default: true },
   searchable: { type: Boolean, default: true },
   serverSide: { type: Boolean, default: false },
+  // Keyword the rows were filtered by server-side — shaded inside the cells so
+  // the user can see WHY each row matched. Client-side search feeds itself.
+  highlight:  { type: [String, Array], default: '' },
   total:      { type: Number, default: null }, // server-side total
   initialPage:{ type: Number, default: 1 },
   initialPageSize: { type: Number, default: 25 },
@@ -55,14 +61,16 @@ const exportBtns = [
   { key: 'print', label: 'Print', icon: 'ri-printer-line',      cls: 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-500/10 hover:bg-primary-100 dark:hover:bg-primary-500/20', anim: 'group-hover:-translate-y-0.5 group-hover:scale-110' },
 ];
 
+// Text shaded inside cells: whatever the rows were actually filtered by.
+const hl = computed(() => (q.value.trim() ? [q.value] : terms(props.highlight)));
+
 /* ---------- client-side derive (skipped when serverSide) ---------- */
 const filtered = computed(() => {
   if (props.serverSide) return props.rows;
   let r = props.rows;
   if (q.value.trim()) {
-    const needle = q.value.toLowerCase();
-    r = r.filter((row) => props.columns.some((c) =>
-      String(row[c.key] ?? '').toLowerCase().includes(needle)));
+    const needle = norm(q.value).trim();
+    r = r.filter((row) => props.columns.some((c) => norm(row[c.key]).includes(needle)));
   }
   if (sortKey.value) {
     r = [...r].sort((a, b) => {
@@ -418,9 +426,9 @@ function stickyCls(c, bg = STICKY_BODY) {
               >
                 <!-- wrap mode: constrain width on inner div so browser wraps text -->
                 <div v-if="c.wrap" :style="c.width ? `min-width:${c.width}; max-width:${c.maxWidth || '450px'}; white-space:normal; word-break:break-word;` : 'white-space:normal;'">
-                  <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
+                  <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]" :highlight="hl"><HighlightText :text="row[c.key]" :term="hl" /></slot>
                 </div>
-                <slot v-else :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ row[c.key] }}</slot>
+                <slot v-else :name="'cell-' + c.key" :row="row" :value="row[c.key]" :highlight="hl"><HighlightText :text="row[c.key]" :term="hl" /></slot>
               </td>
               <!-- action buttons are 32px tall — a smaller vertical pad keeps them
                    optically on the row's first line instead of hanging below it -->

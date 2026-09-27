@@ -14,6 +14,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -244,12 +245,13 @@ async function bulkDelete(ids) {
       :loading="loading" :server-side="true" :total="props.total" :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
+      :highlight="searchForm.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
-      <template #cell-name="{ value }">
-        <span class="font-extrabold text-slate-800 dark:text-white">{{ value || '—' }}</span>
+      <template #cell-name="{ value, highlight }">
+        <span class="font-extrabold text-slate-800 dark:text-white"><HighlightText v-if="value" :text="value" :term="highlight" /><template v-else>—</template></span>
       </template>
       <template #cell-points="{ value }">
         <span v-if="value?.length" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] font-bold border bg-primary-50 text-primary-700 border-primary-100 dark:bg-primary-500/10 dark:text-primary-300 dark:border-primary-500/20">

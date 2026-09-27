@@ -15,6 +15,7 @@ import axios from 'axios';
 import { router, useForm } from '@inertiajs/vue3';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -245,16 +246,17 @@ async function bulkDelete(ids) {
       :loading="loading" :server-side="true" :total="props.total" :searchable="false"
       :bulk-actions="canDelete() ? [{ label: 'Delete', icon: 'ri-delete-bin-line', tone: 'danger', event: 'bulk-delete' }] : []"
       @query="onQuery" @bulk-delete="bulkDelete"
+      :highlight="searchForm.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
-      <template #cell-driver_name="{ row, value }">
+      <template #cell-driver_name="{ row, value, highlight }">
         <div v-if="value" class="flex items-center gap-2">
           <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
           <div class="min-w-0">
-            <div class="text-[12.5px] font-bold text-ink dark:text-slate-200 truncate">{{ value }}</div>
-            <div class="text-[11px] text-slate-500 truncate" dir="ltr">{{ row.driver_mobile || '' }}</div>
+            <div class="text-[12.5px] font-bold text-ink dark:text-slate-200 truncate"><HighlightText :text="value" :term="highlight" /></div>
+            <div class="text-[11px] text-slate-500 truncate" dir="ltr"><HighlightText v-if="row.driver_mobile" :text="row.driver_mobile" :term="highlight" /><template v-else></template></div>
           </div>
         </div>
         <span v-else class="text-slate-400">—</span>

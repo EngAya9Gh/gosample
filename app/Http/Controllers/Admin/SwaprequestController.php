@@ -39,10 +39,10 @@ class SwaprequestController extends Controller
             $keyword = $request->keyword;
             $query->where(function($q) use ($keyword) {
                 $q->whereHas('driver', function ($q2) use ($keyword) {
-                    $q2->where('name', 'like', "%{$keyword}%");
+                    $q2->whereLike('name', "%{$keyword}%");
                 })->orWhereHas('driverA', function ($q2) use ($keyword) {
-                    $q2->where('name', 'like', "%{$keyword}%");
-                })->orWhere('task_id', 'like', "%{$keyword}%");
+                    $q2->whereLike('name', "%{$keyword}%");
+                })->orWhereLike('task_id', "%{$keyword}%");
             });
         }
 

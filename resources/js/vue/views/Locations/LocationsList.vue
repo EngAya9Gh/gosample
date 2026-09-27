@@ -4,6 +4,7 @@ import { usePage, Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import StatusBadge from '../../components/StatusBadge.vue';
 import BaseButton from '../../components/BaseButton.vue';
@@ -258,30 +259,31 @@ const copyToClipboard = async (text) => {
       :sort-order="searchForm.sortOrder"
       server-side
       @query="onQuery"
+      :highlight="searchForm.keyword"
     >
       <!-- ID — same design as the Tasks page ID column -->
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
 
       <!-- Bold Names -->
-      <template #cell-name="{ row }">
-        <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap">{{ row.name }}</span>
+      <template #cell-name="{ row, highlight }">
+        <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap"><HighlightText :text="row.name" :term="highlight" /></span>
       </template>
-      <template #cell-arabic_name="{ row }">
-        <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap">{{ row.arabic_name }}</span>
+      <template #cell-arabic_name="{ row, highlight }">
+        <span class="font-bold text-ink dark:text-slate-100 whitespace-nowrap"><HighlightText :text="row.arabic_name" :term="highlight" /></span>
       </template>
 
       <!-- City Format -->
-      <template #cell-city="{ row }">
+      <template #cell-city="{ row, highlight }">
         <span class="whitespace-nowrap">
-          {{ saudiCities[row.city] ? `${saudiCities[row.city].en} — ${saudiCities[row.city].ar}` : (row.city || '—') }}
+          <HighlightText :text="saudiCities[row.city] ? `${saudiCities[row.city].en} — ${saudiCities[row.city].ar}` : (row.city || '—')" :term="highlight" />
         </span>
       </template>
       
       <!-- Neighborhood and Mobile -->
-      <template #cell-neighborhood="{ row }">
-        <span class="whitespace-nowrap">{{ row.neighborhood || '—' }}</span>
+      <template #cell-neighborhood="{ row, highlight }">
+        <span class="whitespace-nowrap"><HighlightText v-if="row.neighborhood" :text="row.neighborhood" :term="highlight" /><template v-else>—</template></span>
       </template>
       <template #cell-mobile="{ row }">
         <span class="whitespace-nowrap">{{ row.mobile || '—' }}</span>

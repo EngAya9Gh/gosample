@@ -23,10 +23,10 @@ class NotificationsController extends Controller
             $q->where(function($q) use ($v) {
                 $q->where('id', $v)
                   ->orWhereHas('task', fn($q) => $q->where('id', $v))
-                  ->orWhereHas('fromLocation', fn($q) => $q->where('name', 'like', "%$v%"))
-                  ->orWhereHas('toLocation', fn($q) => $q->where('name', 'like', "%$v%"))
-                  ->orWhereHas('driver', fn($q) => $q->where('name', 'like', "%$v%"))
-                  ->orWhereHas('billingClient', fn($q) => $q->where('english_name', 'like', "%$v%"));
+                  ->orWhereHas('fromLocation', fn($q) => $q->whereLike('name', "%$v%"))
+                  ->orWhereHas('toLocation', fn($q) => $q->whereLike('name', "%$v%"))
+                  ->orWhereHas('driver', fn($q) => $q->whereLike('name', "%$v%"))
+                  ->orWhereHas('billingClient', fn($q) => $q->whereLike('english_name', "%$v%"));
             });
         });
 

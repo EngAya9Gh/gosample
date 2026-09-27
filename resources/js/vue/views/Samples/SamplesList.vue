@@ -195,6 +195,7 @@ async function confirmDelete() {
       :loading="loading"
       @query="onQuery"
       @export="onExport"
+      :highlight="filters.barcode_id"
     >
       <template #cell-id="{ value }">
         <span class="font-black text-[#0ab39c] dark:text-[#0ab39c]">#{{ value }}</span>

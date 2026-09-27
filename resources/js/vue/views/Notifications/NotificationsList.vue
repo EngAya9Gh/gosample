@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import { usePermissions } from '../../composables/usePermissions';
 
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import DataTable from '../../components/DataTable.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import BaseModal from '../../components/BaseModal.vue';
@@ -76,15 +77,16 @@ function viewDetails(row) {
       :columns="columns" :rows="rows || []" row-key="id"
       :loading="loading" :server-side="true" :total="total || 0" :searchable="false"
       @query="onQuery"
+      :highlight="filters.keyword"
     >
-      <template #cell-id="{ value }">
-        <span class="font-black text-[#0ab39c]">#{{ value }}</span>
+      <template #cell-id="{ value, highlight }">
+        <span class="font-black text-[#0ab39c]">#<HighlightText :text="value" :term="highlight" /></span>
       </template>
 
-      <template #cell-driver_name="{ value }">
+      <template #cell-driver_name="{ value, highlight }">
         <div v-if="value" class="flex items-center gap-2">
           <BaseAvatar :name="value" :size="26" class="-mt-[3px]" />
-          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap">{{ value }}</span>
+          <span class="text-[12.5px] font-medium text-ink dark:text-slate-200 whitespace-nowrap"><HighlightText :text="value" :term="highlight" /></span>
         </div>
         <span v-else class="text-slate-400">—</span>
       </template>

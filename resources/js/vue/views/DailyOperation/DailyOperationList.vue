@@ -7,6 +7,7 @@
 import { ref, reactive, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../components/Breadcrumb.vue';
+import HighlightText from '../../components/HighlightText.vue';
 import FilterBar from '../../components/FilterBar.vue';
 import DataTable from '../../components/DataTable.vue';
 import FormInput from '../../components/FormInput.vue';
@@ -253,9 +254,10 @@ function onExport(type) {
         :loading="loading" :server-side="true" :total="total" :searchable="false"
         @query="onQuery"
         @export="onExport"
-      >
-        <template #cell-id="{ value }">
-          <span class="font-black text-primary-500 dark:text-primary-300">#{{ value }}</span>
+      :highlight="filters.keyword"
+    >
+        <template #cell-id="{ value, highlight }">
+          <span class="font-black text-primary-500 dark:text-primary-300">#<HighlightText :text="value" :term="highlight" /></span>
         </template>
         <template #cell-client="{ value }">
           <span class="font-semibold text-ink dark:text-slate-100 whitespace-normal leading-snug">{{ value || '—' }}</span>
