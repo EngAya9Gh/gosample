@@ -133,8 +133,8 @@ const columns = [
   { key: 'id',       label: 'ID',       sortable: true, sticky: 'start', width: '84px' },
   { key: 'name',     label: 'Driver Name', sortable: true },
   { key: 'status',   label: 'Status',   sortable: true },
-  { key: 'username', label: 'Username', sortable: true },
-  { key: 'mobile',   label: 'Mobile',   sortable: true },
+  { key: 'username', label: 'MTC No.', sortable: true },
+  { key: 'mobile',   label: 'App username',   sortable: true },
   { key: 'tasks',    label: 'Tasks',    align: 'center' },
 ];
 
