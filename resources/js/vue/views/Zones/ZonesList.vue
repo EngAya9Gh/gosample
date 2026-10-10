@@ -38,8 +38,8 @@ const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('co
 // Riyadh — same default center/zoom as the classic zone pages.
 const MAP_CENTER = [24.7156901, 46.6439257];
 const MAP_ZOOM = 11;
-const TILES = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-const TILES_ATTR = '&copy; OpenStreetMap &copy; CARTO';
+const TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILES_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 /* ---------- filters (classic page has none — keyword over ID/name) ---------- */
 const DEFAULT_FILTERS = { keyword: '', sort_by: '', sort_order: '' };
