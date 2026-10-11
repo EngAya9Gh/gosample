@@ -215,6 +215,14 @@ function onExportClick(kind) {
 // Object cells (e.g. row.driver = { name }) print a sensible display value
 // instead of "[object Object]".
 function cellVal(row, col) {
+  if (typeof col.exportVal === 'function') {
+    const ev = col.exportVal(row);
+    return ev == null ? '' : String(ev);
+  }
+  if (col.key === 'coordinates' && (row.coordinates == null || row.coordinates === '')) {
+    if (row.lat && row.lng) return `${row.lat}, ${row.lng}`;
+    if (row.lat || row.lng) return String(row.lat || row.lng);
+  }
   const v = row[col.key];
   if (v == null) return '';
   if (typeof v === 'object') return v.name ?? v.plate_number ?? v.label ?? v.title ?? v.id ?? '';
