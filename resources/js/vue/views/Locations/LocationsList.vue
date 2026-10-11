@@ -39,9 +39,21 @@ const columns = [
   { key: 'neighborhood', label: 'Neighborhood' },
   { key: 'mobile',       label: 'Mobile' },
   { key: 'description',  label: 'Description' },
-  { key: 'coordinates',  label: 'Coordinates',   width: '140px' },
+  {
+    key: 'coordinates',
+    label: 'Coordinates',
+    width: '140px',
+    exportVal: (row) => (row.lat && row.lng) ? `${row.lat}, ${row.lng}` : (row.lat || row.lng || '')
+  },
   { key: 'status',       label: 'Status' },
 ];
+
+const tableRows = computed(() => {
+  return (props.rows || []).map((r) => ({
+    ...r,
+    coordinates: r.coordinates ?? ((r.lat && r.lng) ? `${r.lat}, ${r.lng}` : (r.lat || r.lng || ''))
+  }));
+});
 
 const onQuery = ({ page, pageSize, sortKey, sortDir, q }) => {
   if (sortKey) searchForm.value.sortBy = sortKey;
@@ -248,7 +260,7 @@ const copyToClipboard = async (text) => {
 
     <!-- Data Table -->
     <DataTable
-      :rows="props.rows"
+      :rows="tableRows"
       :columns="columns"
       row-key="id"
       :total="props.total"

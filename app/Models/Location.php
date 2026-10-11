@@ -59,6 +59,10 @@ class Location extends Model
         'deleted_at',
     ];
 
+    protected $appends = [
+        'coordinates',
+    ];
+
     protected $fillable = [
         'name',
         'arabic_name',
@@ -112,6 +116,14 @@ class Location extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by_id');
+    }
+
+    public function getCoordinatesAttribute()
+    {
+        if ($this->lat && $this->lng) {
+            return "{$this->lat}, {$this->lng}";
+        }
+        return $this->lat ? (string) $this->lat : ($this->lng ? (string) $this->lng : null);
     }
 
     protected function serializeDate(DateTimeInterface $date)
