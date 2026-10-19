@@ -98,7 +98,11 @@ class GenerateTaskReportJob implements ShouldQueue
     {
         $f = $this->filters;
 
-        $billing_client = $f['billing_client'] ?? null;
+        // billing_client / driver_id may be a single id or a list (multi-select filter).
+        $clientIds = array_values(array_map('intval', array_filter((array) ($f['billing_client'] ?? null))));
+        $driverIds = array_values(array_map('intval', array_filter((array) ($f['driver_id'] ?? null))));
+        // Client logo / client-specific layouts only apply when exactly one client is selected.
+        $billing_client = count($clientIds) === 1 ? $clientIds[0] : null;
         $client_logo    = null;
         if ($billing_client) {
             $client_logo = optional(Client::find($billing_client))->logo;
@@ -110,8 +114,7 @@ class GenerateTaskReportJob implements ShouldQueue
         $date_column    = $f['search_date'] ?? 'tasks.created_at';
         $from_location  = $f['from_location'] ?? null;
         $to_location    = $f['to_location']   ?? null;
-        $driver_id      = $f['driver_id']     ?? null;
-        $status         = $f['status']        ?? null;
+        $status        = $f['status']        ?? null;
         $task_type      = $f['task_type']     ?? null;
 
         $reportDate = ($from === $to) ? $to : ('From ' . $from . '- To ' . $to);
@@ -139,10 +142,10 @@ class GenerateTaskReportJob implements ShouldQueue
                                     left join samples as samples on samples.task_id = tasks.id
                                     WHERE tasks.id > 0';
 
-        if ($billing_client) { $query .= ' and tasks.billing_client= ' . (int) $billing_client; }
+        if ($clientIds)      { $query .= ' and tasks.billing_client in (' . implode(',', $clientIds) . ')'; }
         if ($from_location)  { $query .= ' and tasks.from_location= '  . (int) $from_location; }
         if ($to_location)    { $query .= ' and tasks.to_location= '    . (int) $to_location; }
-        if ($driver_id)      { $query .= ' and tasks.driver_id= '      . (int) $driver_id; }
+        if ($driverIds)      { $query .= ' and tasks.driver_id in ('      . implode(',', $driverIds) . ')'; }
         if ($keyWord)        { $query .= " and tasks.id= '" . addslashes($keyWord) . "'"; }
         if ($task_type)      { $query .= " and tasks.task_type= '" . addslashes($task_type) . "'"; }
         
@@ -249,8 +252,8 @@ class GenerateTaskReportJob implements ShouldQueue
             ->when($status,         function ($q) use ($status)         { $q->where('tasks.status', $status); })
             ->when($from_location,  function ($q) use ($from_location)  { $q->where('from_location', $from_location); })
             ->when($to_location,    function ($q) use ($to_location)    { $q->where('to_location', $to_location); })
-            ->when($billing_client, function ($q) use ($billing_client) { $q->where('billing_client', $billing_client); })
-            ->when($driver_id,      function ($q) use ($driver_id)      { $q->where('driver_id', $driver_id); })
+            ->when($clientIds,      function ($q) use ($clientIds)      { $q->whereIn('billing_client', $clientIds); })
+            ->when($driverIds,      function ($q) use ($driverIds)      { $q->whereIn('driver_id', $driverIds); })
             ->when($task_type,      function ($q) use ($task_type)      { $q->where('task_type', $task_type); })
             ->when($keyWord,        function ($q) use ($keyWord)        { $q->where('tasks.id', $keyWord); });
             
@@ -272,8 +275,8 @@ class GenerateTaskReportJob implements ShouldQueue
             ->when($status,         function ($q) use ($status)         { $q->where('status', $status); })
             ->when($from_location,  function ($q) use ($from_location)  { $q->where('from_location', $from_location); })
             ->when($to_location,    function ($q) use ($to_location)    { $q->where('to_location', $to_location); })
-            ->when($billing_client, function ($q) use ($billing_client) { $q->where('billing_client', $billing_client); })
-            ->when($driver_id,      function ($q) use ($driver_id)      { $q->where('driver_id', $driver_id); })
+            ->when($clientIds,      function ($q) use ($clientIds)      { $q->whereIn('billing_client', $clientIds); })
+            ->when($driverIds,      function ($q) use ($driverIds)      { $q->whereIn('driver_id', $driverIds); })
             ->when($task_type,      function ($q) use ($task_type)      { $q->where('task_type', $task_type); })
             ->when($keyWord,        function ($q) use ($keyWord)        { $q->where('tasks.id', $keyWord); });
             

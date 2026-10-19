@@ -38,12 +38,18 @@ const { can, canDelete } = usePermissions();
 const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
 // Filter params mirror the classic /admin/tasks filter card 1:1 (same field names).
-const DEFAULT_FILTERS = {
-  keyword: '', status: '', task_type: '', driver_id: '', billing_client: '',
+// driver_id / billing_client are multi-select → arrays of ids (sent as key[]=…).
+const defaultFilters = () => ({
+  keyword: '', status: '', task_type: '', driver_id: [], billing_client: [],
   from_location: '', to_location: '', date_from: '', date_to: '',
   search_date: '', sort_by: '', sort_order: '',
-};
-const filters = reactive({ ...DEFAULT_FILTERS, ...props.filters });
+});
+// Ids echoed back from the query string are strings (or a lone scalar from an
+// old link); the options use numeric ids, so normalise for FormSelect's matching.
+const toIds = (v) => (Array.isArray(v) ? v : (v === '' || v == null ? [] : [v])).map(Number).filter(Boolean);
+const filters = reactive({ ...defaultFilters(), ...props.filters });
+filters.driver_id = toIds(filters.driver_id);
+filters.billing_client = toIds(filters.billing_client);
 
 // Single date-range field (replaces Date From/To). The picker emits {from,to};
 // we mirror those into the existing date_from/date_to backend filters.
@@ -180,10 +186,15 @@ function reload(extra = {}) {
   });
 }
 function doSearch() { reload({ page: 1 }); }
-function doReset() { Object.assign(filters, DEFAULT_FILTERS); dateRange.value = ''; reload({ page: 1 }); }
+function doReset() { Object.assign(filters, defaultFilters()); dateRange.value = ''; reload({ page: 1 }); }
 function onQuery(q) { reload({ page: q.page, pageSize: q.pageSize }); }
 
 /* ---------- exports: reuse the EXISTING /admin routes (identical files) ---------- */
+const EXPORT_KEYS = ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date', 'keyword', 'task_type', 'sort_by', 'sort_order'];
+// [name, value] pairs; multi-select filters expand to one `key[]` pair per id.
+function exportParams() {
+  return EXPORT_KEYS.flatMap((k) => (Array.isArray(filters[k]) ? filters[k].map((v) => [`${k}[]`, v]) : [[k, filters[k]]]));
+}
 function exportPdf() {
   const form = document.createElement('form');
   form.method = 'POST';
@@ -192,16 +203,14 @@ function exportPdf() {
   const add = (k, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v ?? ''; form.appendChild(i); };
   add('_token', csrf);
   add('report_type', 'pdf');
-  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date', 'keyword', 'task_type', 'sort_by', 'sort_order']
-    .forEach((k) => add(k, filters[k]));
+  exportParams().forEach(([k, v]) => add(k, v));
   document.body.appendChild(form);
   form.submit();
   form.remove();
 }
 function exportExcel() {
   const p = new URLSearchParams();
-  ['status', 'date_from', 'date_to', 'billing_client', 'from_location', 'to_location', 'driver_id', 'search_date', 'keyword', 'task_type', 'sort_by', 'sort_order']
-    .forEach((k) => { if (filters[k]) p.set(k, filters[k]); });
+  exportParams().forEach(([k, v]) => { if (v) p.append(k, v); });
   window.open('/admin/export-excel?' + p.toString(), '_blank');
 }
 
@@ -284,8 +293,8 @@ async function bulkDelete(ids) {
     <!-- filter bar — mirrors the classic /admin/tasks filter card -->
     <FilterBar :loading="loading" subtitle="refine the task list" @search="doSearch" @reset="doReset">
       <FormInput  v-model="filters.keyword"        label="Keyword"        placeholder="Task ID or keyword" icon="ri-search-line" />
-      <FormSelect v-model="filters.driver_id"      label="Driver"         :options="driverOpts"     placeholder="Select Driver" />
-      <FormSelect v-model="filters.billing_client" label="Billing Client" :options="clientOpts"     placeholder="Select Client" />
+      <FormSelect v-model="filters.driver_id"      label="Driver"         :options="driverOpts"     multiple :max-chips="2" placeholder="All Drivers" />
+      <FormSelect v-model="filters.billing_client" label="Billing Client" :options="clientOpts"     multiple :max-chips="2" placeholder="All Clients" />
       <FormSelect v-model="filters.from_location"  label="From Location"  :options="locationOpts"   placeholder="Select Location" />
       <FormSelect v-model="filters.to_location"    label="To Location"    :options="locationOpts"   placeholder="Select Location" />
       <FormDate   v-model="dateRange" label="Date Range" mode="range" placeholder="Select range" @range="onDateRange" />
