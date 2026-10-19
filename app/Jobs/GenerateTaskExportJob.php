@@ -85,10 +85,11 @@ class GenerateTaskExportJob implements ShouldQueue
                 $query->where($searchDateColumn, '<=', $dateTo->toDateTimeString());
             }
             if (!empty($f['status']))         { $query->where('status', $f['status']); }
-            if (!empty($f['billing_client'])) { $query->where('billing_client', $f['billing_client']); }
+            // billing_client / driver_id may be a single id or a list (multi-select filter).
+            if (!empty($f['billing_client'])) { $query->whereIn('billing_client', (array) $f['billing_client']); }
             if (!empty($f['from_location'])) { $query->where('from_location', $f['from_location']); }
             if (!empty($f['to_location']))   { $query->where('to_location', $f['to_location']); }
-            if (!empty($f['driver_id']))     { $query->where('driver_id', $f['driver_id']); }
+            if (!empty($f['driver_id']))     { $query->whereIn('driver_id', (array) $f['driver_id']); }
             if (!empty($f['task_type']))     { $query->where('task_type', $f['task_type']); }
             if (!empty($f['keyword']))       { $query->where('tasks.id', $f['keyword']); }
 

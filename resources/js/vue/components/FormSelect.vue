@@ -24,6 +24,9 @@ const props = defineProps({
   // Teleport the dropdown panel to <body> so it isn't clipped by an overflow
   // ancestor (e.g. a modal body). Use inside modals.
   floating:{ type: Boolean, default: false },
+  // Multi only: show at most this many chips in the trigger, then a "+N" chip
+  // (keeps a filter bar row from growing). 0 = show every chip.
+  maxChips:{ type: Number, default: 0 },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -125,8 +128,22 @@ function clearSingle(e) {
   emit('update:modelValue', '');
   open.value = false;
 }
-function allOn() { emit('update:modelValue', props.options.map((o) => o.value)); }
-function allOff() { emit('update:modelValue', []); }
+// While searching, Select all / Clear act on the matching rows only, so the
+// user can stack several searches ("ali" → Select all, "omar" → Select all).
+function allOn() {
+  const set = new Set(selectedArr.value);
+  filtered.value.forEach((o) => set.add(o.value));
+  emit('update:modelValue', [...set]);
+}
+function allOff() {
+  if (!needle.value) return emit('update:modelValue', []);
+  const drop = new Set(filtered.value.map((o) => o.value));
+  emit('update:modelValue', selectedArr.value.filter((v) => !drop.has(v)));
+}
+const shownChips = computed(() =>
+  props.maxChips > 0 ? selectedArr.value.slice(0, props.maxChips) : selectedArr.value
+);
+const hiddenChips = computed(() => selectedArr.value.length - shownChips.value.length);
 
 function onDoc(e) {
   // Keep open when the click is inside the trigger OR the (possibly teleported) panel.
@@ -160,10 +177,11 @@ onBeforeUnmount(() => {
     >
       <i v-if="icon" :class="[icon, iconClass]" class="text-[15px] shrink-0"></i>
       <template v-if="multiple && selectedArr.length">
-        <span v-for="v in selectedArr" :key="v" class="inline-flex items-center gap-1 ps-2 pe-1 h-6 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 text-xs font-medium">
+        <span v-for="v in shownChips" :key="v" class="inline-flex items-center gap-1 ps-2 pe-1 h-6 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300 text-xs font-medium">
           {{ options.find((o) => o.value === v)?.label }}
           <i class="ri-close-line hover:text-danger cursor-pointer" @click.stop="pick(v)"></i>
         </span>
+        <span v-if="hiddenChips > 0" class="inline-flex items-center px-2 h-6 rounded-md bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300 text-xs font-bold">+{{ hiddenChips }}</span>
       </template>
       <span v-else-if="!multiple && singleLabel" class="text-ink dark:text-slate-100">{{ singleLabel }}</span>
       <span v-else class="text-slate-400">{{ placeholder }}</span>
@@ -187,9 +205,10 @@ onBeforeUnmount(() => {
           <input ref="search" v-model="q" @keydown="onKeydown" placeholder="Search…" class="w-full h-9 ps-8 pe-3 text-sm bg-surface-muted dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
         </div>
         <div v-if="multiple" class="flex gap-1 px-1 pb-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
-          <button type="button" @click="allOn" class="text-xs font-medium text-primary-600 hover:underline">Select all</button>
+          <button type="button" @click="allOn" class="text-xs font-medium text-primary-600 hover:underline">{{ needle ? 'Select matches' : 'Select all' }}</button>
           <span class="text-slate-300">·</span>
-          <button type="button" @click="allOff" class="text-xs font-medium text-slate-500 hover:underline">Clear</button>
+          <button type="button" @click="allOff" class="text-xs font-medium text-slate-500 hover:underline">{{ needle ? 'Clear matches' : 'Clear' }}</button>
+          <span v-if="selectedArr.length" class="ms-auto text-xs text-slate-400">{{ selectedArr.length }} selected</span>
         </div>
         <ul ref="list" class="max-h-56 overflow-y-auto">
           <li

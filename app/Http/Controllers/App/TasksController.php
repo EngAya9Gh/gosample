@@ -50,9 +50,10 @@ class TasksController extends Controller
             $query->whereIn('billing_client', $user->assigned_client_ids);
         }
 
+        // driver_id / billing_client are multi-select: accept one id or a list.
         $query->when($request->status, fn ($q, $v) => $q->where('status', $v))
-            ->when($request->driver_id, fn ($q, $v) => $q->where('driver_id', $v))
-            ->when($request->billing_client, fn ($q, $v) => $q->where('billing_client', $v))
+            ->when($this->ids($request->driver_id), fn ($q, $v) => $q->whereIn('driver_id', $v))
+            ->when($this->ids($request->billing_client), fn ($q, $v) => $q->whereIn('billing_client', $v))
             ->when($request->from_location, fn ($q, $v) => $q->where('from_location', $v))
             ->when($request->to_location, fn ($q, $v) => $q->where('to_location', $v))
             ->when($request->task_type, fn ($q, $v) => $q->where('task_type', $v))
@@ -265,6 +266,12 @@ class TasksController extends Controller
             'clients'   => $clients->map(fn ($c) => ['value' => $c->id, 'label' => $c->english_name])->values(),
             'locations' => $locations->map(fn ($l) => ['value' => $l->id, 'label' => $l->name])->values(),
         ];
+    }
+
+    /** Normalise a single id or a list of ids (multi-select filter) to a clean array. */
+    private function ids($value): array
+    {
+        return array_values(array_filter((array) $value, fn ($v) => $v !== null && $v !== ''));
     }
 
     private function fmt($value): ?string
