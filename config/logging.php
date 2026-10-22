@@ -118,6 +118,14 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // Blazma integration audit trail: webhooks received + sample logs sent.
+        'blazma' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/blazma.log'),
+            'level' => 'info',
+            'days' => 90,
+        ],
+
         'sentry_logs' => [
             'driver' => 'sentry_logs',
             'level' => env('LOG_LEVEL', 'info'),

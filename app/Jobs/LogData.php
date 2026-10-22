@@ -122,12 +122,25 @@ class LogData implements ShouldQueue
                 ];
             }
 
-            if (!empty($data)) {
-                $response = $logService->addLog($data);
-                if (!$response->success) {
-                    throw new \Exception("External Log API failed: " . json_encode($response->errors));
-                }
+            $context = [
+                'task_id'  => $this->task->id,
+                'event'    => $this->status,
+                'time'     => $this->time,
+                'driver'   => $driver_name,
+                'barcodes' => $checkSamples,
+            ];
+            if (empty($data)) {
+                \Log::channel('blazma')->info('SKIP: no linked samples on task, nothing sent', $context);
+                return;
             }
+
+            $response = $logService->addLog($data);
+            $context['http_status'] = $response->status;
+            if (!$response->success) {
+                \Log::channel('blazma')->error('SEND FAILED', $context + ['errors' => $response->errors]);
+                throw new \Exception("External Log API failed: " . json_encode($response->errors));
+            }
+            \Log::channel('blazma')->info('SENT', $context);
         }
     }
 }
