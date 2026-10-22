@@ -971,6 +971,9 @@ class SampleController extends Controller
                         'collection_hospital_name'=>$request->collection_hospital_name ?? null,
                         'create_date' => date('Y-m-d')
                     ]);
+                \Log::channel('blazma')->info('RECEIVED webhook', $request->only([
+                    'sample_id', 'order_id', 'collection_hospital_id', 'collection_hospital_name', 'hospital_id', 'hospital_name',
+                ]));
                 return response()->success(true,201);
             }
         } catch (\Exception $e) {
