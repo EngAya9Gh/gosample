@@ -170,6 +170,7 @@ const columns = [
   { key: 'freezer_date',      label: 'Container Date',    ltr: true },
   { key: 'freezer_out_date',  label: 'Container Out',     ltr: true },
   { key: 'close_date',        label: 'Close Date',        ltr: true },
+  { key: 'no_samples_date',   label: 'No Samples Date',   ltr: true },
   { key: 'task_type',         label: 'Type' },
   { key: 'added_by',          label: 'Added By' },
   { key: 'hours',             label: 'Hours',             align: 'center' },
