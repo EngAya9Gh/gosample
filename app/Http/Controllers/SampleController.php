@@ -173,6 +173,15 @@ class SampleController extends Controller
                 } else{
                     $driver = Driver::find($task->driver_id);
                     $task->status = 'NO_SAMPLES';
+                    // Stamp the visit the same way collect() does for NO_SAMPLES, so the
+                    // task list and reports show when the driver reported it. Times that
+                    // were already recorded (e.g. collected first) are kept.
+                    if (!$task->collection_date) {
+                        $task->collection_date = date('Y-m-d H:i:s');
+                    }
+                    if (!$task->close_date) {
+                        $task->close_date = date('Y-m-d H:i:s', strtotime('+3 seconds'));
+                    }
                     $task->save();
 
                     if($task->takasi == '$task' || $task->billing_client == 42 || $task->billing_client == 33)
