@@ -97,6 +97,7 @@ class TasksController extends Controller
                 'freezer_date'       => $this->fmt($t->freezer_date),
                 'freezer_out_date'   => $this->fmt($t->freezer_out_date),
                 'close_date'         => $this->fmt($t->close_date),
+                'no_samples_date'    => $this->fmt($t->no_samples_date),
                 'status'             => $t->status,
                 'task_type'          => $t->task_type,
                 'added_by'           => $t->added_by ? (\App\Models\User::where('email', $t->added_by)->first()?->name ?? (\App\Models\User::find($t->added_by)?->name ?? $t->added_by)) : 'Auto',
