@@ -1622,15 +1622,9 @@ class TasksController extends Controller
             'ip'         => $request->ip(),
             'filters'    => $request->all(),
         ]);
-        $isAdminUser = $loggedUser && (
-            $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
-            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
-        );
-        if ($loggedUser && $loggedUser->client_id) {
-            $filters['billing_client'] = $loggedUser->client_id;
-        } elseif (!$isAdminUser) {
-            // Not bound to a client AND not an admin — refuse to leak data.
-            abort(403, 'You are not allowed to export.');
+        $clientScope = $this->exportClientScope($loggedUser, $request->input('billing_client'));
+        if ($clientScope !== null) {
+            $filters['billing_client'] = $clientScope;
         }
 
         // Garbage-collect old exports (older than 1 hour) so storage doesn't grow forever.
@@ -2485,14 +2479,9 @@ $temp3 = $temperatureReadings->pluck('temp7');
             'ip'         => $request->ip(),
             'filters'    => $request->all(),
         ]);
-        $isAdminUser = $loggedUser && (
-            $loggedUser->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
-            || method_exists($loggedUser, 'getIsAdminAttribute') && $loggedUser->is_admin
-        );
-        if ($loggedUser && $loggedUser->client_id) {
-            $request->merge(['billing_client' => $loggedUser->client_id]);
-        } elseif (!$isAdminUser) {
-            abort(403, 'You are not allowed to export.');
+        $clientScope = $this->exportClientScope($loggedUser, $request->input('billing_client'));
+        if ($clientScope !== null) {
+            $request->merge(['billing_client' => $clientScope]);
         }
 
         // PERFORMANCE: force a date range to avoid scanning the entire tasks table on prod.
@@ -2551,6 +2540,39 @@ $temp3 = $temperatureReadings->pluck('temp7');
         }
 
         return redirect()->route('admin.tasks.export.status', ['token' => $token]);
+    }
+
+    /**
+     * SECURITY (fail-closed) for the PDF/Excel task exports.
+     * Allowed: admins, holders of the `task_export` permission, and users bound to
+     * clients (client_id or multi-client assignment). Returns the client ids the
+     * export must be limited to, or null when the user may export every client.
+     */
+    private function exportClientScope($user, $requestedClients): ?array
+    {
+        $isAdminUser = $user && (
+            $user->hasAnyRole(['Admin', 'Super Admin', 'SuperAdmin'])
+            || method_exists($user, 'getIsAdminAttribute') && $user->is_admin
+        );
+        $allowed = $user ? $user->assigned_client_ids : [];
+
+        if (!$isAdminUser && empty($allowed) && Gate::denies('task_export')) {
+            abort(403, 'You are not allowed to export.');
+        }
+        if (empty($allowed)) {
+            return null;
+        }
+
+        // Client-bound users only ever see their own clients (same rule as the list).
+        $requested = array_filter((array) $requestedClients);
+        if (empty($requested)) {
+            return array_values($allowed);
+        }
+        $scope = array_values(array_intersect($requested, $allowed));
+        if (empty($scope)) {
+            abort(403, 'You are not allowed to export this client.');
+        }
+        return $scope;
     }
 
     public function exportExcel(Request $request)
