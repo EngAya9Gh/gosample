@@ -34,7 +34,11 @@ class PermissionsController extends Controller
 
     public function store(StorePermissionRequest $request)
     {
-        $permission = Permission::create($request->all());
+        // The SPA form only sends `name`; without a guard Spatie never matches the
+        // permission, so default to 'web' (the guard every admin permission uses).
+        $permission = Permission::create(array_merge($request->all(), [
+            'guard_name' => $request->input('guard_name') ?: 'web',
+        ]));
         Cache::forget('spatie.permission.cache');
 
         return redirect()->route('admin.permissions.index');
