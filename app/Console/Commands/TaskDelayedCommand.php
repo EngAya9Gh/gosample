@@ -28,14 +28,27 @@ class TaskDelayedCommand extends Command
     protected $description = 'Check delayed tasks';
 
     /**
+     * Checks 1 and 2 only look at tasks collected / closed within this window.
+     *
+     * An on-time task keeps delayed_reason NULL forever, so without a bound both
+     * checks re-read every task ever recorded, twice a minute. This command runs
+     * every minute, so a late task is still flagged within a minute of being
+     * collected or closed. Same window as the delayed-tasks dashboard (Task model).
+     */
+    private const RECHECK_WINDOW_DAYS = 4;
+
+    /**
      * Execute the console command.
      *
      * @return int
      */
     public function handle()
     {
+        $recentSince = Carbon::now()->subDays(self::RECHECK_WINDOW_DAYS);
+
         // 1. Existing Check: Pickup Delay
         $tasks = Task::whereRaw('pickup_time < collection_date')
+        ->where('collection_date', '>=', $recentSince)
         ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', ''); })
         ->get();
 
@@ -51,6 +64,7 @@ class TaskDelayedCommand extends Command
 
         // 2. Existing Check: Drop-off Delay (Scheduled)
         $tasks1   = Task::whereRaw('dropoff_time < close_date')
+        ->where('close_date', '>=', $recentSince)
         ->where(function($q) { $q->whereNull('delayed_reason')->orWhere('delayed_reason', ''); })
         ->get();
 
