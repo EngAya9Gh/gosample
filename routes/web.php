@@ -285,9 +285,9 @@ Route::get('/test-fcm/{driver_id}', function ($driver_id) {
     return response()->json([
         'success' => true,
         'driver_id' => $driver->id,
-        'fcm_response' => json_decode($result, true) ?? $result
+        'fcm_response' => $result
     ]);
-});
+})->middleware('auth');
 
 // --- NEW SPA ROUTES (Formerly prefixed with /app) ---
 Route::middleware(['auth'])->group(function () {

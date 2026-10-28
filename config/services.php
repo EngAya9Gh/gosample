@@ -30,6 +30,11 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'fcm' => [
+        // Firebase service account JSON: a file path, or the whole file base64-encoded
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'credentials_base64' => env('FIREBASE_CREDENTIALS_BASE64'),
+    ],
     'ayenati' => [
         'base_url' => env('AYENATI_BASE_URL', 'https://default-url.com'),
         'carrierId' => env('AYENATI_CARRIER_ID', '1'),
