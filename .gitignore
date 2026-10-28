@@ -27,3 +27,6 @@ resources/.DS_Store
 
 docker-compose.yml
 /storage/
+
+# Firebase service account keys
+*firebase-adminsdk*.json
