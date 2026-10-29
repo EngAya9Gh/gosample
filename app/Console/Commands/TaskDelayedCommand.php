@@ -56,7 +56,7 @@ class TaskDelayedCommand extends Command
             $task->delayed_reason = 'pickup_delayed';  
             $driver = Driver::find($task->driver_id);
             if ($driver) {
-                $driver->sendNotification( 'Delayed Task', 'You have delay in pickup task',[$driver->fcm_token],$task,'no_action');
+                $driver->pushNotification('pickup_delayed', $task, 'no_action');
                 \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();
@@ -72,7 +72,7 @@ class TaskDelayedCommand extends Command
             $task->delayed_reason = 'dropoff_delayed'; 
             $driver = Driver::find($task->driver_id);
             if ($driver) {
-                $driver->sendNotification( 'Delayed Task', 'You have delay in drop off task',[$driver->fcm_token],$task,'no_action');
+                $driver->pushNotification('dropoff_delayed', $task, 'no_action');
                 \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save(); 
@@ -90,7 +90,7 @@ class TaskDelayedCommand extends Command
             $task->delayed_reason = trim($task->delayed_reason . ',placement_delayed', ',');
             $driver = Driver::find($task->driver_id);
             if ($driver) {
-                $driver->sendNotification('تنبيه: تأخر وضع العينات', 'لقد تجاوزت الوقت المسموح (15 دقيقة) لوضع العينات في الحافظة.', [$driver->fcm_token], $task, 'no_action');
+                $driver->pushNotification('placement_delayed', $task, 'no_action');
                 \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();
@@ -108,7 +108,7 @@ class TaskDelayedCommand extends Command
             $task->delayed_reason = trim($task->delayed_reason . ',delivery_step_delayed', ',');
             $driver = Driver::find($task->driver_id);
             if ($driver) {
-                $driver->sendNotification('تنبيه: تأخر تسليم العينات', 'لقد تجاوزت الوقت المسموح (15 دقيقة) لتسليم العينات بعد إخراجها.', [$driver->fcm_token], $task, 'no_action');
+                $driver->pushNotification('delivery_delayed', $task, 'no_action');
                 \Notification::send($driver, new \App\Notifications\TaskDelayed($task));
             }
             $task->save();

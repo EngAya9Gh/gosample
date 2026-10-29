@@ -637,7 +637,7 @@ class DriverController extends Controller
               }
 //                $driver->notify(new FirebaseNotification('New Task', 'You have new task',null));
             //    $this->sendFirebaseNotificationWithType($driver, 'New Task', 'You have new task');
-               $driver->sendNotification( 'New Task', 'You have new task',[$driver->fcm_token],null,'no_action');
+               $driver->pushNotification('new_task_generic', null, 'no_action');
 
 
                 // send notification

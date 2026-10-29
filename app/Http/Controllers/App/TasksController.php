@@ -164,7 +164,7 @@ class TasksController extends Controller
                 $task->save();
 
                 if ($driver) {
-                    $driver->sendNotification('New Task', 'You have new task', [$driver->fcm_token], $task, 'open_task');
+                    $driver->pushNotification('new_task', $task, 'open_task');
                     $this->sendGeneralNotification($driver, $task);
                 }
             }

@@ -231,7 +231,7 @@ class ShipmentsController extends Controller
                 $task->driver_id = $driver->id;
  		$task->pickup_time = now();
                 $task->save();
-                $driver->sendNotification( 'New Task', 'You have new task',[$driver->fcm_token],$task,'open_task');
+                $driver->pushNotification('new_task', $task, 'open_task');
             }
             $s_id = $shipmentw->id;
            $result = $this->updateNotificationCall($shipmentw,$driver,$accessToken,'dispatched');
