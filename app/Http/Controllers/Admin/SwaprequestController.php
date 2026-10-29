@@ -108,6 +108,7 @@ class SwaprequestController extends Controller
         }
     
         $taskIds = $request->input('task_id');
+        $swaps = [];
 
         foreach ($taskIds as $taskId) {
         $swapRequest = new Swap();
@@ -116,8 +117,14 @@ class SwaprequestController extends Controller
         $swapRequest->driver_a = $request->driver_a;
         $swapRequest->driver_id = $request->driver_id;
         $swapRequest->save();
+        $swaps[] = $swapRequest;
         }
-    
+
+        if ($request->status === 'new') {
+            Swap::notifyDrivers($swaps, 'swap_request', 'driver_id');
+            Swap::notifyDrivers($swaps, 'swap_created', 'driver_a');
+        }
+
         return redirect()->route('admin.swaprequests.index');
     }
     
@@ -139,7 +146,14 @@ class SwaprequestController extends Controller
 
     public function update(UpdateSwaprequestRequest $request, Swap $swaprequest)
     {
+        $oldReceiver = $swaprequest->driver_id;
         $swaprequest->update($request->all());
+
+        // A receiving driver was just set, e.g. on a request a driver opened from the app
+        if ($swaprequest->status === 'new' && $swaprequest->driver_id && $swaprequest->driver_id != $oldReceiver) {
+            Swap::notifyDrivers([$swaprequest], 'swap_request', 'driver_id');
+            Swap::notifyDrivers([$swaprequest], 'swap_created', 'driver_a');
+        }
             return redirect()->route('admin.swaprequests.index');
         return redirect()->route('admin.swaprequests.index');
     }

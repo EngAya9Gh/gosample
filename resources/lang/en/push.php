@@ -34,6 +34,26 @@ return [
         'title' => 'Deliver samples now – task #:task',
         'body' => 'More than 15 minutes have passed since the samples were taken out of the freezer. Please deliver them to :to now.',
     ],
+    'swap_request' => [
+        'title' => 'New swap request',
+        'body' => 'Driver :driver wants to hand over tasks to you. Tasks: :count. Open swap requests to accept or reject.',
+    ],
+    'swap_created' => [
+        'title' => 'Swap request created',
+        'body' => 'Your tasks will be handed over to driver :driver. Tasks: :count. Please take the samples out of the freezer to complete the handover.',
+    ],
+    'swap_accepted' => [
+        'title' => 'Swap request accepted',
+        'body' => 'Driver :driver accepted the handover and the tasks are now assigned to them. Tasks: :count.',
+    ],
+    'swap_rejected' => [
+        'title' => 'Swap request rejected',
+        'body' => 'Driver :driver rejected the handover, so the tasks are still assigned to you. Tasks: :count.',
+    ],
+    'swap_received' => [
+        'title' => 'Samples receipt confirmed',
+        'body' => 'Driver :driver confirmed receiving the samples from you. Tasks: :count.',
+    ],
     'attendance_late' => [
         'title' => 'Late for your shift',
         'body' => 'You are :minutes minutes past your shift start time. Please check in now.',
