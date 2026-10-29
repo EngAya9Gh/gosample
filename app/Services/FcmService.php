@@ -81,10 +81,20 @@ class FcmService
                 $results[$token] = $response->json();
 
                 if ($response->failed()) {
-                    Log::error('FCM send failed', ['token' => $token, 'response' => $response->json()]);
+                    $errorCode = collect($response->json('error.details', []))->pluck('errorCode')->filter()->first();
+
+                    Log::error('FCM send failed', [
+                        'project_id' => $credentials['project_id'],
+                        'error_code' => $errorCode,
+                        'hint' => $errorCode === 'SENDER_ID_MISMATCH'
+                            ? 'Token was issued by an app linked to another Firebase project; the app config and FIREBASE_CREDENTIALS must be the same project'
+                            : null,
+                        'token' => $token,
+                        'response' => $response->json(),
+                    ]);
 
                     // The app was uninstalled or the token expired, stop sending to it
-                    if (collect($response->json('error.details', []))->contains('errorCode', 'UNREGISTERED')) {
+                    if ($errorCode === 'UNREGISTERED') {
                         Driver::where('fcm_token', $token)->update(['fcm_token' => null]);
                     }
                 }
