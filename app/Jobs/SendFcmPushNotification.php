@@ -18,19 +18,21 @@ class SendFcmPushNotification implements ShouldQueue
     protected $tokens;
     protected $task;
     protected $action;
+    protected $type;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($title, $body, $tokens, $task, $action)
+    public function __construct($title, $body, $tokens, $task, $action, $type = null)
     {
         $this->title = $title;
         $this->body = $body;
         $this->tokens = $tokens;
         $this->task = $task;
         $this->action = $action;
+        $this->type = $type;
     }
 
     /**
@@ -40,6 +42,6 @@ class SendFcmPushNotification implements ShouldQueue
      */
     public function handle(FcmService $fcmService)
     {
-        $fcmService->sendNotification($this->title, $this->body, $this->tokens, $this->task, $this->action);
+        $fcmService->sendNotification($this->title, $this->body, $this->tokens, $this->task, $this->action, $this->type);
     }
 }

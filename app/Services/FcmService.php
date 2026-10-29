@@ -17,9 +17,10 @@ class FcmService
      * @param array|string $tokens
      * @param mixed $task
      * @param string $action
+     * @param string|null $type notification key from resources/lang/{ar,en}/push.php
      * @return array FCM response per token
      */
-    public function sendNotification($title, $body, $tokens, $task, $action)
+    public function sendNotification($title, $body, $tokens, $task, $action, $type = null)
     {
         $tokens = array_filter(is_array($tokens) ? $tokens : [$tokens]);
         if (empty($tokens)) {
@@ -37,6 +38,10 @@ class FcmService
             "body" => $body,
             "action" => $action,
         ];
+
+        if ($type) {
+            $data["notification_type"] = $type;
+        }
 
         if ($task) {
             $from_location = $task->from ?? null;

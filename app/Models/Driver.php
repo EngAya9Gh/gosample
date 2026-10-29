@@ -160,9 +160,9 @@ class Driver extends Authenticatable  implements JWTSubject
         return $this->hasMany(ScheduledTask::class);
     }
 
-    public function sendNotification($title, $body, $tokens, $task, $action)
+    public function sendNotification($title, $body, $tokens, $task, $action, $type = null)
     {
-        \App\Jobs\SendFcmPushNotification::dispatch($title, $body, $tokens, $task, $action);
+        \App\Jobs\SendFcmPushNotification::dispatch($title, $body, $tokens, $task, $action, $type);
         return true;
     }
 
@@ -187,7 +187,8 @@ class Driver extends Authenticatable  implements JWTSubject
             __("push.$key.body", $params, $locale),
             [$this->fcm_token],
             $task,
-            $action
+            $action,
+            $key
         );
     }
     public function clientDrivers()
