@@ -296,6 +296,7 @@ class SwapController extends Controller
                 $task->save();
 
                 DB::commit();
+                Swap::notifyDrivers([$swap], 'swap_accepted', 'driver_a');
                 return $this->response(true,'success',$swap);
             }
         } catch (Exception $e) {
@@ -339,6 +340,7 @@ class SwapController extends Controller
                 $swap->save();
 
                 DB::commit();
+                Swap::notifyDrivers([$swap], 'swap_received', 'driver_a');
                 return $this->response(true,'success',$swap);
             }
         } catch (Exception $e) {
@@ -366,6 +368,7 @@ class SwapController extends Controller
                 }
 
                 DB::beginTransaction();
+                $acceptedSwaps = [];
                 foreach ($request->swaps as $swapId) {
                     $swap = Swap::findOrFail($swapId);
                     if($swap == null)
@@ -397,9 +400,11 @@ class SwapController extends Controller
                     $task->car_id = $car->id;
                     $task->status = 'COLLECTED';
                     $task->save();
+                    $acceptedSwaps[] = $swap;
 
                 }
                 DB::commit();
+                Swap::notifyDrivers($acceptedSwaps, 'swap_accepted', 'driver_a');
                 return $this->response(true,'success');
             }
         } catch (Exception $e) {
@@ -425,6 +430,7 @@ class SwapController extends Controller
 
                 // Initialize an array to store the results
                 $results = [];
+                $receivedSwaps = [];
 
                 foreach ($swapIds as $swapId) {
                     $swap = Swap::find($swapId);
@@ -450,7 +456,9 @@ class SwapController extends Controller
                     DB::commit();
 
                     $results[] = 'Swap accepted for swap_id: ' . $swapId;
+                    $receivedSwaps[] = $swap;
                 }
+                Swap::notifyDrivers($receivedSwaps, 'swap_received', 'driver_a');
 
                 // Return the results as a response
                 return $this->response(true, 'success', ['results' => $results]);
@@ -478,6 +486,7 @@ class SwapController extends Controller
                 }
                 $swap->status ='rejected';
                 $swap->save();
+                Swap::notifyDrivers([$swap], 'swap_rejected', 'driver_a');
                 return $this->response(true,'success',$swap);
             }
         } catch (Exception $e) {

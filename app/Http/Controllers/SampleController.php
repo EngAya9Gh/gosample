@@ -2293,7 +2293,7 @@ class SampleController extends Controller
         $driver = Driver::find($task->driver_id);
 
         if(isset($driver->fcm_token)) {
-            $driver->sendNotification( 'Task acceptence', 'Task accepted successfully',[$driver->fcm_token],$task,'no_action');
+            $driver->pushNotification('task_accepted', $task, 'no_action');
         }
 
         return $this->response(true,'success');
@@ -2335,7 +2335,7 @@ class SampleController extends Controller
 
         $driver = Driver::find($task->driver_id);
         if(isset($driver->fcm_token)) {
-            $driver->sendNotification( 'Task started', 'Task started successfully',[$driver->fcm_token],$task,'no_action');
+            $driver->pushNotification('task_started', $task, 'no_action');
         }
 
         return $this->response(true,'success');

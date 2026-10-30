@@ -132,11 +132,8 @@ class CheckAttendanceDelayCommand extends Command
                     // We use driver's sendNotification method if appropriate, or another alerting system
                     // To keep it simple, we'll send it to the driver and maybe admin
                     
-                    $title = "🚨 تنبيه تأخير دوام";
-                    $body = "لقد تجاوزت موعد بدء الدوام المحدد بـ " . $delayMinutes . " دقيقة. الرجاء تسجيل الحضور فوراً.";
-                    
                     if ($driver->fcm_token) {
-                        $driver->sendNotification($title, $body, [$driver->fcm_token], (object)['id' => null, 'from' => (object)['name'=>''], 'to' => (object)['name'=>'']], 'attendance_alert');
+                        $driver->pushNotification('attendance_late', (object)['id' => null, 'from' => (object)['name'=>''], 'to' => (object)['name'=>'']], 'attendance_alert', ['minutes' => $delayMinutes]);
                     }
                     
                     \Log::info("Late attendance alert sent for Driver ID: {$driver->id}");
