@@ -75,6 +75,8 @@ class Location extends Model
         'city',
         'neighborhood',
         'status',
+        'integration_branch_id',
+        'integration_branch_name',
         'created_by_id',
         'updated_by_id',
         'created_at',

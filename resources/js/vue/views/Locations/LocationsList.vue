@@ -45,6 +45,7 @@ const columns = [
     width: '140px',
     exportVal: (row) => (row.lat && row.lng) ? `${row.lat}, ${row.lng}` : (row.lat || row.lng || '')
   },
+  { key: 'integration_branch_id', label: 'Blazma ID', width: '100px' },
   { key: 'status',       label: 'Status' },
 ];
 
@@ -165,6 +166,8 @@ const form = useForm({
   drop_off_waiting_time: '',
   description: '',
   status: '1',
+  integration_branch_id: '',
+  integration_branch_name: '',
 });
 
 const openFormModal = (item = null) => {
@@ -186,6 +189,8 @@ const openFormModal = (item = null) => {
     form.drop_off_waiting_time = item.drop_off_waiting_time || '';
     form.description = item.description || '';
     form.status = String(item.status);
+    form.integration_branch_id = item.integration_branch_id ?? '';
+    form.integration_branch_name = item.integration_branch_name || '';
   } else {
     isEdit.value = false;
     editingId.value = null;
@@ -320,6 +325,11 @@ const copyToClipboard = async (text) => {
         </div>
       </template>
 
+      <!-- Blazma branch ID (Delta integration) -->
+      <template #cell-integration_branch_id="{ row }">
+        <span class="text-xs font-mono whitespace-nowrap" :title="row.integration_branch_name || ''">{{ row.integration_branch_id || '—' }}</span>
+      </template>
+
       <!-- Status Badge -->
       <template #cell-status="{ row }">
         <StatusBadge :status="row.status == 1 ? 'ENABLED' : 'DISABLED'" />
@@ -415,9 +425,15 @@ const copyToClipboard = async (text) => {
             <span class="text-sm text-slate-500">Pickup Waiting Time</span>
             <span class="text-sm font-medium text-ink dark:text-slate-200">{{ selectedItem.pickup_waiting_time || '—' }} min</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between border-b border-slate-200 dark:border-white/5 pb-3">
             <span class="text-sm text-slate-500">Drop Off Waiting Time</span>
             <span class="text-sm font-medium text-ink dark:text-slate-200">{{ selectedItem.drop_off_waiting_time || '—' }} min</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-slate-500">Blazma Branch</span>
+            <span class="text-sm font-medium text-ink dark:text-slate-200">
+              {{ selectedItem.integration_branch_id ? `${selectedItem.integration_branch_id} — ${selectedItem.integration_branch_name || ''}` : '—' }}
+            </span>
           </div>
           <div v-if="selectedItem.description" class="pt-3 border-t border-slate-200 dark:border-white/5">
             <span class="block text-sm text-slate-500 mb-1">Description</span>
@@ -459,6 +475,9 @@ const copyToClipboard = async (text) => {
 
           <FormInput v-model="form.pickup_waiting_time" type="number" label="Pickup Waiting Time (min)" :error="form.errors.pickup_waiting_time" />
           <FormInput v-model="form.drop_off_waiting_time" type="number" label="Drop Off Waiting Time (min)" :error="form.errors.drop_off_waiting_time" />
+
+          <FormInput v-model="form.integration_branch_id" type="number" label="Blazma Branch ID" placeholder="e.g. 1179" helper="Delta branches only. Without it, sample stages are not sent to Blazma." :error="form.errors.integration_branch_id" />
+          <FormInput v-model="form.integration_branch_name" label="Blazma Branch Name" placeholder="e.g. CC040 Aqiq, Riyadh" :error="form.errors.integration_branch_name" />
         </div>
         
         <div class="mb-6">

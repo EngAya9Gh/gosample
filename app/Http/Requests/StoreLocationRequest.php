@@ -51,6 +51,16 @@ class StoreLocationRequest extends FormRequest
             //     'required',
             //     'unique:locations',
             // ],
+            // Blazma (Delta LIS) branch ID; without it no sample events are sent to Blazma.
+            'integration_branch_id' => [
+                'nullable',
+                'integer',
+            ],
+            'integration_branch_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
 }

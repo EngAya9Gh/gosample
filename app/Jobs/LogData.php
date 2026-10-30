@@ -70,6 +70,7 @@ class LogData implements ShouldQueue
                         }
                     }
                 }
+                $this->linkFromPreviousLeg();
                 \App\Models\SampleTracking::where('task_id', $this->task->id)->delete();
             }
             $samples = \App\Models\Sample::where('task_id', $this->task->id)->where('is_blazma', 1)->distinct('barcode_id')->get();
@@ -141,6 +142,52 @@ class LogData implements ShouldQueue
                 throw new \Exception("External Log API failed: " . json_encode($response->errors));
             }
             \Log::channel('blazma')->info('SENT', $context);
+        }
+    }
+
+    /**
+     * A sample travels through several tasks (branch -> hub -> lab), each with its own
+     * samples row for the same barcode. The Blazma tracking card is consumed by the first
+     * leg, so for the later legs copy the Blazma details from the earlier leg's row.
+     */
+    private function linkFromPreviousLeg()
+    {
+        $unlinked = \App\Models\Sample::where('task_id', $this->task->id)->where('is_blazma', 0)->get();
+        if ($unlinked->isEmpty()) {
+            return;
+        }
+
+        $previous = \App\Models\Sample::whereIn('barcode_id', $unlinked->pluck('barcode_id')->unique()->values())
+            ->where('task_id', '!=', $this->task->id)
+            ->where('is_blazma', 1)
+            ->where('created_at', '>=', now()->subDays(14))
+            ->orderBy('id')
+            ->get()
+            ->keyBy('barcode_id'); // ascending order, so the latest leg wins
+
+        $linked = [];
+        foreach ($unlinked as $sample) {
+            $prev = $previous->get($sample->barcode_id);
+            if (!$prev) {
+                continue;
+            }
+            $sample->profile_id = $prev->profile_id;
+            $sample->order_id = $prev->order_id;
+            $sample->hospital_id = $prev->hospital_id;
+            $sample->hospital_name = $prev->hospital_name;
+            $sample->collection_hospital_id = $prev->collection_hospital_id;
+            $sample->collection_hospital_name = $prev->collection_hospital_name;
+            $sample->is_blazma = true;
+            // Read before save(): the Auditable trait strips unchanged attributes on update.
+            $linked[] = $sample->barcode_id;
+            $sample->save();
+        }
+
+        if (!empty($linked)) {
+            \Log::channel('blazma')->info('LINKED from previous leg', [
+                'task_id'  => $this->task->id,
+                'barcodes' => array_values(array_unique($linked)),
+            ]);
         }
     }
 }
