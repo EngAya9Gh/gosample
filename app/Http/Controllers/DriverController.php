@@ -326,7 +326,14 @@ class DriverController extends Controller
                 leftjoin('locations AS A', 'A.id', '=', '.from_location')
                     ->leftjoin('locations AS B', 'B.id', '=', 'tasks.to_location')
                     ->leftjoin('clients AS C', 'C.id', '=', 'tasks.billing_client')
-                    ->select('A.name as from_location_name','B.name as to_location_name','A.lat as from_location_lat','B.lat as to_location_lat',
+                    ->select('A.name as from_location_name','B.name as to_location_name',
+                        // Per-language names for the app. from/to_location_name stay as they are for older app versions.
+                        // An empty or missing name is sent as null so the app can fall back.
+                        DB::raw("NULLIF(TRIM(A.arabic_name), '') as from_location_arabic_name"),
+                        DB::raw("NULLIF(TRIM(A.name), '') as from_location_english_name"),
+                        DB::raw("NULLIF(TRIM(B.arabic_name), '') as to_location_arabic_name"),
+                        DB::raw("NULLIF(TRIM(B.name), '') as to_location_english_name"),
+                        'A.lat as from_location_lat','B.lat as to_location_lat',
                         'A.lng as from_location_lng','B.lng as to_location_lng','A.pickup_waiting_time','B.drop_off_waiting_time',
                         'A.mobile as from_mobile','B.mobile as to_location_mobile',
                         'tasks.*','C.arabic_name as client_arabic_name','C.english_name as client_english_name')

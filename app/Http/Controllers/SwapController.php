@@ -171,8 +171,14 @@ class SwapController extends Controller
                             // $swap_ids[] = $swap->barcode_id;
                             $swap->task->dateString = date('d-F-Y', strtotime($swap->task->created_at));
                             $swap->task->timeString = date('H:i:s A', strtotime($swap->task->created_at));
-                            $swap->task->from_location_name = Location::find($swap->task->from_location)->name;
-                            $swap->task->to_location_name = Location::find($swap->task->to_location)->name;
+                            $fromLocation = Location::find($swap->task->from_location);
+                            $toLocation = Location::find($swap->task->to_location);
+                            $swap->task->from_location_name = $fromLocation->name;
+                            $swap->task->to_location_name = $toLocation->name;
+                            $swap->task->from_location_arabic_name = $this->nameOrNull($fromLocation->arabic_name);
+                            $swap->task->from_location_english_name = $this->nameOrNull($fromLocation->name);
+                            $swap->task->to_location_arabic_name = $this->nameOrNull($toLocation->arabic_name);
+                            $swap->task->to_location_english_name = $this->nameOrNull($toLocation->name);
                             $driver = $swap->task->driver;
                             foreach ($swap->task->samples as $sample) {
                                 /*$sample->map(function($sample) use($swap){
@@ -228,10 +234,18 @@ class SwapController extends Controller
                     if ($firstSwap && $firstSwap->task) {
                         $data->from_location_name = $firstSwap->task->from_location_name ?? '';
                         $data->to_location_name = $firstSwap->task->to_location_name ?? '';
+                        $data->from_location_arabic_name = $firstSwap->task->from_location_arabic_name ?? null;
+                        $data->from_location_english_name = $firstSwap->task->from_location_english_name ?? null;
+                        $data->to_location_arabic_name = $firstSwap->task->to_location_arabic_name ?? null;
+                        $data->to_location_english_name = $firstSwap->task->to_location_english_name ?? null;
                         $data->task_status = $firstSwap->task->status ?? '';
                     } else {
                         $data->from_location_name = '';
                         $data->to_location_name = '';
+                        $data->from_location_arabic_name = null;
+                        $data->from_location_english_name = null;
+                        $data->to_location_arabic_name = null;
+                        $data->to_location_english_name = null;
                         $data->task_status = '';
                     }
 
@@ -492,5 +506,15 @@ class SwapController extends Controller
         } catch (Exception $e) {
             return $this->response(false,'system error');
         }
+    }
+
+    /**
+     * Location name for the app: an empty or missing name is sent as null so the app can fall back.
+     */
+    private function nameOrNull(?string $name): ?string
+    {
+        $name = trim((string) $name);
+
+        return $name === '' ? null : $name;
     }
 }
