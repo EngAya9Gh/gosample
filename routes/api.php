@@ -29,6 +29,7 @@ Route::post('driver/loginWithMobile','App\Http\Controllers\DriverController@logi
 Route::post('driver/refresh','App\Http\Controllers\DriverController@refresh');
 Route::middleware(['auth:drivers', 'force.driver.id'])->group(function () {
     Route::post('driver/profile','App\Http\Controllers\DriverController@profile');
+    Route::post('driver/fcm-token/update','App\Http\Controllers\DriverController@updateFcmToken');
     Route::post('driver/tasks','App\Http\Controllers\DriverController@tasks');
     Route::post('driver/location','App\Http\Controllers\DriverController@carLocation');
     Route::post('sample/new','App\Http\Controllers\SampleController@new');

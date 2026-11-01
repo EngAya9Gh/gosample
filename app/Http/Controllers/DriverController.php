@@ -64,7 +64,7 @@ class DriverController extends Controller
                     return $this->response(false,'Please add car to driver');
                 }
 
-                $user->fcm_token = $request->fcmToken;
+                $user->assignFcmToken($request->fcmToken);
                 $user->language = $request->language;
                 $user->save();
                 $user->api_token = $token;
@@ -185,7 +185,7 @@ class DriverController extends Controller
                     return $this->response(false,'Please add car to driver');
                 }
 
-                $user->fcm_token = $request->fcmToken;
+                $user->assignFcmToken($request->fcmToken);
                 $user->language = $request->language;
                 $user->save();
                 $user->api_token = $token;
@@ -261,6 +261,36 @@ class DriverController extends Controller
             return $this->response(false,'system error');
         }
 
+    }
+
+    /**
+     * Called by the app on launch and on Firebase token refresh (driver_id is forced from the JWT)
+     */
+    public function updateFcmToken(Request $request)
+    {
+        try {
+            $data = $request->only(['driver_id', 'fcm_token']);
+            $rules = [
+                'driver_id' => 'required',
+                'fcm_token' => 'required|string',
+            ];
+            $validator = Validator::make($data, $rules);
+            if ($validator->fails()) {
+                return $this->response(false, $this->validationHandle($validator->messages()));
+            }
+
+            $driver = Driver::find($request->driver_id);
+            if ($driver == null) {
+                return $this->response(false, 'driver not found');
+            }
+
+            $driver->assignFcmToken($request->fcm_token);
+            $driver->save();
+
+            return $this->response(true, 'success');
+        } catch (Exception $e) {
+            return $this->response(false, 'system error');
+        }
     }
 
     public function profile(Request $request)
