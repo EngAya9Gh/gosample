@@ -167,6 +167,18 @@ class Driver extends Authenticatable  implements JWTSubject
     }
 
     /**
+     * Give this device's FCM token to this driver only, so a shared phone stops
+     * receiving the previous driver's notifications. The caller saves the driver.
+     */
+    public function assignFcmToken($token)
+    {
+        if ($token) {
+            static::where('fcm_token', $token)->where('id', '!=', $this->id)->update(['fcm_token' => null]);
+        }
+        $this->fcm_token = $token;
+    }
+
+    /**
      * Send a push in the driver's language, texts live in resources/lang/{ar,en}/push.php
      */
     public function pushNotification($key, $task, $action, array $params = [])
