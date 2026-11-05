@@ -42,7 +42,7 @@ class LogData implements ShouldQueue
     public function handle()
     {
         $logService = new LogService();
-        if (isset($this->task->id) && $logService->hasIntegration($this->task) && $this->task->is_blazma) {
+        if (isset($this->task->id) && $logService->hasIntegration($this->task)) {
             if ($this->status == 'picked up') {
                 $sampleCheck = \App\Models\Sample::where('task_id', $this->task->id)->where('is_blazma', 0)->pluck('barcode_id')->toArray();
                 if (!empty($sampleCheck)) {
@@ -81,6 +81,16 @@ class LogData implements ShouldQueue
                 $driver_name = $driver->name;
                 $driver_id = $driver->id;
             }
+            // Where this stage happened: the pickup location for picked up / freezed in, the
+            // drop-off location for freezed out / delivered. Always logged; sent in
+            // HOSPITAL_ID/NAME (instead of the registration branch) only when enabled.
+            $sendStageLocation = (bool) config('services.blazma.STAGE_LOCATION');
+            $stageLocation = \App\Models\Location::withoutGlobalScope('enabled')->find(
+                in_array($this->status, ['picked up', 'freezed in']) ? $this->task->from_location : $this->task->to_location
+            );
+            $stageHospitalId = $stageLocation && $stageLocation->integration_branch_id ? "$stageLocation->integration_branch_id" : null;
+            $stageHospitalName = $stageLocation->name ?? null;
+
             $checkSamples = [];
             $data = [];
             foreach ($samples as $sample) {
@@ -106,8 +116,8 @@ class LogData implements ShouldQueue
                     'LAB_CATEGORY_PACKAGE_TEST_CATEGORY' => null,
                     'LAB_CATEGORY_PACKAGE_ID' => "-1",
                     'LAB_CATEGORY_PACKAGE_NAME' => null,
-                    'HOSPITAL_ID' => "$sample->collection_hospital_id" ?? null,
-                    'HOSPITAL_NAME' => $sample->collection_hospital_name ?? null,//collection branch
+                    'HOSPITAL_ID' => $sendStageLocation ? $stageHospitalId : "$sample->collection_hospital_id",
+                    'HOSPITAL_NAME' => $sendStageLocation ? $stageHospitalName : $sample->collection_hospital_name,
                     'PROFILE_UNIT_ID' => null,
                     'PROFILE_UNIT_NAME' => null,
                     'PROCESSING_HOSPITAL_ID' => "$sample->hospital_id",
@@ -128,6 +138,7 @@ class LogData implements ShouldQueue
                 'event'    => $this->status,
                 'time'     => $this->time,
                 'driver'   => $driver_name,
+                'location' => $stageHospitalName,
                 'barcodes' => $checkSamples,
             ];
             if (empty($data)) {

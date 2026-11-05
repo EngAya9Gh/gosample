@@ -2204,20 +2204,18 @@ class TasksController extends Controller
             $data['closed_by'] = 'admin'; // Add the 'closed_by' field with the value 'admin'
         }
 
-        if (($task->status != 'CLOSED') && ($request->status == 'CLOSED')){
+        // Captured before update(): afterwards the status is already CLOSED.
+        $closingNow = ($task->status != 'CLOSED') && ($request->status == 'CLOSED');
+        if ($closingNow){
             $data['close_date'] = $ldate;
             $data['to_location_confirmation_timestamp'] = now();
         }
         $task->update($data);
 
-        if (($task->status != 'CLOSED') && ($request->status == 'CLOSED')) {
+        if ($closingNow) {
             $logService = new LogService();
-            $from_location = Location::find($task->from_location);
-            if (isset($from_location->id)) {
-                $with_blazma = $from_location->integration_branch_id ?? false;
-                if ($with_blazma && $logService->hasIntegration($task)) {
-                    dispatch(new LogData($task, 'delivered', $ldate));
-                }
+            if ($logService->hasIntegration($task)) {
+                dispatch(new LogData($task, 'delivered', $ldate));
             }
         }
 
