@@ -43,5 +43,8 @@ return [
         'LOG_SECRETE_KEY' => env('LOG_SECRETE_KEY', "as_das#DA3AWR2313%432^3essd#@4_#$="),
         'LOG_HOSTS' => env('LOG_HOSTS', "http://158.101.243.250"),
         'BLAZMA_SECRET_KEY' => env('BLAZMA_SECRET_KEY', 'mtc&jZ4_om^%aR$2ARd3al_36I67D243-12&^%'),
+        // Send each stage's location in HOSPITAL_ID/NAME instead of the registration branch
+        // (a change of meaning on Blazma's side, so only enable once they agree).
+        'STAGE_LOCATION' => env('BLAZMA_STAGE_LOCATION', false),
     ],
 ];

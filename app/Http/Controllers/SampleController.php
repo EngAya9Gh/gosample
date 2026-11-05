@@ -303,8 +303,10 @@ class SampleController extends Controller
                         event (new SamplesCollectedEvent($task));
                     }
                     $logService = new LogService();
-                    $with_blazma = $from_location->integration_branch_id ?? false;
-                    if ($with_blazma && $logService->hasIntegration($task)) {
+                    // Every leg of a Blazma client's task is reported, even from a pickup location
+                    // without a Blazma branch ID (e.g. an external hospital); LogData only sends
+                    // samples Blazma itself told us about.
+                    if ($logService->hasIntegration($task)) {
                         dispatch(new LogData($task, 'picked up', $task->collection_date));
                     }
                     Notification::send($driver, new SamplesCollected($task));
@@ -361,10 +363,8 @@ class SampleController extends Controller
                     //check if is task swap == 1 (if true add date to swap_freezer_out_date)
                     $task->save();
                     $logService = new LogService();
-                    $from_location = Location::find($task->from_location);
-                    $with_blazma = $from_location->integration_branch_id ?? false;
-                    if ($with_blazma && $logService->hasIntegration($task)) {
-                        dispatch(new LogData($task, 'freezed in', $task->freezer_date));
+                    if ($logService->hasIntegration($task)) {
+                        dispatch(new LogData($task, 'freezed in', $task->is_swap ? $task->swap_freezer_in : $task->freezer_date));
                     }
                     Notification::send($driver, new SamplesInFreezer($task));
                 }
@@ -470,10 +470,8 @@ class SampleController extends Controller
                     }
                     $task->save();
                     $logService = new LogService();
-                    $from_location = Location::find($task->from_location);
-                    $with_blazma = $from_location->integration_branch_id ?? false;
-                    if ($with_blazma && $logService->hasIntegration($task)) {
-                        dispatch(new LogData($task, 'freezed out', $task->freezer_out_date));
+                    if ($logService->hasIntegration($task)) {
+                        dispatch(new LogData($task, 'freezed out', $task->is_swap ? $task->swap_freezer_out : $task->freezer_out_date));
                     }
                     Notification::send($driver, new SamplesOutFreezer($task));
                 }
@@ -529,10 +527,8 @@ class SampleController extends Controller
                             $task->swap_freezer_out = date('Y-m-d H:i:s');
                         }
                         $task->save();
-                        $from_location = Location::find($task->from_location);
-                        $with_blazma = $from_location->integration_branch_id ?? false;
-                        if ($with_blazma && $logService->hasIntegration($task)) {
-                            dispatch(new LogData($task, 'freezed out', $task->freezer_out_date));
+                        if ($logService->hasIntegration($task)) {
+                            dispatch(new LogData($task, 'freezed out', $task->is_swap ? $task->swap_freezer_out : $task->freezer_out_date));
                         }
                         Notification::send($driver, new SamplesOutFreezer($task));
                     }
@@ -592,9 +588,7 @@ class SampleController extends Controller
 
                     $task->save();
                     $logService = new LogService();
-                    $from_location = Location::find($task->from_location);
-                    $with_blazma = $from_location->integration_branch_id ?? false;
-                    if ($with_blazma && $logService->hasIntegration($task)) {
+                    if ($logService->hasIntegration($task)) {
                         dispatch(new LogData($task, 'delivered', $ldate));
                     }
                      Notification::send($driver, new TaskClosed($task));
@@ -682,9 +676,7 @@ class SampleController extends Controller
                             event (new TaskClosedEvent($task));
                         }
 
-                        $from_location = $task->from;
-                        $with_blazma = $from_location->integration_branch_id ?? false;
-                        if ($with_blazma && $logService->hasIntegration($task)) {
+                        if ($logService->hasIntegration($task)) {
                             dispatch(new LogData($task, 'delivered', $ldate));
                         }
                     }
